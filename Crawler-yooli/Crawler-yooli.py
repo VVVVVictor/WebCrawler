@@ -40,4 +40,4 @@ def login():
 #----------------------------
 #main
 if login():
-	return
+	print('success')
