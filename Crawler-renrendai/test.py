@@ -1,0 +1,1 @@
+data = {"status":0,"data":{"creditInfo":{"creditInfoId":417273,"user":421930}, "loan":{"loanId":100000,"title":"买车"}}}
