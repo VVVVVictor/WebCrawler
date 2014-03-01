@@ -62,7 +62,10 @@ def getData(begin_page, end_page, filedirectory):
     
 #----------------------------
 #main
+reload(sys)
+sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
+
 filedirectory = getConfig()
 if login():
     print('Login success!')
-    getData(0, 2, filedirectory)
+    getData(20000, 20000, filedirectory)

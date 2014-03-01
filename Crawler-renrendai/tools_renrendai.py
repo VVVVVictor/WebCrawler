@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import urllib, urllib2, cookielib
-import sys, string, time, os, re
+import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket
@@ -96,7 +96,85 @@ def analyzeData(webcontent):
     
     if soup.find('img', {'alt':'404'}):
         return False #页面404
-        
+    
+    ### 分析script ###
+    jsonString = soup.find(id = 'credit-info-data').string
+    #jsonString = jsonString.replace('"[', '[').replace(']"', ']') #多余引号导致分析错误
+    scriptData = json.loads(jsonString)
+    
+    loanData = scriptData['data']['loan']
+    loanId = loanData['loanId']
+    title = loanData['title']
+    borrowType = loanData['borrowType']
+    amount = loanData['amount']
+    interest = loanData['interest']
+    months = loanData['months']
+    
+    userId = loanData['borrowerId']
+    username = loanData['nickName']
+    borrowerLevel = loanData['borrowerLevel']
+    
+    leftMonths = loanData['leftMonths'] #剩余期数（月）
+    
+    #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
+    #print soup
+    guaranteeType = repayTyep = ''
+    prepaymentRate = repayEachMonth = '0'
+    #保障方式
+    tag_guaranteeType = soup.find('span', text = u'保障方式')
+    if tag_guaranteeType:
+        guaranteeType = tag_guaranteeType.find_next_sibling('span').contents[0]
+        print guaranteeType
+    #还款方式
+    tag_repayType = soup.find('span', text=u'还款方式')
+    if tag_repayType:
+        repayType = tag_repayType.find_next_sibling('span').contents[0]
+        print repayType
+    #提前还款费率
+    tag_prepaymentRate = soup.find('span', text=u'提前还款费率')
+    if tag_prepaymentRate:
+        prepaymentRate = tag_prepaymentRate.find_next_sibling('span').find('em').string
+        print prepaymentRate
+    #月还本息    
+    tag_repayEachMonth = soup.find('span', text=u'月还本息（元）')
+    if tag_repayEachMonth:
+        repayEachMonth = tag_repayEachMonth.find_next_sibling('span').find('em').string
+        repayEachMonth = repayEachMonth.replace(',', '')
+        print repayEachMonth
+    
+    #待还本息
+    amountToRepay = 0
+    tag_amountToRepay = soup.find('em', text=re.compile(u'待还本息\w*'))
+    if tag_amountToRepay:
+        amountToRepay = tag_amountToRepay.find_next_sibling('span').string.replace(',', '')
+        amountToRepay = re.search(r'\d+', amountToRepay).group()
+    print amountToRepay
+    
+    ###用户个人信息###
+    tag_userinfo = soup.find('div', class_='ui-tab-content-basic')
+    list_userinfo = tag_userinfo.find('ul').find_all('li')
+    #print list_userinfo
+    company = list_userinfo[1].find(class_='tab-list-value').string
+    incomeRange = list_userinfo[2].find(class_='tab-list-value').string
+    age = list_userinfo[3].find(class_='tab-list-value').string
+    companyScale = list_userinfo[4].find(class_='tab-list-value').string
+    house = list_userinfo[5].find(class_='icon-check-checked').next_sibling
+    education = list_userinfo[6].find(class_='tab-list-value').string
+    position = list_userinfo[7].find(class_='tab-list-value').string
+    houseLoan = list_userinfo[8].find(class_='icon-check-checked').next_sibling
+    school = list_userinfo[9].find(id='university')['title']
+    city = list_userinfo[10].find(class_='tab-list-value').string
+    car = list_userinfo[11].find(class_='icon-check-checked').next_sibling
+    marriage =list_userinfo[12].find(class_='tab-list-value').string
+    workTime = list_userinfo[13].find(class_='tab-list-value').string
+    carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
+    
+    
+    buffer_personal = [company, incomeRange, age, companyScale, house, education, position, houseLoan, school, city, car, marriage, workTime, carLoan]
+    print buffer_personal
+    
+    buffer1 = [loanId, title, userId, borrowType, amount, interest, months]
+    print(buffer1)
         
     return True
     
