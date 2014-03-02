@@ -22,6 +22,13 @@ def getData(begin_page, end_page, filedirectory):
     lostPageCount = 0 #记录连续404的页面个数
     lastpage = begin_page #记录抓取的最后一个有效页面
     
+    strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+    name_sheet = filedirectory+str(begin_page)+'-'+str(end_page)+'.'+strtime+'_sheet.csv'
+    file_sheet = open(name_sheet, 'wb')
+    file_sheet.write('\xEF\xBB\xBF') #防止windows下excel打开显示乱码
+    
+    writer = csv.writer(file_sheet)
+    
     for i in range(begin_page, end_page+1):
         req = urllib2.Request(urlLoan+str(i), headers = headers)
         try:
@@ -44,7 +51,7 @@ def getData(begin_page, end_page, filedirectory):
         #end try&except
         
         print('Downloading '+str(i)+' web page...')
-        if analyzeData(m):
+        if analyzeData(m, writer):
             lostPageCount = 0
         else:
             print('404')

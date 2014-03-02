@@ -18,7 +18,7 @@ password = u'wmf123456'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
 #--------------------------------------------------
-#读取配置文件
+#读取配置文件，返回目标文件夹地址
 def getConfig():
     global filedirectory, username, password
     try:
@@ -50,6 +50,8 @@ def getConfig():
         configfile.write('password = '+password+'\n')
         configfile.close()
         print('Create new config file!')
+    
+    createFolder(filedirectory)
     
     print('[CONFIG]')
     print('filedirectory = '+filedirectory)
@@ -91,7 +93,7 @@ def createFolder(filedirectory):
     return
 
 #--------------------------------------------------
-def analyzeData(webcontent):
+def analyzeData(webcontent, csvwriter):
     soup = BeautifulSoup(webcontent)
     
     if soup.find('img', {'alt':'404'}):
@@ -102,6 +104,7 @@ def analyzeData(webcontent):
     #jsonString = jsonString.replace('"[', '[').replace(']"', ']') #多余引号导致分析错误
     scriptData = json.loads(jsonString)
     
+    ###本次借款基本信息###
     loanData = scriptData['data']['loan']
     loanId = loanData['loanId']
     title = loanData['title']
@@ -109,12 +112,16 @@ def analyzeData(webcontent):
     amount = loanData['amount']
     interest = loanData['interest']
     months = loanData['months']
-    
     userId = loanData['borrowerId']
     username = loanData['nickName']
     borrowerLevel = loanData['borrowerLevel']
-    
     leftMonths = loanData['leftMonths'] #剩余期数（月）
+    
+    ###审核信息###
+    creditInfo = scriptData['data']['creditInfo']
+    
+    ###审核通过时间###
+    creditPassedTime = scriptData['data']['creditPassedTime']
     
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
     #print soup
@@ -141,7 +148,6 @@ def analyzeData(webcontent):
         repayEachMonth = tag_repayEachMonth.find_next_sibling('span').find('em').string
         repayEachMonth = repayEachMonth.replace(',', '')
         print repayEachMonth
-    
     #待还本息
     amountToRepay = 0
     tag_amountToRepay = soup.find('em', text=re.compile(u'待还本息\w*'))
@@ -169,9 +175,24 @@ def analyzeData(webcontent):
     workTime = list_userinfo[13].find(class_='tab-list-value').string
     carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
     
+    userinfo = [company, incomeRange, age, companyScale, house, education, position, houseLoan, school, city, car, marriage, workTime, carLoan]
+    #print buffer_personal
+    #csvwriter.writerow(buffer_personal)
     
-    buffer_personal = [company, incomeRange, age, companyScale, house, education, position, houseLoan, school, city, car, marriage, workTime, carLoan]
-    print buffer_personal
+    ###信用档案###
+    tag_creditRecord = soup.find('div', class_='ui-tab-content-expediente') 
+    list_creditRecord = tag_creditRecord.find('ul').find_all('li')
+    loanTimes = list_creditRecord[0].find(class_='tab-list-value').string #申请借款（笔）
+    creditLine = list_creditRecord[1].find(class_='tab-list-value').string #信用额度
+    overdueAmount = list_creditRecord[2].find(class_='tab-list-value').string #逾期金额
+    loanSuccessTimes = list_creditRecord[3].find(class_='tab-list-value').string #成功借款
+    loanTotalAmount = list_creditRecord[4].find(class_='tab-list-value').string #借款总额
+    overdueTimes = list_creditRecord[5].find(class_='tab-list-value').string #逾期次数
+    payoffTimes = list_creditRecord[6].find(class_='tab-list-value').string #还清笔数
+    torepayAmount = list_creditRecord[7].find(class_='tab-list-value').string #待还本息
+    seriousOverdueTimes = list_creditRecord[8].find(class_='tab-list-value').string #严重逾期
+    creditRecord = [loanTimes, loanSuccessTimes, payoffTimes, creditLine, loanTotalAmount, torepayAmount, overdueAmount, overdueTimes, seriousOverdueTimes]
+    print(creditRecord)
     
     buffer1 = [loanId, title, userId, borrowType, amount, interest, months]
     print(buffer1)
