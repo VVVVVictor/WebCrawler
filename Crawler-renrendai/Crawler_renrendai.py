@@ -1,6 +1,8 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
+__author__ = "Wang Miaofei"
+
 import urllib, urllib2, cookielib
 import sys, string, time, os, re
 import csv
