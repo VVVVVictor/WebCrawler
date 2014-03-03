@@ -13,6 +13,10 @@ filedirectory = u'D:\\datas\\pythondatas\\renrendai\\'
 #For login
 urlLogin = u'https://www.renrendai.com/j_spring_security_check'
 urlIndex = u'http://www.renrendai.com/'
+urlLenderRecordsPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderRecords&loanId='
+urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=repayDetail&loanId='
+urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
+urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
 username = u'15120000823'
 password = u'wmf123456'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
@@ -117,14 +121,25 @@ def analyzeData(webcontent, csvwriter):
     borrowerLevel = loanData['borrowerLevel']
     leftMonths = loanData['leftMonths'] #剩余期数（月）
     
+    buffer1 = [loanId, title, userId, borrowType, amount, interest, months]
+    print(buffer1)
+    
     ###审核信息###
     creditInfo = scriptData['data']['creditInfo']
     
     ###审核通过时间###
+    #"creditPassedTime":{"creditPassedTimeId":77028,"user":77078,"credit":"Dec 26, 2011 12:58:55 PM","work":"Dec 19, 2011 2:47:29 PM","incomeDuty":"Dec 22, 2011 1:34:36 PM","identificationScanning":"Dec 17, 2011 1:43:35 PM","marriage":"Dec 19, 2011 9:55:20 AM"}
     creditPassedTime = scriptData['data']['creditPassedTime']
+    #信用报告，工作认证，收入认证，身份认证，婚姻认证
+    list_passedTime = {'credit':'', 'work':'', 'incomeDuty':'', 'identificationScanning':'', 'marriage':''}
+    for item in creditPassedTime.keys():
+        list_passedTime[item] = creditPassedTime[item]
+    print list_passedTime
+    
     
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
     #print soup
+    
     guaranteeType = repayTyep = ''
     prepaymentRate = repayEachMonth = '0'
     #保障方式
@@ -194,8 +209,96 @@ def analyzeData(webcontent, csvwriter):
     creditRecord = [loanTimes, loanSuccessTimes, payoffTimes, creditLine, loanTotalAmount, torepayAmount, overdueAmount, overdueTimes, seriousOverdueTimes]
     print(creditRecord)
     
-    buffer1 = [loanId, title, userId, borrowType, amount, interest, months]
-    print(buffer1)
+    
+    #-----------------------------------------------------
+    ###js获得投标记录###
+    req_lenderRecords = urllib2.Request(urlLenderRecordsPrefix+str(loanId), headers=headers)
+    #while:
+    print('[LENDER RECORDS]')
+    try:
+        response_lenderRecords = urllib2.urlopen(req_lenderRecords)
+        lenderRecordsString = response_lenderRecords.read()
+        lenderRecords = json.loads(lenderRecordsString)
+        list_lenderRecords = lenderRecords['data']['lenderRecords']
+        #print list_lenderInfo
+        for item in list_lenderRecords:
+            buffer_lenderRecords = [item['loanId'], item['userId'], item['userNickName'], item['amount'], item['lendTime']]
+            print buffer_lenderRecords
+    except (urllib2.URLError) as e:
+        if hasattr(e, 'code'):
+            print(str(e.code)+': '+str(e.reason))
+        else:
+            print(e.reason)
+    except socket.error as e:
+        print('ERROR] Socket error: '+str(e.errno))    
+    
+    #-----------------------------------------------------
+    ###js获得还款表现###
+    req_repayDetail = urllib2.Request(urlRepayDetailPrefix+str(loanId), headers=headers)
+    try:
+        response_repayDetail = urllib2.urlopen(req_repayDetail)
+        repayDetailString = response_repayDetail.read()
+        repayDetail = json.loads(repayDetailString)
         
+        totalunRepaid = repayDetail['data']['unRepaid']
+        totalRepaid = repayDetail['data']['repaid']
+        list_repayDetail = repayDetail['data']['phases']
+        for item in list_repayDetail:
+            buffer_repayDetail = [item['repayTime'], item['status'], item['unRepaidAmount'], item['unRepaidFee'], item['actualRepayTime']]
+            print buffer_repayDetail
+        
+    except (urllib2.URLError) as e:
+        if hasattr(e, 'code'):
+            print(str(e.code)+': '+str(e.reason))
+        else:
+            print(e.reason)
+    except socket.error as e:
+        print('ERROR] Socket error: '+str(e.errno))
+        i = lastpage 
+    #-----------------------------------------------------
+    ###js获得债权信息###
+    req_lenderInfo = urllib2.Request(urlLenderInfoPrefix+str(loanId), headers=headers)
+    #while:
+    try:
+        response_lenderInfo = urllib2.urlopen(req_lenderInfo)
+        lenderInfoString = response_lenderInfo.read()
+        lenderInfo = json.loads(lenderInfoString)
+        list_lenderInfo = lenderInfo['data']['lenders']
+        #print list_lenderInfo
+        for item in list_lenderInfo:
+            buffer_lenderInfo = [loanId, item['userId'], item['nickName'], item['leftAmount'], item['lendTime'], item['share']]
+            print buffer_lenderInfo
+    except (urllib2.URLError) as e:
+        if hasattr(e, 'code'):
+            print(str(e.code)+': '+str(e.reason))
+        else:
+            print(e.reason)
+    except socket.error as e:
+        print('ERROR] Socket error: '+str(e.errno))
+    
+    #-----------------------------------------------------
+    ###js获得债券转让记录###
+    req_transferLog = urllib2.Request(urlTransferLogPrefix+str(loanId), headers=headers)
+    try:
+        response_transferLog = urllib2.urlopen(req_transferLog)
+        transferLogString = response_transferLog.read()
+        transferLog = json.loads(transferLogString)
+        
+        transferAccount = transferLog['data']['account']
+        transferNoAccount = transferLog['data']['noAccount']
+        list_transferLog = transferLog['data']['loanTransferLogList']
+        print('[TRANSFER LOG]')
+        for item in list_transferLog:
+            buffer_transferLog = [item['fromNickName'], item['fromUserId'], item['toNickName'], item['toUserId'], item['price'], item['share'], item['createTime']]
+            print buffer_transferLog
+    except (urllib2.URLError) as e:
+        if hasattr(e, 'code'):
+            print(str(e.code)+': '+str(e.reason))
+        else:
+            print(e.reason)
+    except socket.error as e:
+        print('ERROR] Socket error: '+str(e.errno))
+        i = lastpage 
+    
     return True
     

@@ -23,11 +23,16 @@ def getData(begin_page, end_page, filedirectory):
     lastpage = begin_page #记录抓取的最后一个有效页面
     
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-    name_sheet = filedirectory+str(begin_page)+'-'+str(end_page)+'.'+strtime+'_sheet.csv'
-    file_sheet = open(name_sheet, 'wb')
-    file_sheet.write('\xEF\xBB\xBF') #防止windows下excel打开显示乱码
     
-    writer = csv.writer(file_sheet)
+    writers = [] #csv writer list
+    for i in range(1, 2):
+        name_sheet = filedirectory+str(begin_page)+'-'+str(end_page)+'.'+strtime+'_sheet'+str(i)+'.csv'
+        file_sheet = open(name_sheet, 'wb')
+        file_sheet.write('\xEF\xBB\xBF') #防止windows下excel打开显示乱码
+        
+        writer = csv.writer(file_sheet)
+        writers.append(writer)
+    #end for
     
     for i in range(begin_page, end_page+1):
         req = urllib2.Request(urlLoan+str(i), headers = headers)
@@ -51,7 +56,7 @@ def getData(begin_page, end_page, filedirectory):
         #end try&except
         
         print('Downloading '+str(i)+' web page...')
-        if analyzeData(m, writer):
+        if analyzeData(m, writers[0]):
             lostPageCount = 0
         else:
             print('404')
@@ -75,4 +80,4 @@ sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 filedirectory = getConfig()
 if login():
     print('Login success!')
-    getData(20000, 20000, filedirectory)
+    getData(120000, 120000, filedirectory)
