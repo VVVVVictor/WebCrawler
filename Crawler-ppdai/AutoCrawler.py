@@ -39,7 +39,7 @@ headers={'Referer':'http://www.ppdai.com/default.htm','User-Agent': 'Mozilla/5.0
 
 
 attrList = u'借贷单号,标题,金额（元）,年利率,期限（月）,是否结束（1表示已结束）,借款人id,借入信用,借出信用'
-titles = (('抓取时间','抓取时刻','订单号','安','非','赔','保','农','订单标题','金额(元）','年利率','期限（月）','还款方式','每月还款金额','进度','借款状态','剩余时间','结束时间','总投标数','浏览量','借款id','借入信用等级','借入信用分数','借出信用分数','成功次数','流标次数','身份认证','视频认证','学历认证','手机认证','借款目的','性别','年龄','婚姻状况','文化程度','住宅状况','是否购车','关于我','我想要使用这笔款项做什么','我的还款能力说明'),
+titles = (('抓取时间','抓取时刻','订单号','安','非','赔','保','农','订单标题','金额(元）','年利率','期限（月）','还款方式','每月还款金额','进度','借款状态','剩余时间','结束时间','总投标数','浏览量','借款id','借入信用等级','借入信用分数','借出信用分数','成功次数','流标次数','身份认证','视频认证','学历认证','手机认证','借款目的','性别','年龄','婚姻状况','文化程度','住宅状况','是否购车','户口所在地','毕业学校','学历','学习形式','网站认证','淘宝网认证','卖家信用等级（皇冠数*10+钻石数*1）','关于我','我想要使用这笔款项做什么','我的还款能力说明'),
     ('抓取时间','抓取时刻','订单号','投标ID','当前利率（%）','投标金额','投标时间（天）','投标时间（时刻）'),
     ('抓取时间','抓取时刻','借款ID','借入信用','借出信用','性别','年龄分档（1(20-25)  2(26-31)  3(32-38)  4(>39)）','目前身份','注册时间','投标次数','坏帐计提/借出总金额','加权投标利率（反映风险偏好）','最后更新时间','身份认证','视频认证','学历认证','手机认证','网上银行充值认证','全款还清次数','全款还清得分','逾期且还款次数','资料得分','社区得分','身份认证','视频认证','学历认证','手机认证','投标成功次数','收到完整本息笔数','收到本息次数','逾期笔数'),
     ('抓取时间','抓取时刻','借款ID','订单号','订单标题','借款金额（元）','年利率（%）','借款期限（月）','状态','信用等级','借款进度','已完成投标数','时间'),
@@ -436,7 +436,47 @@ def analyzeData_ppdai(orderID, webcontent):
     buffer1.append(degree)
     buffer1.append(house)
     buffer1.append(car)
+    
+    #户口认证、学历认证、网站认证
+    hukouPlace = schoolName = eduBgd = eduType = ''
+    tag_hukouPlace = soup.find('span', {'class':'hukou'})
+    if tag_hukouPlace:
+        hukouPlace = re.search(u'户口所在地：(.*)', tag_hukouPlace.string).group(1)
         
+    tag_school = soup.find('span', {'class':'record'})
+    if tag_school:
+        eduRecord = re.search(u'毕业学校：(.*)，学历：(.*)，学习形式：(.*)）', tag_school.string)
+        schoolName = eduRecord.group(1)
+        eduBgd = eduRecord.group(2)
+        eduType = eduRecord.group(3)
+    
+    buffer1.append(hukouPlace)
+    buffer1.append(schoolName)
+    buffer1.append(eduBgd)
+    buffer1.append(eduType)
+    
+    tag_siteAuth = soup.find('h4', text=u'网站认证：')
+    rank_taobao = taobao = ''
+    if tag_siteAuth:
+        siteAuth = 1
+        list_taobao = tag_siteAuth.find_next_siblings('span', {'class':'taobao'})#可能有多条
+        if len(list_taobao) > 0:
+            taobao = 1
+            guanCount = zuanCount = 0
+            for item_taobao in list_taobao:
+                guanCount += len(item_taobao.find_all('img', {'src':'http://static.ppdai.com/skin/images/sell_guan.gif'}))
+                zuanCount += len(item_taobao.find_all('img', {'src':'http://static.ppdai.com/skin/images/sell_zhuan.gif'})) #写网站的人z/zh不分
+            rank_taobao = guanCount*10+zuanCount
+            m_tmall = re.search(u'天猫商城', unicode(list_taobao))
+            if m_tmall:
+                rank_taobao = u'天猫商城'
+        else:
+            taobao = 0
+    else:
+        siteAuth = 0
+    buffer1.append(siteAuth)
+    buffer1.append(taobao)
+    buffer1.append(str(rank_taobao))
     #print(tag_table)
     #tag_basicInfo = tag_table.find_next_sibling('tr')
     #print(tag_basicInfo)
@@ -456,6 +496,7 @@ def analyzeData_ppdai(orderID, webcontent):
     tag_wanttodo = soup.find('h3', text=re.compile(u'(\s|\n)*我想要使用这笔款项做什么(\s|\n)*'))
     if tag_wanttodo:
         wanttodo = tag_wanttodo.find_next_sibling('p').string.strip()
+        wanttodo = wanttodo.replace(u'\u000D\u000A', '') #删除换行
     else:
         wanttodo = ''
     buffer1.append(wanttodo)
@@ -463,6 +504,7 @@ def analyzeData_ppdai(orderID, webcontent):
     tag_refundAbility = soup.find('h3', text=re.compile(u'(\s|\n)*我的还款能力说明(\s|\n)*'))
     if tag_refundAbility:
         refundAbility = tag_refundAbility.find_next_sibling('p').string.strip()
+        refundAbility = refundAbility.replace(u'\u000D\u000A', '') #删除换行
     else:
         refundAbility = ''
     buffer1.append(refundAbility)
