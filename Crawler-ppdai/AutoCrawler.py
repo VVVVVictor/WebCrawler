@@ -491,7 +491,6 @@ def analyzeData_ppdai(orderID, webcontent):
             aboutme = aboutme.replace(u'\u000D\u000A', '') #删除换行
     else:
         aboutme = ''
-    buffer1.append(aboutme)
     ##我想要使用这笔款项做什么（31）
     tag_wanttodo = soup.find('h3', text=re.compile(u'(\s|\n)*我想要使用这笔款项做什么(\s|\n)*'))
     if tag_wanttodo:
@@ -499,7 +498,6 @@ def analyzeData_ppdai(orderID, webcontent):
         wanttodo = wanttodo.replace(u'\u000D\u000A', '') #删除换行
     else:
         wanttodo = ''
-    buffer1.append(wanttodo)
     ##我的还款能力说明（32）
     tag_refundAbility = soup.find('h3', text=re.compile(u'(\s|\n)*我的还款能力说明(\s|\n)*'))
     if tag_refundAbility:
@@ -507,6 +505,9 @@ def analyzeData_ppdai(orderID, webcontent):
         refundAbility = refundAbility.replace(u'\u000D\u000A', '') #删除换行
     else:
         refundAbility = ''
+    
+    buffer1.append(aboutme)
+    buffer1.append(wanttodo)
     buffer1.append(refundAbility)
     
     #将数据写入表1中
