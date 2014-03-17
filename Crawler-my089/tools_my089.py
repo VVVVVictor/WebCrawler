@@ -29,7 +29,7 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 def getConfig():
     global filedirectory, username, password
     try:
-        configfile = open(os.getcwd()+'\\'+configfileName, 'r')
+        configfile = open(os.getcwd()+'/'+configfileName, 'r')
         #line = configfile.readline()
         pattern = re.compile(u'\s*(\w+)\s*=\s*(\S+)\s*')
         for line in configfile:
@@ -81,13 +81,14 @@ def login():
         req = urllib2.Request(urlLogin, postdata, headers)
         result = urllib2.urlopen(req)
         if urlIndex != result.geturl(): #通过返回url判断是否登录成功
+            print result.geturl()
             print(u'[FAIL]Wrong USERNAME or PASSWORD. Please try again!')
             return False
         result.close()
 
         req2 = urllib2.Request(urlIndex, headers=headers)
         result2 = urllib2.urlopen(req2)
-        print result2.read()
+        #print result2.read()
     except:
         print(u'[FAIL]Login failed. Please try again!')
         return False

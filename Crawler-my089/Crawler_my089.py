@@ -8,6 +8,7 @@ import sys, string, time, os, re
 import csv
 from bs4 import BeautifulSoup
 import socket
+from pybloomfilter import BloomFilter
 from tools_my089 import *
 
 #constant
@@ -15,8 +16,15 @@ LOST_PAGE_LIMIT = int(10)
 
 #for crawl
 urlLoan = u'http://www.renrendai.com/lend/detailPage.action?loanId='
+urlHost = u'http://www.my089.com'
+urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
-headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
+headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.my089.com'}
+
+orderPattern = re.compile(u'http://www.my089.com/Loan/Detail.aspx\?sid=(\d|-)+')
+usePattern = re.compile(urlHost+u'(/Loan/Detail.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1.aspx?uid=(\d|\w)+)')
+
+bf = BloomFilter(10000000, 0.01, 'filter.bloom')
 
 def getData(begin_page, end_page, filedirectory):
     
@@ -72,8 +80,31 @@ def getData(begin_page, end_page, filedirectory):
     print(u'[execute time]:'+str(endtime-starttime)+'s')
     return
 #end def getData()
-        
+
+def handlePage(urlCur):
+    print 'current = ' + urlCur
+    if urlCur in bf:
+        print 'dumplicate'
+        return
     
+    urlCur = u'http://www.my089.com/Loan/Detail.aspx?sid=14021808260150690335190015542346'
+    if usePattern.match(urlCur):
+        findUrl(urlCur)
+        if orderPattern.match(urlCur):
+            req = urllib2.Request(urlCur, headers = headers)
+            response = urllib2.urlopen(req)
+            m = response.read()
+            #analyzeData() #tools
+
+    bf.add(urlCur)
+    logf.write(urlCur)
+#end def handlePage
+
+def findUrl(url):
+    req = urllib2.Request(url, headers = headers)
+    response = urllib2.urlopen(req)
+    m = response.read()
+#def findUrl
 #----------------------------
 #main
 reload(sys)
@@ -82,3 +113,8 @@ sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 filedirectory = getConfig()
 if login():
     print('Login success!')
+    bf.clear_all()
+    
+    logf = open('log', 'wb')
+    handlePage(urlStart)
+    logf.close()
