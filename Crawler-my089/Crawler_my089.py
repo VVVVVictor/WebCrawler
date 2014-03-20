@@ -15,7 +15,6 @@ from tools_my089 import *
 LOST_PAGE_LIMIT = int(10)
 
 #for crawl
-urlLoan = u'http://www.renrendai.com/lend/detailPage.action?loanId='
 urlHost = u'http://www.my089.com'
 urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
@@ -115,6 +114,6 @@ if login():
     print('Login success!')
     bf.clear_all()
     
-    logf = open('log', 'wb')
+    logf = open('log.log', 'wb')
     handlePage(urlStart)
     logf.close()
