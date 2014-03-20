@@ -24,6 +24,8 @@ password = u'73f7d9af739c494a455418da7a2efcce'
 #password = u'wmf123456'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
+usePattern = re.compile(u'(Detail\.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1\.aspx\?uid=(\d|\w)+)')
+
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
@@ -104,6 +106,33 @@ def createFolder(filedirectory):
     else:
         os.makedirs(filedirectory) #可以创建多级目录
     return
+
+#--------------------------------------------------
+#分析页面内链接
+def findUrl(url):
+    m = readFromUrl(url)
+    soup = BeautifulSoup(m)
+    list_a = soup.find_all('a')
+    for item_a in list_a:
+        #print item_a
+        if item_a.has_attr('href'):#是否含有链接信息
+            href = item_a['href']
+            if usePattern.match(href):#是否有用
+                if re.search('Detail', href):
+                    href = '/Loan/'+href
+                    #print href
+                yield href
+#end def findUrl
+
+#--------------------------------------------------
+#从url读取页面内容
+def readFromUrl(url):
+    req = urllib2.Request(url, headers = headers)
+    response = urllib2.urlopen(req)
+    m = response.read()
+    response.close()
+    return m
+#end def readFromUrl
 
 #--------------------------------------------------
 def analyzeData(webcontent, csvwriter):

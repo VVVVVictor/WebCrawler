@@ -21,7 +21,7 @@ urlStart = u'http://www.my089.com/Loan/default.aspx'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.my089.com'}
 
 orderPattern = re.compile(u'http://www.my089.com/Loan/Detail.aspx\?sid=(\d|-)+')
-usePattern = re.compile(urlHost+u'(/Loan/Detail.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1.aspx?uid=(\d|\w)+)')
+aList = []#url队列
 
 bf = BloomFilter(10000000, 0.01, 'filter.bloom')
 
@@ -82,28 +82,44 @@ def getData(begin_page, end_page, filedirectory):
 
 def handlePage(urlCur):
     print 'current = ' + urlCur
-    if urlCur in bf:
-        print 'dumplicate'
-        return
-    
-    urlCur = u'http://www.my089.com/Loan/Detail.aspx?sid=14021808260150690335190015542346'
-    if usePattern.match(urlCur):
-        findUrl(urlCur)
-        if orderPattern.match(urlCur):
-            req = urllib2.Request(urlCur, headers = headers)
-            response = urllib2.urlopen(req)
-            m = response.read()
-            #analyzeData() #tools
+    logf.write(urlCur+'\n')
+    if orderPattern.match(urlCur):
+        print('analyze')
+        #analyzeData()
 
-    bf.add(urlCur)
-    logf.write(urlCur)
+    #广度优先
+    for url in findUrl(urlCur):
+        completeUrl = urlHost+url
+        if completeUrl in bf: #去重
+            #print 'dumplicate'
+            continue
+        bf.add(completeUrl)
+        aList.append(completeUrl)
+        
+    if len(aList) > 0:
+        urlCur = aList.pop(0)
+        handlePage(urlCur)
+        
+    #end for
+    
+    '''
+    #深度优先
+    for url in findUrl(urlCur):
+        completeUrl = urlHost+url
+        if completeUrl in bf: #去重
+            #print 'dumplicate'
+            continue
+        bf.add(completeUrl)
+        handlePage(completeUrl)
+    if orderPattern.match(urlCur):
+        m = readFromUrl(urlCur)
+        print('analyze')
+        #analyzeData() #tools
+    '''
+
+    #logf.write(urlCur+'\n')
 #end def handlePage
 
-def findUrl(url):
-    req = urllib2.Request(url, headers = headers)
-    response = urllib2.urlopen(req)
-    m = response.read()
-#def findUrl
 #----------------------------
 #main
 reload(sys)
