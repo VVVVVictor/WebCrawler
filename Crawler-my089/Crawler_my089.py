@@ -80,6 +80,7 @@ def getData(begin_page, end_page, filedirectory):
     return
 #end def getData()
 
+#--------------------------------------------------
 def handlePage(urlCur):
     print 'current = ' + urlCur
     logf.write(urlCur+'\n')
@@ -95,6 +96,7 @@ def handlePage(urlCur):
             continue
         bf.add(completeUrl)
         aList.append(completeUrl)
+        print('ADD: '+completeUrl)
         
     if len(aList) > 0:
         urlCur = aList.pop(0)
@@ -124,6 +126,7 @@ def handlePage(urlCur):
 #main
 reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
+sys.setrecursionlimit(1000000)#设置递归调用深度
 
 filedirectory = getConfig()
 if login():

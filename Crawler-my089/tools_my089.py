@@ -22,7 +22,7 @@ urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.actio
 username = u'victor1991'
 password = u'73f7d9af739c494a455418da7a2efcce'
 #password = u'wmf123456'
-headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
+headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.my089.com'}
 
 usePattern = re.compile(u'(Detail\.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1\.aspx\?uid=(\d|\w)+)')
 
@@ -122,6 +122,7 @@ def findUrl(url):
                     href = '/Loan/'+href
                     #print href
                 yield href
+    
 #end def findUrl
 
 #--------------------------------------------------
