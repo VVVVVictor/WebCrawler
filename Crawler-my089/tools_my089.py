@@ -13,6 +13,7 @@ configfileName = 'config'
 filedirectory = u'D:\\datas\\pythondatas\\my089\\'
 
 #For login
+urlHost = u'http://www.my089.com'
 urlLogin = u'https://member.my089.com/safe/login.aspx'
 urlIndex = u'https://member.my089.com/safe/'
 urlLenderRecordsPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderRecords&loanId='
@@ -126,9 +127,12 @@ def findUrl(webcontent):
 
 #--------------------------------------------------
 #从url读取页面内容
-def readFromUrl(url):
+def readFromUrl(url, formdata = None):
+    m = None
+    if not formdata:
+        formdata = urllib.urlencode(formdata)
     try:
-        req = urllib2.Request(url, headers = headers)
+        req = urllib2.Request(url, formdata, headers = headers)
         response = urllib2.urlopen(req)
         m = response.read()
         response.close()
@@ -136,8 +140,8 @@ def readFromUrl(url):
     except (urllib2.URLError) as e:
         if hasattr(e, 'code'):
             print('ERROR:'+str(e.code)+' '+str(e.reason))
-            return None
-
+            
+    return m
 #end def readFromUrl
 
 #--------------------------------------------------
@@ -151,6 +155,13 @@ def analyzeData(webcontent, csvwriter):
     #print uid
     yield uid
     
+    #http://www.my089.com/Loan/GetDetailItem.aspx?sid=14032223504661291286300010184496&uid=E57D1C7DEAA59546&do=2&rnd=0.45415010140277445
+    #投标记录 do=2
+    #还款信用 do=3
+    #标的奖励 4
+    #账户详情 5
+    #资料审核 7
+    #待还记录 8
     '''
     if soup.find('img', {'alt':'404'}):
         return False #页面404

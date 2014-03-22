@@ -91,8 +91,9 @@ def handlePage(urlCur):
         #analyzeData(m)
         sid = re.search(r'Detail\.aspx\?sid=((\d|-)+)', urlCur).group(1)
         print('sid='+sid)
-        uid = analyzeData(m, None)
-        print(next(uid))
+        uid_generator = analyzeData(m, None)
+        uid = next(uid_generator)
+        print(uid)
         
         
 
@@ -117,6 +118,19 @@ def handlePage(urlCur):
 #end def handlePage
 
 #----------------------------
+def test():
+    formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lBtn2', '__EVENTARGUMENT':''}
+    postdata = urllib.urlencode(formdata)
+    
+    urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=730D99019978EF54'
+    req = urllib2.Request(urlTest, postdata, headers)
+    result = urllib2.urlopen(req)
+    m = result.read()
+    print m
+    return
+#end def test()
+
+#----------------------------
 #main
 reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
@@ -128,8 +142,11 @@ urlStart = urlTest
 filedirectory = getConfig()
 if login():
     print('Login success!')
+    test()
+    '''
     bf.clear_all()
     
     logf = open('log.log', 'wb')
     handlePage(urlStart)
     logf.close()
+    '''
