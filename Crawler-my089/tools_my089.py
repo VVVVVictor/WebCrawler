@@ -24,7 +24,7 @@ password = u'73f7d9af739c494a455418da7a2efcce'
 #password = u'wmf123456'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.my089.com'}
 
-usePattern = re.compile(u'(Detail\.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1\.aspx\?uid=(\d|\w)+)')
+usePattern = re.compile(u'((/Loan/)?Detail\.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1\.aspx\?uid=(\d|\w)+)')
 
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
@@ -109,16 +109,15 @@ def createFolder(filedirectory):
 
 #--------------------------------------------------
 #分析页面内链接
-def findUrl(url):
-    m = readFromUrl(url)
-    soup = BeautifulSoup(m)
+def findUrl(webcontent):
+    soup = BeautifulSoup(webcontent)
     list_a = soup.find_all('a')
     for item_a in list_a:
         #print item_a
         if item_a.has_attr('href'):#是否含有链接信息
             href = item_a['href']
             if usePattern.match(href):#是否有用
-                if re.search('Detail', href):
+                if re.match('Detail.*', href):
                     href = '/Loan/'+href
                     #print href
                 yield href
@@ -139,6 +138,15 @@ def readFromUrl(url):
 def analyzeData(webcontent, csvwriter):
     soup = BeautifulSoup(webcontent)
     
+    tag_uid = soup.find('span', text = re.compile(u'用 户 名：'))
+    print 'tag_uid='+str(tag_uid)
+    href_uid = tag_uid.find_next_sibling('span').a['href']
+    uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(0)
+    #print uid
+    yield uid
+    return
+    
+    '''
     if soup.find('img', {'alt':'404'}):
         return False #页面404
     
@@ -340,4 +348,4 @@ def analyzeData(webcontent, csvwriter):
         i = lastpage 
     
     return True
-    
+    '''

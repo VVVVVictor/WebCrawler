@@ -84,12 +84,21 @@ def getData(begin_page, end_page, filedirectory):
 def handlePage(urlCur):
     print 'current = ' + urlCur
     logf.write(urlCur+'\n')
+    
+    m = readFromUrl(urlCur)
     if orderPattern.match(urlCur):
         print('analyze')
-        #analyzeData()
+        #analyzeData(m)
+        sid = re.search(r'Detail\.aspx\?sid=((\d|-)+)', urlCur).group(1)
+        print('sid='+sid)
+        uid = analyzeData(m, None)
+        print(next(uid))
+        
+        
 
     #广度优先
-    for url in findUrl(urlCur):
+    
+    for url in findUrl(m):
         completeUrl = urlHost+url
         if completeUrl in bf: #去重
             #print 'dumplicate'
@@ -103,21 +112,6 @@ def handlePage(urlCur):
         handlePage(urlCur)
         
     #end for
-    
-    '''
-    #深度优先
-    for url in findUrl(urlCur):
-        completeUrl = urlHost+url
-        if completeUrl in bf: #去重
-            #print 'dumplicate'
-            continue
-        bf.add(completeUrl)
-        handlePage(completeUrl)
-    if orderPattern.match(urlCur):
-        m = readFromUrl(urlCur)
-        print('analyze')
-        #analyzeData() #tools
-    '''
 
     #logf.write(urlCur+'\n')
 #end def handlePage
@@ -127,6 +121,9 @@ def handlePage(urlCur):
 reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 sys.setrecursionlimit(1000000)#设置递归调用深度
+
+urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=0C7C8143B7536149'
+urlStart = urlTest
 
 filedirectory = getConfig()
 if login():
