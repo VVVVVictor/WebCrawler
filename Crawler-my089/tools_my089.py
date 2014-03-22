@@ -127,11 +127,17 @@ def findUrl(webcontent):
 #--------------------------------------------------
 #从url读取页面内容
 def readFromUrl(url):
-    req = urllib2.Request(url, headers = headers)
-    response = urllib2.urlopen(req)
-    m = response.read()
-    response.close()
-    return m
+    try:
+        req = urllib2.Request(url, headers = headers)
+        response = urllib2.urlopen(req)
+        m = response.read()
+        response.close()
+        return m
+    except (urllib2.URLError) as e:
+        if hasattr(e, 'code'):
+            print('ERROR:'+str(e.code)+' '+str(e.reason))
+            return None
+
 #end def readFromUrl
 
 #--------------------------------------------------
@@ -144,7 +150,6 @@ def analyzeData(webcontent, csvwriter):
     uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(0)
     #print uid
     yield uid
-    return
     
     '''
     if soup.find('img', {'alt':'404'}):
