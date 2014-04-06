@@ -20,7 +20,7 @@ urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.my089.com'}
 
-orderPattern = re.compile(u'http://www.my089.com/Loan/Detail.aspx\?sid=(\d|-)+')
+
 aList = []#url队列
 
 bf = BloomFilter(10000000, 0.01, 'filter.bloom')
@@ -91,14 +91,11 @@ def handlePage(urlCur):
         #analyzeData(m)
         sid = re.search(r'Detail\.aspx\?sid=((\d|-)+)', urlCur).group(1)
         print('sid='+sid)
-        uid_generator = analyzeData(m, None)
-        uid = next(uid_generator)
-        print(uid)
+        uid = analyzeData(m, sid, None)
+        #uid = next(uid_generator)
+        #print(uid)
         
-        
-
     #广度优先
-    
     for url in findUrl(m):
         completeUrl = urlHost+url
         if completeUrl in bf: #去重
@@ -119,6 +116,10 @@ def handlePage(urlCur):
 
 #----------------------------
 def test():
+    urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=14040621194931090438530010644748'
+    print findAllUrl(urlTemp)
+
+'''
     formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lBtn2', '__EVENTARGUMENT':''}
     postdata = urllib.urlencode(formdata)
     
@@ -127,7 +128,7 @@ def test():
     result = urllib2.urlopen(req)
     m = result.read()
     print m
-    return
+'''
 #end def test()
 
 #----------------------------
@@ -143,10 +144,11 @@ filedirectory = getConfig()
 if login():
     print('Login success!')
     test()
-    '''
+    
+'''
     bf.clear_all()
     
     logf = open('log.log', 'wb')
     handlePage(urlStart)
     logf.close()
-    '''
+  '''  

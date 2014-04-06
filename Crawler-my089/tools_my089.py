@@ -8,6 +8,7 @@ import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket
+import hashlib
 
 configfileName = 'config'
 filedirectory = u'D:\\datas\\pythondatas\\my089\\'
@@ -21,11 +22,20 @@ urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.
 urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
 urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
 username = u'victor1991'
-password = u'73f7d9af739c494a455418da7a2efcce'
-#password = u'wmf123456'
+#password = u'73f7d9af739c494a455418da7a2efcce'
+password = u'wmf123456'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.my089.com'}
 
 usePattern = re.compile(u'((/Loan/)?Detail\.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1\.aspx\?uid=(\d|\w)+)')
+loanPattern = re.compile(u'(/Loan/)?Detail\.aspx\?sid=(\d|-)+')
+orderPattern = re.compile(u'http://www.my089.com/Loan/Detail.aspx\?sid=((\d|-)+)')
+
+#用户页面说明
+#个人信息 ConsumerInfo1.aspx?uid=
+#信用评价 ConsumerInfo.aspx?uid=
+#还款明细账单 4 #积分50分
+#论坛帖子 2
+#正在招标中的借款 ConsumerInfo3.aspx?uid=
 
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
@@ -77,7 +87,10 @@ def login():
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     urllib2.install_opener(opener)
 
-    data = {'txtUid':username, 'MD5Pwd':password, 'txtPwd1':'', 'SaveMinits':'10080', 'btnLogin':u'立即登录'}
+    md5pwd = hashlib.md5(password).hexdigest();
+    print 'md5 password = '+md5pwd
+    #md5pwd = '73f7d9af739c494a455418da7a2efcce'
+    data = {'txtUid':username, 'MD5Pwd':md5pwd, 'txtPwd1':'', 'SaveMinits':'10080', 'btnLogin':u'立即登录'}
     postdata = urllib.urlencode(data)
 
     try:
@@ -109,8 +122,39 @@ def createFolder(filedirectory):
     return
 
 #--------------------------------------------------
+#分析页面取得所有的url
+def findAllUrl(url):
+    mr_order = orderPattern.match(url)
+    list_url = []
+    if mr_order: #order页面
+        sid = mr_order.group(1)
+        uid = getUidFromLoan(url)
+        list_temp = findUrl(readFromUrl(url)) #初始页面中的url
+        list_url.extend(list_temp)
+        #print list_url
+        #print getDetailUrl(sid, uid, 8)
+        list_temp = findUrl(readFromUrl(getDetailUrl(sid, uid, 8))) #待还记录中的url
+        list_url.extend(list_temp)
+
+    return list_url
+#--------------------------------------------------
+#从loan detail页面获取当前用户id
+def getUidFromLoan(url):
+    if orderPattern.match(url):
+        webcontent = readFromUrl(url)
+        soup = BeautifulSoup(webcontent)
+    
+        tag_uid = soup.find('span', text = re.compile(u'用 户 名：'))
+        #print 'tag_uid='+str(tag_uid)
+        href_uid = tag_uid.find_next_sibling('span').a['href']
+        uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(1)
+        return uid
+    return None
+    
+#--------------------------------------------------
 #分析页面内链接
 def findUrl(webcontent):
+    list_url = []
     soup = BeautifulSoup(webcontent)
     list_a = soup.find_all('a')
     for item_a in list_a:
@@ -121,15 +165,15 @@ def findUrl(webcontent):
                 if re.match('Detail.*', href):
                     href = '/Loan/'+href
                     #print href
-                yield href
-    
+                list_url.append(href)
+    return list_url
 #end def findUrl
 
 #--------------------------------------------------
 #从url读取页面内容
 def readFromUrl(url, formdata = None):
     m = None
-    if not formdata:
+    if formdata != None:
         formdata = urllib.urlencode(formdata)
     try:
         req = urllib2.Request(url, formdata, headers = headers)
@@ -143,18 +187,27 @@ def readFromUrl(url, formdata = None):
             
     return m
 #end def readFromUrl
+#--------------------------------------------------
+#从/Loan/Detail.aspx 得到更细节的信息
+#借款信息 1
+#投标记录 2
+#还款信用 3
+#标的奖励 4
+#账户详情 5
+#资料审核 7
+#待还记录 8
+def getDetailUrl(sid, uid, doNumber):
+    return urlHost + '/Loan/GetDetailItem.aspx\?sid='+str(sid)+'&uid='+str(uid)+'&do='+str(doNumber);
 
 #--------------------------------------------------
-def analyzeData(webcontent, csvwriter):
+def analyzeData(webcontent, sid, csvwriter):
     soup = BeautifulSoup(webcontent)
     
     tag_uid = soup.find('span', text = re.compile(u'用 户 名：'))
-    print 'tag_uid='+str(tag_uid)
+    #print 'tag_uid='+str(tag_uid)
     href_uid = tag_uid.find_next_sibling('span').a['href']
-    uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(0)
-    #print uid
-    yield uid
-    
+    uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(1)
+
     #http://www.my089.com/Loan/GetDetailItem.aspx?sid=14032223504661291286300010184496&uid=E57D1C7DEAA59546&do=2&rnd=0.45415010140277445
     #投标记录 do=2
     #还款信用 do=3
@@ -162,6 +215,12 @@ def analyzeData(webcontent, csvwriter):
     #账户详情 5
     #资料审核 7
     #待还记录 8
+    m_toRepay = readFromUrl(getDetailUrl(8))
+    print 'm_toRepay = '+m_toRepay
+
+
+    return uid;
+
     '''
     if soup.find('img', {'alt':'404'}):
         return False #页面404
