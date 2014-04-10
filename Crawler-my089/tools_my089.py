@@ -17,10 +17,9 @@ filedirectory = u'D:\\datas\\pythondatas\\my089\\'
 urlHost = u'http://www.my089.com'
 urlLogin = u'https://member.my089.com/safe/login.aspx'
 urlIndex = u'https://member.my089.com/safe/'
-urlLenderRecordsPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderRecords&loanId='
-urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=repayDetail&loanId='
-urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
-urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
+urlDefault = u'http://www.my089.com/Loan/default.aspx'
+urlSucceed = u'http://www.my089.com/Loan/Succeed.aspx'
+
 username = u'victor1991'
 #password = u'73f7d9af739c494a455418da7a2efcce'
 password = u'wmf123456'
@@ -28,7 +27,11 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 
 usePattern = re.compile(u'((/Loan/)?Detail\.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1\.aspx\?uid=(\d|\w)+)')
 loanPattern = re.compile(u'(/Loan/)?Detail\.aspx\?sid=(\d|-)+')
-orderPattern = re.compile(u'http://www.my089.com/Loan/Detail.aspx\?sid=((\d|-)+)')
+orderPattern = re.compile(u'http://www.my089.com/Loan/Detail\.aspx\?sid=((\d|-)+)')
+consumerPattern = re.compile(u'http://www.my089.com/ConsumerInfo1\.aspx\?uid=((\d|\w)+)')
+errorPattern = re.compile(u'/Error/default\.aspx')
+defaultPattern = re.compile(urlHost + '/Loan/default\.aspx(\?pid=1)?')
+succeedPattern = re.compile(urlLogin + '/Loan/Succeed\.aspx(\?pid=1)?')
 
 #用户页面说明
 #个人信息 ConsumerInfo1.aspx?uid=
@@ -124,9 +127,36 @@ def createFolder(filedirectory):
 #--------------------------------------------------
 #分析页面取得所有的url
 def findAllUrl(url):
+    mr_succeed = succeedPattern.match(url)
+    mr_default = defaultPattern.match(url)
     mr_order = orderPattern.match(url)
+    mr_consumer = consumerPattern.match(url)
     list_url = []
-    if mr_order: #order页面
+
+    #投资默认页面
+    if mr_default:
+        print 'Page default'
+        content = readFromUrl(url)
+        soup = BeautifulSoup(content)
+        tag_pageCount = soup.find('span', {'class':'z_page'})
+        pageCount = 1
+        if tag_pageCount:
+            pageCount = re.search('\d', tag_pageCount.string).group(0)
+            #print pageCount
+        for i in range(1, int(pageCount)+1):
+            main_content = BeautifulSoup(readFromUrl(urlDefault+'?pid='+str(i))).find('div', {'id':'man'})
+            list_temp = findUrl(main_content.prettify())
+            list_url.extend(list_temp)
+            
+    #投资成功页面        
+    elif mr_succeed:
+        print 'Page succeed'
+        for i in range(1, 100):
+            main_content = BeautifulSoup(readFromUrl(urlDefault+'?pid='+str(i))).find('div', {'id':'man'})
+            list_temp = findUrl(main_content.prettify())
+            list_url.extend(list_temp)
+    #order页面
+    elif mr_order: 
         sid = mr_order.group(1)
         uid = getUidFromLoan(url)
         list_temp = findUrl(readFromUrl(url)) #初始页面中的url
@@ -136,6 +166,60 @@ def findAllUrl(url):
         list_temp = findUrl(readFromUrl(getDetailUrl(sid, uid, 8))) #待还记录中的url
         list_url.extend(list_temp)
 
+    #consumer页面
+    elif mr_consumer:
+        uid = mr_consumer.group(1)
+        consumer_content = readFromUrl(url)
+        list_temp = findUrl(consumer_content) #用户初始页面，借款列表第一页
+        list_url.extend(list_temp)
+
+        #使用“下一页”按钮遍历借款列表页
+        content = consumer_content
+        while True:
+            #print 'first while'
+            soup = BeautifulSoup(content)
+            if not soup.find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlBrrows'}): #查看不到借款信息
+                break
+            viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
+            eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
+
+            formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lbtnNext', '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
+            postdata = urllib.urlencode(formdata)
+            req = urllib2.Request(url, postdata, headers=headers)
+            result = urllib2.urlopen(req)
+            
+            if errorPattern.search(result.geturl()):
+                break #没有下一页
+            content = result.read()
+            tender_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBrrows'})
+            list_temp = findUrl(tender_content.prettify())
+            list_url.extend(list_temp)
+
+        #使用“下一页”按钮遍历投标记录页
+        content = consumer_content
+        while True:
+            soup = BeautifulSoup(content)
+            if not soup.find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}).find('table'): #查看不到投标信息
+                break
+            viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
+            eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
+
+            formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination2$lbtnNext', '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
+            postdata = urllib.urlencode(formdata)
+            req = urllib2.Request(url, postdata, headers=headers)
+            result = urllib2.urlopen(req)
+            
+            if errorPattern.search(result.geturl()):
+                break #没有下一页
+            content = result.read()
+
+            bid_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}).prettify() #只选取投标记录区域
+            list_temp = findUrl(bid_content)
+            #print('add '+str(len(list_temp)))
+            list_url.extend(list_temp)
+     
+            
+    list_url = list(set(list_url))
     return list_url
 #--------------------------------------------------
 #从loan detail页面获取当前用户id

@@ -85,18 +85,8 @@ def handlePage(urlCur):
     print 'current = ' + urlCur
     logf.write(urlCur+'\n')
     
-    m = readFromUrl(urlCur)
-    if orderPattern.match(urlCur):
-        print('analyze')
-        #analyzeData(m)
-        sid = re.search(r'Detail\.aspx\?sid=((\d|-)+)', urlCur).group(1)
-        print('sid='+sid)
-        uid = analyzeData(m, sid, None)
-        #uid = next(uid_generator)
-        #print(uid)
-        
     #广度优先
-    for url in findUrl(m):
+    for url in findAllUrl(urlCur):
         completeUrl = urlHost+url
         if completeUrl in bf: #去重
             #print 'dumplicate'
@@ -116,19 +106,32 @@ def handlePage(urlCur):
 
 #----------------------------
 def test():
-    urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=14040621194931090438530010644748'
-    print findAllUrl(urlTemp)
-
+    urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=0A7A965B5806C861'
+    #urlTemp = 'http://www.my089.com/Loan/default.aspx'
+    list_temp = findAllUrl(urlTemp)
+    print(len(list_temp))
+    for item in list_temp:
+        print item
+    
 '''
-    formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lBtn2', '__EVENTARGUMENT':''}
+    urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=CDFDDA8BAB5E164F'
+    webcontent = readFromUrl(urlTest)
+    soup = BeautifulSoup(webcontent)
+    viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
+    eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
+        
+    
+    formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lbtnNext', '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
     postdata = urllib.urlencode(formdata)
     
-    urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=730D99019978EF54'
-    req = urllib2.Request(urlTest, postdata, headers)
+   
+    req = urllib2.Request(urlTest, postdata, headers=headers)
     result = urllib2.urlopen(req)
-    m = result.read()
-    print m
-'''
+
+    print result.geturl() #http://www.my089.com/Error/default.aspx?aspxerrorpath=/ConsumerInfo1.aspx
+    '''
+    #m = result.read()
+    #print m
 #end def test()
 
 #----------------------------
@@ -143,12 +146,14 @@ urlStart = urlTest
 filedirectory = getConfig()
 if login():
     print('Login success!')
-    test()
+    #test()
     
-'''
+
     bf.clear_all()
     
     logf = open('log.log', 'wb')
-    handlePage(urlStart)
+    aList.append(urlDefault)
+    aList.append(urlSucceed)
+    handlePage(aList.pop(0))
     logf.close()
-  '''  
+ 
