@@ -162,6 +162,8 @@ if login():
     aList.append(urlDefault)
     aList.append(urlSucceed)
 
+    for item in aList:
+        bf.add(item)
     handlePage(aList.pop(0))
     logf.close()
     logAll.close()
