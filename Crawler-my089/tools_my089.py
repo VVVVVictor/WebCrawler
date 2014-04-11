@@ -286,6 +286,7 @@ def findUrl(webcontent):
                 if re.match('Detail.*', href):
                     href = '/Loan/'+href
                     #print href
+                href = href.replace('-', '') #去掉所有横杠
                 list_url.append(href)
     return list_url
 #end def findUrl
