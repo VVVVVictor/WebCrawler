@@ -21,7 +21,6 @@ urlDefault = u'http://www.my089.com/Loan/default.aspx'
 urlSucceed = u'http://www.my089.com/Loan/Succeed.aspx'
 
 username = u'victor1991'
-#password = u'73f7d9af739c494a455418da7a2efcce'
 password = u'wmf123456'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.my089.com'}
 
@@ -33,6 +32,10 @@ errorPattern = re.compile(u'/Error/default\.aspx')
 defaultPattern = re.compile(urlHost + '/Loan/default\.aspx(\?pid=1)?')
 succeedPattern = re.compile(urlLogin + '/Loan/Succeed\.aspx(\?pid=1)?')
 
+#宏常量定义
+BORROW_TYPE = 1
+BID_TYPE = 2
+FRIEND_TYPE = 3
 #用户页面说明
 #个人信息 ConsumerInfo1.aspx?uid=
 #信用评价 ConsumerInfo.aspx?uid=
@@ -156,7 +159,8 @@ def findAllUrl(url):
             list_temp = findUrl(main_content.prettify())
             list_url.extend(list_temp)
     #order页面
-    elif mr_order: 
+    elif mr_order:
+        #logFile.write(url+'\n')
         sid = mr_order.group(1)
         uid = getUidFromLoan(url)
         list_temp = findUrl(readFromUrl(url)) #初始页面中的url
@@ -175,64 +179,97 @@ def findAllUrl(url):
 
         #使用“下一页”按钮遍历借款列表页
         content = consumer_content
+        borrowPageCount = 1
         while True:
-            #print 'first while'
+            #print 'borrow Page:' + str(borrowPageCount)
             soup = BeautifulSoup(content)
             if not soup.find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlBrrows'}): #查看不到借款信息
                 break
-            viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
-            eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
-
-            formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lbtnNext', '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
-            postdata = urllib.urlencode(formdata)
-            req = urllib2.Request(url, postdata, headers=headers)
-            result = urllib2.urlopen(req)
-            
-            if errorPattern.search(result.geturl()):
-                break #没有下一页
-            content = result.read()
-            tender_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBrrows'})
-            list_temp = findUrl(tender_content.prettify())
+            content = getNextPage(BORROW_TYPE, soup, url)
+            if not content:
+                break; #没有下一页
+                
+            borrow_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBrrows'})
+            list_temp = findUrl(borrow_content.prettify())
             list_url.extend(list_temp)
+
+            borrowPageCount += 1
+        #end while
+        print('borrowPageCount = '+str(borrowPageCount))
 
         #使用“下一页”按钮遍历投标记录页
         content = consumer_content
+        bidPageCount = 1
         while True:
+            #print 'bid Page:' +str(bidPageCount)
             soup = BeautifulSoup(content)
             if not soup.find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}).find('table'): #查看不到投标信息
                 break
-            viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
-            eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
-
-            formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination2$lbtnNext', '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
-            postdata = urllib.urlencode(formdata)
-            req = urllib2.Request(url, postdata, headers=headers)
-            result = urllib2.urlopen(req)
-            
-            if errorPattern.search(result.geturl()):
-                break #没有下一页
-            content = result.read()
-
-            bid_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}).prettify() #只选取投标记录区域
-            list_temp = findUrl(bid_content)
+            content = getNextPage(BID_TYPE, soup, url)
+            if not content:
+                break; #没有下一页
+                
+            bid_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}) #只选取投标记录区域
+            list_temp = findUrl(bid_content.prettify())
             #print('add '+str(len(list_temp)))
             list_url.extend(list_temp)
-     
-            
-    list_url = list(set(list_url))
+
+            bidPageCount += 1
+        #end while
+        print('bidPageCount = '+str(bidPageCount))
+
+        #使用“下一页”按钮遍历好友列表
+        content = consumer_content
+        friendPageCount = 1
+        while True:
+            soup = BeautifulSoup(content)
+            if not soup.find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlFriends'}):#查看不到好友信息
+                break
+            content = getNextPage(FRIEND_TYPE, soup, url)
+            if not content:
+                break; #没有下一页
+                
+            friend_content = BeautifulSoup(content).find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlFriends'})
+            list_temp = findUrl(friend_content.prettify())
+            list_url.extend(list_temp)
+
+            friendPageCount += 1
+        #end while
+        print('friendPageCount = '+str(friendPageCount))
+                
+        
+    list_url = list(set(list_url)) #list去重
     return list_url
+#--------------------------------------------------
+#从consumer页面上读取下一页内容
+def getNextPage(type, soup, url):
+    viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
+    eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
+
+    eventString = {BORROW_TYPE:'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lbtnNext', BID_TYPE:'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination2$lbtnNext', FRIEND_TYPE: 'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination3$lbtnNext'}
+    
+    formdata = {'__EVENTTARGET':eventString[type], '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
+    result = responseFromUrl(url, formdata)
+            
+    if result:
+        content = result.read()
+        result.close()
+        return content
+    else:
+        return None#没有下一页
 #--------------------------------------------------
 #从loan detail页面获取当前用户id
 def getUidFromLoan(url):
     if orderPattern.match(url):
         webcontent = readFromUrl(url)
-        soup = BeautifulSoup(webcontent)
+        if webcontent:
+            soup = BeautifulSoup(webcontent)
     
-        tag_uid = soup.find('span', text = re.compile(u'用 户 名：'))
-        #print 'tag_uid='+str(tag_uid)
-        href_uid = tag_uid.find_next_sibling('span').a['href']
-        uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(1)
-        return uid
+            tag_uid = soup.find('span', text = re.compile(u'用 户 名：'))
+            #print 'tag_uid='+str(tag_uid)
+            href_uid = tag_uid.find_next_sibling('span').a['href']
+            uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(1)
+            return uid
     return None
     
 #--------------------------------------------------
@@ -254,22 +291,33 @@ def findUrl(webcontent):
 #end def findUrl
 
 #--------------------------------------------------
-#从url读取页面内容
-def readFromUrl(url, formdata = None):
-    m = None
+#从url读取response
+def responseFromUrl(url, formdata = None):
+    response = None
     if formdata != None:
         formdata = urllib.urlencode(formdata)
     try:
         req = urllib2.Request(url, formdata, headers = headers)
         response = urllib2.urlopen(req)
-        m = response.read()
-        response.close()
-        return m
+        if errorPattern.search(response.geturl()): #进入错误页面
+            response.close()
+            return None
     except (urllib2.URLError) as e:
         if hasattr(e, 'code'):
             print('ERROR:'+str(e.code)+' '+str(e.reason))
             
-    return m
+    return response
+
+#--------------------------------------------------
+#从url读取页面内容
+def readFromUrl(url, formdata = None):
+    response = responseFromUrl(url, formdata)
+    if response:
+        m = response.read()
+        response.close()
+        return m
+    else:
+        return None
 #end def readFromUrl
 #--------------------------------------------------
 #从/Loan/Detail.aspx 得到更细节的信息

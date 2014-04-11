@@ -23,7 +23,7 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 
 aList = []#url队列
 
-bf = BloomFilter(10000000, 0.01, 'filter.bloom')
+
 
 def getData(begin_page, end_page, filedirectory):
     
@@ -93,20 +93,24 @@ def handlePage(urlCur):
             continue
         bf.add(completeUrl)
         aList.append(completeUrl)
+        if orderPattern.match(completeUrl):
+            logAll.write(completeUrl+'\n') #记录所有找到的order链接
         print('ADD: '+completeUrl)
+    #end for
+    logAll.flush()
         
     if len(aList) > 0:
         urlCur = aList.pop(0)
         handlePage(urlCur)
         
-    #end for
+    
 
     #logf.write(urlCur+'\n')
 #end def handlePage
 
 #----------------------------
 def test():
-    urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=0A7A965B5806C861'
+    urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=03BCD6A9DB69C16F'
     #urlTemp = 'http://www.my089.com/Loan/default.aspx'
     list_temp = findAllUrl(urlTemp)
     print(len(list_temp))
@@ -146,14 +150,19 @@ urlStart = urlTest
 filedirectory = getConfig()
 if login():
     print('Login success!')
-    #test()
-    
-
+   # test()
+   
+    strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+   
+    bf = BloomFilter(10000000, 0.01, strtime+'filter'+'.bloom')
     bf.clear_all()
     
-    logf = open('log.log', 'wb')
+    logf = open(strtime+'log'+'.log', 'wb') #记录处理过的页面
+    logAll = open(strtime+'all'+'.log', 'wb') #记录所有找到的链接
     aList.append(urlDefault)
     aList.append(urlSucceed)
+
     handlePage(aList.pop(0))
     logf.close()
- 
+    logAll.close()
+
