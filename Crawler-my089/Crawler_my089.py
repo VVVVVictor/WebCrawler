@@ -86,6 +86,7 @@ def handlePage(urlCur):
     logf.write(urlCur+'\n')
     
     #广度优先
+    count = 0
     for url in findAllUrl(urlCur):
         completeUrl = urlHost+url
         if completeUrl in bf: #去重
@@ -93,10 +94,13 @@ def handlePage(urlCur):
             continue
         bf.add(completeUrl)
         aList.append(completeUrl)
+        count += 1
         if orderPattern.match(completeUrl):
             logAll.write(completeUrl+'\n') #记录所有找到的order链接
-        print('ADD: '+completeUrl)
+            
+        #print('ADD: '+completeUrl)
     #end for
+    print('Available Link Count: '+str(count))
     logAll.flush()
         
     if len(aList) > 0:
@@ -112,11 +116,14 @@ def handlePage(urlCur):
 def test():
     urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=03BCD6A9DB69C16F'
     #urlTemp = 'http://www.my089.com/Loan/default.aspx'
-    list_temp = findAllUrl(urlTemp)
-    print(len(list_temp))
-    for item in list_temp:
-        print item
-    
+    #list_temp = findAllUrl(urlTemp)
+    #print(len(list_temp))
+    #for item in list_temp:
+     #   print item
+
+    st = 'http://www.my089.com/Loan/Detail.aspx?sid=12053021-2425-9740-0002-954013981527'
+    st = st.replace('-', '')
+    print st
 '''
     urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=CDFDDA8BAB5E164F'
     webcontent = readFromUrl(urlTest)
@@ -150,8 +157,8 @@ urlStart = urlTest
 filedirectory = getConfig()
 if login():
     print('Login success!')
-   # test()
-   
+    #test()
+    
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
    
     bf = BloomFilter(10000000, 0.01, strtime+'filter'+'.bloom')
@@ -167,4 +174,3 @@ if login():
     handlePage(aList.pop(0))
     logf.close()
     logAll.close()
-

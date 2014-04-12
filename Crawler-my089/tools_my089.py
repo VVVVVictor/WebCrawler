@@ -30,7 +30,7 @@ orderPattern = re.compile(u'http://www.my089.com/Loan/Detail\.aspx\?sid=((\d|-)+
 consumerPattern = re.compile(u'http://www.my089.com/ConsumerInfo1\.aspx\?uid=((\d|\w)+)')
 errorPattern = re.compile(u'/Error/default\.aspx')
 defaultPattern = re.compile(urlHost + '/Loan/default\.aspx(\?pid=1)?')
-succeedPattern = re.compile(urlLogin + '/Loan/Succeed\.aspx(\?pid=1)?')
+succeedPattern = re.compile(urlHost + '/Loan/Succeed\.aspx(\?pid=1)?')
 
 #宏常量定义
 BORROW_TYPE = 1
@@ -155,7 +155,7 @@ def findAllUrl(url):
     elif mr_succeed:
         print 'Page succeed'
         for i in range(1, 100):
-            main_content = BeautifulSoup(readFromUrl(urlDefault+'?pid='+str(i))).find('div', {'id':'man'})
+            main_content = BeautifulSoup(readFromUrl(urlSucceed+'?pid='+str(i))).find('div', {'id':'man'})
             list_temp = findUrl(main_content.prettify())
             list_url.extend(list_temp)
     #order页面
@@ -289,7 +289,7 @@ def findUrl(webcontent):
                 if re.match('Detail.*', href):
                     href = '/Loan/'+href
                     #print href
-                href = href.replace('\-', '') #去掉所有横杠
+                href = href.replace('-', '') #去掉所有横杠
                 list_url.append(href)
     return list_url
 #end def findUrl
