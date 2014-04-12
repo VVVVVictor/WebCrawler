@@ -163,12 +163,15 @@ def findAllUrl(url):
         #logFile.write(url+'\n')
         sid = mr_order.group(1)
         uid = getUidFromLoan(url)
-        list_temp = findUrl(readFromUrl(url)) #初始页面中的url
-        list_url.extend(list_temp)
-        #print list_url
-        #print getDetailUrl(sid, uid, 8)
-        list_temp = findUrl(readFromUrl(getDetailUrl(sid, uid, 8))) #待还记录中的url
-        list_url.extend(list_temp)
+        content = readFromUrl(url)
+        if content:
+            list_temp = findUrl(content) #初始页面中的url
+            list_url.extend(list_temp)
+            #print list_url
+            #print getDetailUrl(sid, uid, 8)
+            list_temp = findUrl(readFromUrl(getDetailUrl(sid, uid, 8))) #待还记录中的url
+            list_url.extend(list_temp)
+    #end elif
 
     #consumer页面
     elif mr_consumer:
@@ -286,7 +289,7 @@ def findUrl(webcontent):
                 if re.match('Detail.*', href):
                     href = '/Loan/'+href
                     #print href
-                href = href.replace('-', '') #去掉所有横杠
+                href = href.replace('\-', '') #去掉所有横杠
                 list_url.append(href)
     return list_url
 #end def findUrl
