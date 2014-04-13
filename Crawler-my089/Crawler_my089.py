@@ -101,29 +101,35 @@ def handlePage(urlCur):
         #print('ADD: '+completeUrl)
     #end for
     print('Available Link Count: '+str(count))
+    logf.flush()
     logAll.flush()
-        
-    if len(aList) > 0:
+
+    leng_list = len(aList)
+    if leng_list > 0:
+        if leng_list in (10000, 10500):
+            print('aList length = ' + str(leng_list))
+        elif leng_list in (20000, 20500):
+            print('aList length = ' + str(leng_list))
+        elif leng_list in (50000, 50500):
+            print('aList length = ' + str(leng_list))
+        elif leng_list in (70000, 70500):
+            print('aList length = ' + str(leng_list))    
         urlCur = aList.pop(0)
         handlePage(urlCur)
         
-    
-
     #logf.write(urlCur+'\n')
 #end def handlePage
 
 #----------------------------
 def test():
     urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=03BCD6A9DB69C16F'
-    #urlTemp = 'http://www.my089.com/Loan/default.aspx'
-    #list_temp = findAllUrl(urlTemp)
-    #print(len(list_temp))
-    #for item in list_temp:
-     #   print item
-
-    st = 'http://www.my089.com/Loan/Detail.aspx?sid=12053021-2425-9740-0002-954013981527'
-    st = st.replace('-', '')
-    print st
+    urlTemp = 'http://www.my089.com/Loan/default.aspx'
+    urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=12093010232926000050215011601981'
+    list_temp = findAllUrl(urlTemp)
+    print(len(list_temp))
+    for item in list_temp:
+        print item
+    
 '''
     urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=CDFDDA8BAB5E164F'
     webcontent = readFromUrl(urlTest)
@@ -161,7 +167,7 @@ if login():
     
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
    
-    bf = BloomFilter(10000000, 0.01, strtime+'filter'+'.bloom')
+    bf = BloomFilter(100000000, 0.01, strtime+'filter'+'.bloom')
     bf.clear_all()
     
     logf = open(strtime+'log'+'.log', 'wb') #记录处理过的页面

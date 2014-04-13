@@ -182,12 +182,13 @@ def findAllUrl(url):
 
         #使用“下一页”按钮遍历借款列表页
         content = consumer_content
-        borrowPageCount = 1
+        borrowPageCount = 0
         while True:
             #print 'borrow Page:' + str(borrowPageCount)
             soup = BeautifulSoup(content)
             if not soup.find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlBrrows'}): #查看不到借款信息
                 break
+            borrowPageCount += 1
             content = getNextPage(BORROW_TYPE, soup, url)
             if not content:
                 break; #没有下一页
@@ -196,7 +197,7 @@ def findAllUrl(url):
             list_temp = findUrl(borrow_content.prettify())
             list_url.extend(list_temp)
 
-            borrowPageCount += 1
+            #borrowPageCount += 1
         #end while
         print('borrowPageCount = '+str(borrowPageCount))
 
