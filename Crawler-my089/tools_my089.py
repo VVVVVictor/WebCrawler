@@ -183,6 +183,7 @@ def findAllUrl(url):
         #使用“下一页”按钮遍历借款列表页
         content = consumer_content
         borrowPageCount = 0
+        #soup = BeautifulSoup(content)
         while True:
             #print 'borrow Page:' + str(borrowPageCount)
             soup = BeautifulSoup(content)
@@ -209,6 +210,7 @@ def findAllUrl(url):
             soup = BeautifulSoup(content)
             if not soup.find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}).find('table'): #查看不到投标信息
                 break
+            bidPageCount += 1
             content = getNextPage(BID_TYPE, soup, url)
             if not content:
                 break; #没有下一页
@@ -218,7 +220,6 @@ def findAllUrl(url):
             #print('add '+str(len(list_temp)))
             list_url.extend(list_temp)
 
-            bidPageCount += 1
         #end while
         print('bidPageCount = '+str(bidPageCount))
 
@@ -229,6 +230,7 @@ def findAllUrl(url):
             soup = BeautifulSoup(content)
             if not soup.find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlFriends'}):#查看不到好友信息
                 break
+            friendPageCount += 1
             content = getNextPage(FRIEND_TYPE, soup, url)
             if not content:
                 break; #没有下一页
@@ -236,8 +238,6 @@ def findAllUrl(url):
             friend_content = BeautifulSoup(content).find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlFriends'})
             list_temp = findUrl(friend_content.prettify())
             list_url.extend(list_temp)
-
-            friendPageCount += 1
         #end while
         print('friendPageCount = '+str(friendPageCount))
                 

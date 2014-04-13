@@ -130,23 +130,6 @@ def test():
     for item in list_temp:
         print item
     
-'''
-    urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=CDFDDA8BAB5E164F'
-    webcontent = readFromUrl(urlTest)
-    soup = BeautifulSoup(webcontent)
-    viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
-    eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
-        
-    
-    formdata = {'__EVENTTARGET':'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lbtnNext', '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
-    postdata = urllib.urlencode(formdata)
-    
-   
-    req = urllib2.Request(urlTest, postdata, headers=headers)
-    result = urllib2.urlopen(req)
-
-    print result.geturl() #http://www.my089.com/Error/default.aspx?aspxerrorpath=/ConsumerInfo1.aspx
-    '''
     #m = result.read()
     #print m
 #end def test()
