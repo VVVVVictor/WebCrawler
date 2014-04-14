@@ -29,9 +29,11 @@ loanPattern = re.compile(u'(/Loan/)?Detail\.aspx\?sid=(\d|-)+')
 orderPattern = re.compile(u'http://www.my089.com/Loan/Detail\.aspx\?sid=((\d|-)+)')
 consumerPattern = re.compile(u'http://www.my089.com/ConsumerInfo1\.aspx\?uid=((\d|\w)+)')
 errorPattern = re.compile(u'/Error/default\.aspx')
+needloginPattern = re.compile(u'/safe/login')
 defaultPattern = re.compile(urlHost + '/Loan/default\.aspx(\?pid=1)?')
 succeedPattern = re.compile(urlHost + '/Loan/Succeed\.aspx(\?pid=1)?')
 
+TRY_LOGIN_TIMES = 5 #尝试登录次数
 #宏常量定义
 BORROW_TYPE = 1
 BID_TYPE = 2
@@ -98,24 +100,25 @@ def login():
     #md5pwd = '73f7d9af739c494a455418da7a2efcce'
     data = {'txtUid':username, 'MD5Pwd':md5pwd, 'txtPwd1':'', 'SaveMinits':'10080', 'btnLogin':u'立即登录'}
     postdata = urllib.urlencode(data)
-
-    try:
-        req = urllib2.Request(urlLogin, postdata, headers)
-        result = urllib2.urlopen(req)
-        if urlIndex != result.geturl(): #通过返回url判断是否登录成功
-            print result.geturl()
-            print(u'[FAIL]Wrong USERNAME or PASSWORD. Please try again!')
-            return False
-        result.close()
-
-        req2 = urllib2.Request(urlIndex, headers=headers)
-        result2 = urllib2.urlopen(req2)
-        #print result2.read()
-    except:
-        print(u'[FAIL]Login failed. Please try again!')
-        return False
+    for i in range(TRY_LOGIN_TIMES):
+        try:
+            req = urllib2.Request(urlLogin, postdata, headers)
+            result = urllib2.urlopen(req)
+            if urlIndex != result.geturl(): #通过返回url判断是否登录成功
+                print result.geturl()
+                print(u'[FAIL]Wrong USERNAME or PASSWORD. Please try again!')
+                return False
+            result.close()
     
-    return True
+            req2 = urllib2.Request(urlIndex, headers=headers)
+            result2 = urllib2.urlopen(req2)
+            #print result2.read()
+            return True #登录成功
+        except:
+            print(u'[FAIL]Login failed. Retrying...')
+            #return False
+    #end for
+    print(u'[FAIL]login failed after retrying')
 #end def login()
 
 #--------------------------------------------------
@@ -155,6 +158,7 @@ def findAllUrl(url):
     elif mr_succeed:
         print 'Page succeed'
         for i in range(1, 100):
+            print('succeed loop:'+str(i))
             main_content = BeautifulSoup(readFromUrl(urlHost+urlSucceed+'?pid='+str(i))).find('div', {'id':'man'})
             list_temp = findUrl(main_content.prettify())
             list_url.extend(list_temp)
@@ -177,6 +181,7 @@ def findAllUrl(url):
     elif mr_consumer:
         uid = mr_consumer.group(1)
         consumer_content = readFromUrl(url)
+        #print consumer_content
         list_temp = findUrl(consumer_content) #用户初始页面，借款列表第一页
         list_url.extend(list_temp)
 
@@ -280,6 +285,9 @@ def getUidFromLoan(url):
 #分析页面内链接
 def findUrl(webcontent):
     list_url = []
+    if(webcontent == None):
+        print("[ERROR] webcontent is None in findUrl()")
+        return list_url #返回空list
     soup = BeautifulSoup(webcontent)
     list_a = soup.find_all('a')
     for item_a in list_a:
@@ -302,14 +310,23 @@ def responseFromUrl(url, formdata = None):
     if formdata != None:
         formdata = urllib.urlencode(formdata)
     try:
-        req = urllib2.Request(url, formdata, headers = headers)
-        response = urllib2.urlopen(req)
-        if errorPattern.search(response.geturl()): #进入错误页面
-            response.close()
-            return None
+        while True:
+            req = urllib2.Request(url, formdata, headers = headers)
+            response = urllib2.urlopen(req)
+            curUrl = response.geturl()
+            if errorPattern.search(curUrl): #进入错误页面
+                response.close()
+                return None
+            elif needloginPattern.search(curUrl):
+                print('NEED LOGIN!')
+                login()
+                continue
+            break
     except (urllib2.URLError) as e:
         if hasattr(e, 'code'):
             print('ERROR:'+str(e.code)+' '+str(e.reason))
+        print(str(e.reason))
+        print('url = '+url)
             
     return response
 
@@ -324,6 +341,14 @@ def readFromUrl(url, formdata = None):
     else:
         return None
 #end def readFromUrl
+
+#--------------------------------------------------
+def getTime(format = None):
+    if format:
+        strtime = str(time.strftime(format, time.localtime(time.time())))
+    else:
+        strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+    return strtime
 #--------------------------------------------------
 #从/Loan/Detail.aspx 得到更细节的信息
 #借款信息 1

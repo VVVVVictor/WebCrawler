@@ -100,7 +100,7 @@ def handlePage(urlCur):
         if loanPattern.match(url):
             logAll.write(url+'\n') #记录所有找到的order链接
             
-        #print('ADD: '+completeUrl)
+        print('ADD: '+url)
     #end for
     print('Available Link Count: '+str(count))
     logf.flush()
@@ -129,6 +129,7 @@ def test():
     urlTemp = 'http://www.my089.com/Loan/default.aspx'
     urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=12093010232926000050215011601981'
     urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=13061116053590490175450016222831'
+    urlTemp = 'http://www.my089.com/Loan/default.aspx?pid=5'
     list_temp = findAllUrl(urlTemp)
     print(len(list_temp))
     for item in list_temp:
@@ -148,9 +149,11 @@ urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=0C7C8143B7536149'
 urlStart = urlTest
 
 filedirectory = getConfig()
+#test()
 if login():
     print('Login success!')
     #test()
+
     
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
    
