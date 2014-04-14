@@ -87,16 +87,18 @@ def handlePage(urlCur):
     
     #广度优先
     count = 0
-    for url in findAllUrl(urlCur):
-        completeUrl = urlHost+url
-        if completeUrl in bf: #去重
+    listTemp = findAllUrl(urlHost+urlCur)
+    print('findAll')
+    for url in listTemp:
+        if url in bf: #去重
             #print 'dumplicate'
             continue
-        bf.add(completeUrl)
-        aList.append(completeUrl)
+        bf.add(url)
+        aList.append(url)
         count += 1
-        if orderPattern.match(completeUrl):
-            logAll.write(completeUrl+'\n') #记录所有找到的order链接
+        loanPattern = re.compile('/Loan/Detail\.aspx\?sid=((\d|-)+)')
+        if loanPattern.match(url):
+            logAll.write(url+'\n') #记录所有找到的order链接
             
         #print('ADD: '+completeUrl)
     #end for
@@ -115,6 +117,7 @@ def handlePage(urlCur):
         elif leng_list in (70000, 70500):
             print('aList length = ' + str(leng_list))    
         urlCur = aList.pop(0)
+        #completeUrl = urlHost+urlCur
         handlePage(urlCur)
         
     #logf.write(urlCur+'\n')
@@ -125,6 +128,7 @@ def test():
     urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=03BCD6A9DB69C16F'
     urlTemp = 'http://www.my089.com/Loan/default.aspx'
     urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=12093010232926000050215011601981'
+    urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=13061116053590490175450016222831'
     list_temp = findAllUrl(urlTemp)
     print(len(list_temp))
     for item in list_temp:
@@ -150,7 +154,7 @@ if login():
     
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
    
-    bf = BloomFilter(100000000, 0.01, strtime+'filter'+'.bloom')
+    bf = BloomFilter(100000000, 0.1, strtime+'filter'+'.bloom')
     bf.clear_all()
     
     logf = open(strtime+'log'+'.log', 'wb') #记录处理过的页面
@@ -163,3 +167,4 @@ if login():
     handlePage(aList.pop(0))
     logf.close()
     logAll.close()
+

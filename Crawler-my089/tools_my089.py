@@ -17,8 +17,8 @@ filedirectory = u'D:\\datas\\pythondatas\\my089\\'
 urlHost = u'http://www.my089.com'
 urlLogin = u'https://member.my089.com/safe/login.aspx'
 urlIndex = u'https://member.my089.com/safe/'
-urlDefault = u'http://www.my089.com/Loan/default.aspx'
-urlSucceed = u'http://www.my089.com/Loan/Succeed.aspx'
+urlDefault = u'/Loan/default.aspx'
+urlSucceed = u'/Loan/Succeed.aspx'
 
 username = u'victor1991'
 password = u'wmf123456'
@@ -147,7 +147,7 @@ def findAllUrl(url):
             pageCount = re.search('\d', tag_pageCount.string).group(0)
             #print pageCount
         for i in range(1, int(pageCount)+1):
-            main_content = BeautifulSoup(readFromUrl(urlDefault+'?pid='+str(i))).find('div', {'id':'man'})
+            main_content = BeautifulSoup(readFromUrl(urlHost+urlDefault+'?pid='+str(i))).find('div', {'id':'man'})
             list_temp = findUrl(main_content.prettify())
             list_url.extend(list_temp)
             
@@ -155,7 +155,7 @@ def findAllUrl(url):
     elif mr_succeed:
         print 'Page succeed'
         for i in range(1, 100):
-            main_content = BeautifulSoup(readFromUrl(urlSucceed+'?pid='+str(i))).find('div', {'id':'man'})
+            main_content = BeautifulSoup(readFromUrl(urlHost+urlSucceed+'?pid='+str(i))).find('div', {'id':'man'})
             list_temp = findUrl(main_content.prettify())
             list_url.extend(list_temp)
     #order页面
@@ -200,7 +200,7 @@ def findAllUrl(url):
 
             #borrowPageCount += 1
         #end while
-        print('borrowPageCount = '+str(borrowPageCount))
+        #print('borrowPageCount = '+str(borrowPageCount))
 
         #使用“下一页”按钮遍历投标记录页
         content = consumer_content
@@ -221,7 +221,7 @@ def findAllUrl(url):
             list_url.extend(list_temp)
 
         #end while
-        print('bidPageCount = '+str(bidPageCount))
+        #print('bidPageCount = '+str(bidPageCount))
 
         #使用“下一页”按钮遍历好友列表
         content = consumer_content
@@ -239,7 +239,7 @@ def findAllUrl(url):
             list_temp = findUrl(friend_content.prettify())
             list_url.extend(list_temp)
         #end while
-        print('friendPageCount = '+str(friendPageCount))
+        #print('friendPageCount = '+str(friendPageCount))
                 
         
     list_url = list(set(list_url)) #list去重
