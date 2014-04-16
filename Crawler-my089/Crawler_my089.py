@@ -157,7 +157,7 @@ if login():
     
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
    
-    bf = BloomFilter(100000000, 0.1, strtime+'filter'+'.bloom')
+    bf = BloomFilter(1000000000, 0.1, strtime+'filter'+'.bloom')
     bf.clear_all()
     
     logf = open(strtime+'log'+'.log', 'wb') #记录处理过的页面
