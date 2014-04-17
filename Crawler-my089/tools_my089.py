@@ -173,8 +173,10 @@ def findAllUrl(url):
             list_url.extend(list_temp)
             #print list_url
             #print getDetailUrl(sid, uid, 8)
-            list_temp = findUrl(readFromUrl(getDetailUrl(sid, uid, 8))) #待还记录中的url
-            list_url.extend(list_temp)
+
+            #待还记录中的url在user的页面都能找到，所以这里不再重复
+            #list_temp = findUrl(readFromUrl(getDetailUrl(sid, uid, 8))) #待还记录中的url
+            #list_url.extend(list_temp)
     #end elif
 
     #consumer页面
@@ -309,8 +311,15 @@ def responseFromUrl(url, formdata = None):
     response = None
     if formdata != None:
         formdata = urllib.urlencode(formdata)
-    try:
-        while True:
+
+    loopCount = 0
+    while True:
+        loopCount += 1
+        if loopCount > 5:
+            print('Failed when trying responseFromUrl().')
+            print('URL = '+url)
+            break
+        try:
             req = urllib2.Request(url, formdata, headers = headers)
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
@@ -322,12 +331,19 @@ def responseFromUrl(url, formdata = None):
                 login()
                 continue
             break
-    except (urllib2.URLError) as e:
-        if hasattr(e, 'code'):
-            print('ERROR:'+str(e.code)+' '+str(e.reason))
-        print(str(e.reason))
-        print('url = '+url)
+        except (urllib2.URLError) as e:
+            if hasattr(e, 'code'):
+                print('ERROR:'+str(e.code)+' '+str(e.reason))
+            print(str(e.reason))
+            print('url = '+url)
             
+        if(response == None):
+            print('responseFromUrl get a None')
+            time.sleep(1)
+            login()
+            continue
+    #end while
+    
     return response
 
 #--------------------------------------------------

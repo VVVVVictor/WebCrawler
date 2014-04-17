@@ -130,6 +130,7 @@ def test():
     urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=12093010232926000050215011601981'
     urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=13061116053590490175450016222831'
     urlTemp = 'http://www.my089.com/Loan/default.aspx?pid=5'
+    urlTemp = urlHost+'/Loan/Detail.aspx?sid=14012309415632891279040013353434'
     list_temp = findAllUrl(urlTemp)
     print(len(list_temp))
     for item in list_temp:
@@ -156,12 +157,14 @@ if login():
 
     
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-   
-    bf = BloomFilter(1000000000, 0.1, strtime+'filter'+'.bloom')
+
+    createFolder('log')
+    bf = BloomFilter(1000000000, 0.1, 'log/'+strtime+'filter'+'.bloom')
     bf.clear_all()
+
     
-    logf = open(strtime+'log'+'.log', 'wb') #记录处理过的页面
-    logAll = open(strtime+'all'+'.log', 'wb') #记录所有找到的链接
+    logf = open('log/'+strtime+'log'+'.log', 'wb') #记录处理过的页面
+    logAll = open('log/'+strtime+'all'+'.log', 'wb') #记录所有找到的链接
     aList.append(urlDefault)
     aList.append(urlSucceed)
 
@@ -170,4 +173,3 @@ if login():
     handlePage(aList.pop(0))
     logf.close()
     logAll.close()
-
