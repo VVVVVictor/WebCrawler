@@ -166,7 +166,7 @@ def findAllUrl(url):
     elif mr_order:
         #logFile.write(url+'\n')
         sid = mr_order.group(1)
-        uid = getUidFromLoan(url)
+        #uid = getUidFromLoan(url)
         content = readFromUrl(url)
         if content:
             list_temp = findUrl(content) #初始页面中的url
@@ -302,6 +302,7 @@ def findUrl(webcontent):
                     #print href
                 href = href.replace('-', '') #去掉所有横杠
                 list_url.append(href)
+    
     return list_url
 #end def findUrl
 

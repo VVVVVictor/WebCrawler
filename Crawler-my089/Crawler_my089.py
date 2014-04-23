@@ -22,8 +22,8 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 
 
 aList = []#url队列
-
-
+orderCount = 0
+allCount = 0
 
 def getData(begin_page, end_page, filedirectory):
     
@@ -82,7 +82,13 @@ def getData(begin_page, end_page, filedirectory):
 
 #--------------------------------------------------
 def handlePage(urlCur):
+    global orderCount
+    global allCount
     print 'current = ' + urlCur
+    if allCount > 100000:
+        logf = logf2
+    else:
+        logf = logf1
     logf.write(urlCur+'\n')
     
     #广度优先
@@ -98,13 +104,20 @@ def handlePage(urlCur):
         count += 1
         loanPattern = re.compile('/Loan/Detail\.aspx\?sid=((\d|-)+)')
         if loanPattern.match(url):
-            logAll.write(url+'\n') #记录所有找到的order链接
+            logAll.write(url+'\n') #记录所有找到的order链
+            orderCount += 1
             
         print('ADD: '+url)
     #end for
     print('Available Link Count: '+str(count))
+    if count > 0:
+        print('BloomFilter Count:'+str(len(bf)))
+        allCount += count
+        print('allCount:'+str(allCount))
+        logAll.flush()
+        
     logf.flush()
-    logAll.flush()
+    #logAll.flush()
 
     leng_list = len(aList)
     if leng_list > 0:
@@ -124,7 +137,7 @@ def handlePage(urlCur):
 #end def handlePage
 
 #----------------------------
-def test():
+def test(): 
     urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=03BCD6A9DB69C16F'
     urlTemp = 'http://www.my089.com/Loan/default.aspx'
     urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=12093010232926000050215011601981'
@@ -159,15 +172,21 @@ if login():
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
 
     createFolder('log')
-    bf = BloomFilter(1000000000, 0.1, 'log/'+strtime+'filter'+'.bloom')
-    bf.clear_all()
+    bf = BloomFilter(100000000, 0.001, 'log/'+strtime+'filter'+'.bloom')
+    print "num_bits: "+str(bf.num_bits)
+    print "num_hashes: "+str(bf.num_hashes)
+    #bf.clear_all()
 
-    
-    logf = open('log/'+strtime+'log'+'.log', 'wb') #记录处理过的页面
+    #orderCount = 0
+    #allCount = 0
+
+    logf1 = open('log/'+strtime+'log1'+'.log', 'wb') #记录处理过的页面
+    logf2 = open('log/'+strtime+'log2'+'.log', 'wb') #记录处理过的页面
     logAll = open('log/'+strtime+'all'+'.log', 'wb') #记录所有找到的链接
     aList.append(urlDefault)
     aList.append(urlSucceed)
 
+    allCount += len(aList)
     for item in aList:
         bf.add(item)
     handlePage(aList.pop(0))
