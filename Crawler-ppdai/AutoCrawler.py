@@ -99,6 +99,8 @@ def getData_ppdai(url, filedirectory, begin_page, end_page=MAX_PAGE):
     
     files = []
     writers = [] #清空原有csv writers
+    
+    #logfile = open(filedirectory+logfileName, 'wb')
     for i in range(1,6):
         name_sheet = filedirectory+datafilePrefix+str(i)+'.csv'
         #判断文件是否存在，以决定是否加标题行
@@ -120,6 +122,7 @@ def getData_ppdai(url, filedirectory, begin_page, end_page=MAX_PAGE):
     
     
     for i in range(begin_page, end_page+1):
+        lastlastpage = lastpage #用于判断lastpage是否更新
         req = urllib2.Request(url+str(i), None, headers)
         try:
             response = urllib2.urlopen(req)
@@ -177,21 +180,24 @@ def getData_ppdai(url, filedirectory, begin_page, end_page=MAX_PAGE):
         f = open(sName, 'wb')
         f.write(m)
         f.close()
-        
 
         '''使用BeautifulSoup分析网页'''
         analyzeData_ppdai(i, m)
         
         fileCount = fileCount + 1
+        
+        #将最新页面写入log文件中
+        if lastpage != lastlastpage:
+            logfile = open(filedirectory+logfileName, 'wb')
+            logfile.write('LatestPage = '+str(lastpage))
+            logfile.close()
+        
         time.sleep(GAP_TIME)
     #endfor
 
     #resultExcel.save(filedirectory+'result_'+str(begin_page)+'_'+str(end_page)+'.'+strtime+'.xls')
     
-    #将最新页面写入log文件中
-    logfile = open(filedirectory+logfileName, 'wb')
-    logfile.write('LatestPage = '+str(lastpage))
-    logfile.close()
+    #logfile.close()
     
     for i in range(5):
         files[i].close()
@@ -244,7 +250,7 @@ def analyzeData_ppdai(orderID, webcontent):
     
     #标题(3)
     tag_title = soup.find('td', {'class':'list_tit'})
-    title = tag_title.string.strip()
+    title = tag_title.find('h1').string
     #print(title)
     #logfile.write(title.encode('gbk')+',')
     buffer1.append(title)
