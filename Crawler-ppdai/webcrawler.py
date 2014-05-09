@@ -227,7 +227,7 @@ def analyzeData_ppdai(orderID, webcontent):
     
     #标题(3)
     tag_title = soup.find('td', {'class':'list_tit'})
-    title = tag_title.string.strip()
+    title = tag_title.find('h1').string
     #print(title)
     #logfile.write(title.encode('gbk')+',')
     buffer1.append(title)
