@@ -291,7 +291,7 @@ def analyzeData_ppdai(orderID, webcontent):
     #print(buffer1)
     
     ##还款方式（7）
-    p = re.compile(u'.*(，每月还款|月还息).*')
+    p = re.compile(u'.*(，每月还款|月还息|一次还本付息).*')
     tag_refund = soup.find(text = p)
     tag_refund = tag_refund.strip()
     #print(tag_refund)
@@ -370,7 +370,7 @@ def analyzeData_ppdai(orderID, webcontent):
     buffer1.append(borrowScore)
     
     #借出信用分数（16）
-    tag_lendScore = soup.find(text=re.compile(u'\.*借出信用\.*'))
+    tag_lendScore = soup.find('p', text=re.compile(u'(\s|\n)*借出信用：\.*'))
     lendScore = re.search(r'\d+', tag_lendScore.string).group()
     buffer1.append(lendScore)
     
@@ -452,9 +452,10 @@ def analyzeData_ppdai(orderID, webcontent):
     tag_school = soup.find('span', {'class':'record'})
     if tag_school:
         eduRecord = re.search(u'毕业学校：(.*)，学历：(.*)，学习形式：(.*)）', tag_school.string)
-        schoolName = eduRecord.group(1)
-        eduBgd = eduRecord.group(2)
-        eduType = eduRecord.group(3)
+        if eduRecord:
+            schoolName = eduRecord.group(1)
+            eduBgd = eduRecord.group(2)
+            eduType = eduRecord.group(3)
     
     buffer1.append(hukouPlace)
     buffer1.append(schoolName)
@@ -500,15 +501,19 @@ def analyzeData_ppdai(orderID, webcontent):
     ##我想要使用这笔款项做什么（31）
     tag_wanttodo = soup.find('h3', text=re.compile(u'(\s|\n)*我想要使用这笔款项做什么(\s|\n)*'))
     if tag_wanttodo:
-        wanttodo = tag_wanttodo.find_next_sibling('p').string.strip()
-        wanttodo = wanttodo.replace(u'\u000D\u000A', '') #删除换行
+        wanttodo = tag_wanttodo.find_next_sibling('p').string
+        if wanttodo:
+            wanttodo = wanttodo.strip()
+            wanttodo = wanttodo.replace(u'\u000D\u000A', '') #删除换行
     else:
         wanttodo = ''
     ##我的还款能力说明（32）
     tag_refundAbility = soup.find('h3', text=re.compile(u'(\s|\n)*我的还款能力说明(\s|\n)*'))
     if tag_refundAbility:
-        refundAbility = tag_refundAbility.find_next_sibling('p').string.strip()
-        refundAbility = refundAbility.replace(u'\u000D\u000A', '') #删除换行
+        refundAbility = tag_refundAbility.find_next_sibling('p').string
+        if refundAbility:
+            refundAbility = refundAbility.strip()
+            refundAbility = refundAbility.replace(u'\u000D\u000A', '') #删除换行
     else:
         refundAbility = ''
     
@@ -535,10 +540,23 @@ def analyzeData_ppdai(orderID, webcontent):
     #sheet2 = excelbook.get_sheet(1)
     tag_investList = soup.find('th', text=re.compile(u'(\s|\n)*投标人(\s|\n)*'))
     if tag_investList:
+        '''
+        lastItem = tag_investList.parent
+        count = 0;
+        while True:
+            count += 1
+            investItem = lastItem.find_next_sibling('tr')
+            lastItem = investItem
+            #print(count)
+        '''
         investList = tag_investList.parent.find_next_siblings('tr')
+        #print("length: "+str(len(investList)));
+        #print investList
         for investItem in investList:
-        
             investInfo = investItem.find_all('td')
+            
+            if(len(investInfo)<4):
+                break;
             #投标ID
             invest_id = investInfo[0].find('a').string.strip()
             #当前利率
@@ -578,7 +596,6 @@ def analyzeData_ppdai(orderID, webcontent):
             '''
             
             
-    #投标理由 TODO 
     ##————————————sheet2 finish————————————————————
     
     
