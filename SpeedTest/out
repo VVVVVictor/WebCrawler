@@ -1,0 +1,22 @@
+请按任意键继续. . . 
+*******************************************************************
+* A small tool for testing access speed of some overseas websites.*
+*       baidu  kickstarter  prosper  indiegogo  lendingclub       *
+*******************************************************************
+
+[baidu] [connet time]: 0.0108366831197s
+[kickstarter] [connet time]: 2.11180745106s
+[prosper] [connet time]: 0.952654545695s
+[indiegogo] [connet time]: 1.59280722789s
+[lendingclub] [connet time]: 0.759152694541s
+请按任意键继续. . . 
+*******************************************************************
+* A small tool for testing access speed of some overseas websites.*
+*       baidu  kickstarter  prosper  indiegogo  lendingclub       *
+*******************************************************************
+
+[baidu] [connet time]: 0.0359470852718s
+[kickstarter] [connet time]: 2.05760759146s
+[prosper] [connet time]: 0.934002266621s
+[indiegogo] [connet time]: 1.80948267372s
+[lendingclub] [connet time]: 0.762598825851s
