@@ -4,7 +4,7 @@
 __author__ = "Wang Miaofei"
 
 import urllib, urllib2, cookielib
-import sys, string, time, os, re
+import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket
@@ -12,18 +12,19 @@ from tools_kickstarter import *
 
 #constant
 LOST_PAGE_LIMIT = int(10)
+SORT_TYPE = 'launch_date'
 
 #for crawl
 urlHost = u'https://www.kickstarter.com'
 urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
-headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.kickstarter.com'}
+headers={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host':'www.kickstarter.com', 'X-Requested-With':'XMLHttpRequest'}
 
 
-aList = []#url队列
 orderCount = 0
 allCount = 0
 categoryIdList = [1, 3, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18]
+categoryName = ['','Art', '', 'Comics','','','Dance','Design','','Fashion','Food','Film&Video','Games','','Music','Photography','Technology','Theater', 'Publishing']
 
 def getData(filedirectory):
     
@@ -32,33 +33,43 @@ def getData(filedirectory):
     #lastpage = begin_page #记录抓取的最后一个有效页面
     
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-    '''
+    
     writers = [] #csv writer list
     for i in range(1, 2):
-        name_sheet = filedirectory+str(begin_page)+'-'+str(end_page)+'.'+strtime+'_sheet'+str(i)+'.csv'
+        name_sheet = filedirectory+strtime+'_sheet'+str(i)+'.csv'
         file_sheet = open(name_sheet, 'wb')
         file_sheet.write('\xEF\xBB\xBF') #防止windows下excel打开显示乱码
         
         writer = csv.writer(file_sheet)
         writers.append(writer)
     #end for
-    '''
+    
     for i in categoryIdList:
-        req = urllib2.Request(urlCategory+str(i)+'&sort=magic', headers = headers)
-        try:
-            response = urllib2.urlopen(req);
-            m = response.read();
-            if(i == 1) print(m);
-            response.close();
-        except (urllib2.URLError) as e:
-            if hasattr(e, 'code'):
-                print('ERROR:'+str(e.code)+' '+str(e.reason))
-            print(str(e.reason))
-            print('url = '+url)
-        except socket.error as e:
-            print('ERROR] Socket error: '+str(e.errno))
-            #i = lastpage 
-            continue    
+        pageCount = 0
+        while True:
+            pageCount += 1
+            print('CATEGORY ID: '+str(i)+';  PAGE: '+str(pageCount))
+            req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(i)+'&sort='+SORT_TYPE, headers=headers)
+            try:
+                response = urllib2.urlopen(req);
+                m = response.read();
+                scriptData = json.loads(m)
+                projList = scriptData['projects']
+                if(len(projList) == 0):
+                    break
+                for proj in projList:
+                    url = proj['urls']['web']['project']
+                    print url
+                    analyzeData(url, categoryName[i], writers)
+                response.close();
+            except (urllib2.URLError) as e:
+                if hasattr(e, 'code'):
+                    print('[ERROR]'+str(e.code)+' '+str(e.reason))
+                print(str(e.reason))
+                print('url = ')
+            except socket.error as e:
+                print('[ERROR] Socket error: '+str(e.errno))
+                continue    
     #end for
         '''
         print('Downloading '+str(i)+' web page...')
@@ -78,100 +89,42 @@ def getData(filedirectory):
     return
 #end def getData()
 
-#--------------------------------------------------
-def handlePage(urlCur):
-    global orderCount
-    global allCount
-    print 'current = ' + urlCur
-    if allCount > 100000:
-        logf = logf2
-    else:
-        logf = logf1
-    logf.write(urlCur+'\n')
-    
-    #广度优先
-    count = 0
-    listTemp = findAllUrl(urlHost+urlCur)
-    print('findAll')
-    for url in listTemp:
-        if url in bf: #去重
-            #print 'dumplicate'
-            continue
-        bf.add(url)
-        aList.append(url)
-        count += 1
-        loanPattern = re.compile('/Loan/Detail\.aspx\?sid=((\d|-)+)')
-        if loanPattern.match(url):
-            logAll.write(url+'\n') #记录所有找到的order链
-            orderCount += 1
-            
-        print('ADD: '+url)
-    #end for
-    print('Available Link Count: '+str(count))
-    if count > 0:
-        #print('BloomFilter Count:'+str(len(bf)))
-        allCount += count
-        print('allCount:'+str(allCount))
-        logAll.flush()
-        
-    logf.flush()
-    #logAll.flush()
-
-    leng_list = len(aList)
-    if leng_list > 0:
-        if leng_list in (10000, 10500):
-            print('aList length = ' + str(leng_list))
-        elif leng_list in (20000, 20500):
-            print('aList length = ' + str(leng_list))
-        elif leng_list in (50000, 50500):
-            print('aList length = ' + str(leng_list))
-        elif leng_list in (70000, 70500):
-            print('aList length = ' + str(leng_list))    
-        urlCur = aList.pop(0)
-        #completeUrl = urlHost+urlCur
-        handlePage(urlCur)
-        
-    #logf.write(urlCur+'\n')
-#end def handlePage
-
-#----------------------------
-def test(): 
-    urlTemp = 'http://www.my089.com/ConsumerInfo1.aspx?uid=03BCD6A9DB69C16F'
-    urlTemp = 'http://www.my089.com/Loan/default.aspx'
-    urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=12093010232926000050215011601981'
-    urlTemp = 'http://www.my089.com/Loan/Detail.aspx?sid=13061116053590490175450016222831'
-    urlTemp = 'http://www.my089.com/Loan/default.aspx?pid=5'
-    urlTemp = urlHost+'/Loan/Detail.aspx?sid=14012309415632891279040013353434'
-    list_temp = findAllUrl(urlTemp)
-    print(len(list_temp))
-    for item in list_temp:
-        print item
-    
-    #m = result.read()
-    #print m
-#end def test()
-
 #----------------------------
 #main
 reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 sys.setrecursionlimit(1000000)#设置递归调用深度
 
-urlTest = 'http://www.my089.com/ConsumerInfo1.aspx?uid=0C7C8143B7536149'
-urlStart = urlTest
-
-
 filedirectory = getConfig()
 #test()
 if login():
     #print('Login success!')
     #test()
-
-    
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     
     getData(filedirectory);
-    '''
+'''
+    req = urllib2.Request(urlCategory+'page='+str(95)+'&category_id='+str(6)+'&sort='+SORT_TYPE, headers=headers)
+    try:
+        response = urllib2.urlopen(req);
+        m = response.read();
+        scriptData = json.loads(m)
+        projList = scriptData['projects']
+        for proj in projList:
+            url = proj['urls']['web']['project']
+            print url
+        response.close();
+    except (urllib2.URLError) as e:
+        if hasattr(e, 'code'):
+            print('[ERROR]'+str(e.code)+' '+str(e.reason))
+        print(str(e.reason))
+        print('url = ')
+    except socket.error as e:
+        print('[ERROR] Socket error: '+str(e.errno))
+
+            #i = lastpage 
+
+
     createFolder('log')
     bf = BloomFilter(100000000, 0.001, 'log/'+strtime+'filter'+'.bloom')
     print "num_bits: "+str(bf.num_bits)
@@ -193,4 +146,4 @@ if login():
     handlePage(aList.pop(0))
     logf.close()
     logAll.close()
-    '''
+'''

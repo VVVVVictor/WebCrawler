@@ -17,34 +17,17 @@ filedirectory = u'D:\\datas\\pythondatas\\kickstarter\\'
 urlHost = u'https://www.kickstarter.com'
 urlLogin = u'https://www.kickstarter.com/user_sessions'
 urlIndex = u'https://www.kickstarter.com/'
-urlCategory = u'https://www.kickstarter.com/discover/advanced?category_id='
-urlDefault = u'/Loan/default.aspx'
-urlSucceed = u'/Loan/Succeed.aspx'
+urlCategory = u'https://www.kickstarter.com/discover/advanced?'
+
+#for excel
+mainTitles = [u"链接",u"抓取日期",u"抓取时间",u"Category",u"Title",u"Updates",u"Backers",u"Comments",u"PAdd",u"Video",u"DesLength",u"RiskLength",u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"RAmt1",u"RBkr1",u"RDes1",u"RDel1"]
+backerTitles = [u"抓取日期",u"抓取时间",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"NBP",u"JoinedDate",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"]
 
 username = u'victor1991@126.com'
 password = u'wmf123456'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.kickstarter.com'}
 
-usePattern = re.compile(u'((/Loan/)?Detail\.aspx\?sid=(\d|-)+)|(/Loan/Succeed.aspx)|(/ConsumerInfo1\.aspx\?uid=(\d|\w)+)')
-loanPattern = re.compile(u'(/Loan/)?Detail\.aspx\?sid=(\d|-)+')
-orderPattern = re.compile(u'http://www.my089.com/Loan/Detail\.aspx\?sid=((\d|-)+)')
-consumerPattern = re.compile(u'http://www.my089.com/ConsumerInfo1\.aspx\?uid=((\d|\w)+)')
-errorPattern = re.compile(u'/Error/default\.aspx')
-needloginPattern = re.compile(u'/safe/login')
-defaultPattern = re.compile(urlHost + '/Loan/default\.aspx(\?pid=1)?')
-succeedPattern = re.compile(urlHost + '/Loan/Succeed\.aspx(\?pid=1)?')
-
 TRY_LOGIN_TIMES = 5 #尝试登录次数
-#宏常量定义
-BORROW_TYPE = 1
-BID_TYPE = 2
-FRIEND_TYPE = 3
-#用户页面说明
-#个人信息 ConsumerInfo1.aspx?uid=
-#信用评价 ConsumerInfo.aspx?uid=
-#还款明细账单 4 #积分50分
-#论坛帖子 2
-#正在招标中的借款 ConsumerInfo3.aspx?uid=
 
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
@@ -133,182 +116,6 @@ def createFolder(filedirectory):
     return
 
 #--------------------------------------------------
-#分析页面取得所有的url
-def findAllUrl(url):
-    mr_succeed = succeedPattern.match(url)
-    mr_default = defaultPattern.match(url)
-    mr_order = orderPattern.match(url)
-    mr_consumer = consumerPattern.match(url)
-    list_url = []
-
-    #投资默认页面
-    if mr_default:
-        print 'Page default'
-        content = readFromUrl(url)
-        soup = BeautifulSoup(content)
-        tag_pageCount = soup.find('span', {'class':'z_page'})
-        pageCount = 1
-        if tag_pageCount:
-            pageCount = re.search('\d', tag_pageCount.string).group(0)
-            #print pageCount
-        for i in range(1, int(pageCount)+1):
-            main_content = BeautifulSoup(readFromUrl(urlHost+urlDefault+'?pid='+str(i))).find('div', {'id':'man'})
-            list_temp = findUrl(main_content.prettify())
-            list_url.extend(list_temp)
-            
-    #投资成功页面        
-    elif mr_succeed:
-        print 'Page succeed'
-        for i in range(1, 100):
-            print('succeed loop:'+str(i))
-            main_content = BeautifulSoup(readFromUrl(urlHost+urlSucceed+'?pid='+str(i))).find('div', {'id':'man'})
-            list_temp = findUrl(main_content.prettify())
-            list_url.extend(list_temp)
-    #order页面
-    elif mr_order:
-        #logFile.write(url+'\n')
-        sid = mr_order.group(1)
-        #uid = getUidFromLoan(url)
-        content = readFromUrl(url)
-        if content:
-            list_temp = findUrl(content) #初始页面中的url
-            list_url.extend(list_temp)
-            #print list_url
-            #print getDetailUrl(sid, uid, 8)
-
-            #待还记录中的url在user的页面都能找到，所以这里不再重复
-            #list_temp = findUrl(readFromUrl(getDetailUrl(sid, uid, 8))) #待还记录中的url
-            #list_url.extend(list_temp)
-    #end elif
-
-    #consumer页面
-    elif mr_consumer:
-        uid = mr_consumer.group(1)
-        consumer_content = readFromUrl(url)
-        #print consumer_content
-        list_temp = findUrl(consumer_content) #用户初始页面，借款列表第一页
-        list_url.extend(list_temp)
-
-        #使用“下一页”按钮遍历借款列表页
-        content = consumer_content
-        borrowPageCount = 0
-        #soup = BeautifulSoup(content)
-        while True:
-            #print 'borrow Page:' + str(borrowPageCount)
-            soup = BeautifulSoup(content)
-            if not soup.find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlBrrows'}): #查看不到借款信息
-                break
-            borrowPageCount += 1
-            content = getNextPage(BORROW_TYPE, soup, url)
-            if not content:
-                break; #没有下一页
-                
-            borrow_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBrrows'})
-            list_temp = findUrl(borrow_content.prettify())
-            list_url.extend(list_temp)
-
-            #borrowPageCount += 1
-        #end while
-        #print('borrowPageCount = '+str(borrowPageCount))
-
-        #使用“下一页”按钮遍历投标记录页
-        content = consumer_content
-        bidPageCount = 1
-        while True:
-            #print 'bid Page:' +str(bidPageCount)
-            soup = BeautifulSoup(content)
-            if not soup.find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}).find('table'): #查看不到投标信息
-                break
-            bidPageCount += 1
-            content = getNextPage(BID_TYPE, soup, url)
-            if not content:
-                break; #没有下一页
-                
-            bid_content = BeautifulSoup(content).find('div', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_hdivBids'}) #只选取投标记录区域
-            list_temp = findUrl(bid_content.prettify())
-            #print('add '+str(len(list_temp)))
-            list_url.extend(list_temp)
-
-        #end while
-        #print('bidPageCount = '+str(bidPageCount))
-
-        #使用“下一页”按钮遍历好友列表
-        content = consumer_content
-        friendPageCount = 1
-        while True:
-            soup = BeautifulSoup(content)
-            if not soup.find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlFriends'}):#查看不到好友信息
-                break
-            friendPageCount += 1
-            content = getNextPage(FRIEND_TYPE, soup, url)
-            if not content:
-                break; #没有下一页
-                
-            friend_content = BeautifulSoup(content).find('table', {'id':'ctl00_ctl00_ContentPlaceHolder1_ContentPlaceHolder1_dlFriends'})
-            list_temp = findUrl(friend_content.prettify())
-            list_url.extend(list_temp)
-        #end while
-        #print('friendPageCount = '+str(friendPageCount))
-                
-        
-    list_url = list(set(list_url)) #list去重
-    return list_url
-#--------------------------------------------------
-#从consumer页面上读取下一页内容
-def getNextPage(type, soup, url):
-    viewState = soup.find('input', {'id':'__VIEWSTATE'})['value']
-    eventValidation = soup.find('input', {'id':'__EVENTVALIDATION'})['value']
-
-    eventString = {BORROW_TYPE:'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination1$lbtnNext', BID_TYPE:'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination2$lbtnNext', FRIEND_TYPE: 'ctl00$ctl00$ContentPlaceHolder1$ContentPlaceHolder1$Pagination3$lbtnNext'}
-    
-    formdata = {'__EVENTTARGET':eventString[type], '__EVENTARGUMENT':'', '__VIEWSTATE':viewState, '__EVENTVALIDATION':eventValidation}
-    result = responseFromUrl(url, formdata)
-            
-    if result:
-        content = result.read()
-        result.close()
-        return content
-    else:
-        return None#没有下一页
-#--------------------------------------------------
-#从loan detail页面获取当前用户id
-def getUidFromLoan(url):
-    if orderPattern.match(url):
-        webcontent = readFromUrl(url)
-        if webcontent:
-            soup = BeautifulSoup(webcontent)
-    
-            tag_uid = soup.find('span', text = re.compile(u'用 户 名：'))
-            #print 'tag_uid='+str(tag_uid)
-            href_uid = tag_uid.find_next_sibling('span').a['href']
-            uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(1)
-            return uid
-    return None
-    
-#--------------------------------------------------
-#分析页面内链接
-def findUrl(webcontent):
-    list_url = []
-    if(webcontent == None):
-        print("[ERROR] webcontent is None in findUrl()")
-        return list_url #返回空list
-    soup = BeautifulSoup(webcontent)
-    list_a = soup.find_all('a')
-    for item_a in list_a:
-        #print item_a
-        if item_a.has_attr('href'):#是否含有链接信息
-            href = item_a['href']
-            if usePattern.match(href):#是否有用
-                if re.match('Detail.*', href):
-                    href = '/Loan/'+href
-                    #print href
-                href = href.replace('-', '') #去掉所有横杠
-                list_url.append(href)
-    
-    return list_url
-#end def findUrl
-
-#--------------------------------------------------
 #从url读取response
 def responseFromUrl(url, formdata = None):
     response = None
@@ -326,13 +133,6 @@ def responseFromUrl(url, formdata = None):
             req = urllib2.Request(url, formdata, headers = headers)
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
-            if errorPattern.search(curUrl): #进入错误页面
-                response.close()
-                return None
-            elif needloginPattern.search(curUrl):
-                print('NEED LOGIN!')
-                login()
-                continue
             break
         except (urllib2.URLError) as e:
             if hasattr(e, 'code'):
@@ -368,40 +168,33 @@ def getTime(format = None):
     else:
         strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     return strtime
-#--------------------------------------------------
-#从/Loan/Detail.aspx 得到更细节的信息
-#借款信息 1
-#投标记录 2
-#还款信用 3
-#标的奖励 4
-#账户详情 5
-#资料审核 7
-#待还记录 8
-def getDetailUrl(sid, uid, doNumber):
-    return urlHost + '/Loan/GetDetailItem.aspx\?sid='+str(sid)+'&uid='+str(uid)+'&do='+str(doNumber);
 
 #--------------------------------------------------
-def analyzeData(webcontent, sid, csvwriter):
+def analyzeData(url, category, writers):
+    webcontent = readFromUrl(url)
     soup = BeautifulSoup(webcontent)
-    
-    tag_uid = soup.find('span', text = re.compile(u'用 户 名：'))
-    #print 'tag_uid='+str(tag_uid)
-    href_uid = tag_uid.find_next_sibling('span').a['href']
-    uid = re.search('/ConsumerInfo1\.aspx\?uid=((\d|\w)+)', href_uid).group(1)
 
-    #http://www.my089.com/Loan/GetDetailItem.aspx?sid=14032223504661291286300010184496&uid=E57D1C7DEAA59546&do=2&rnd=0.45415010140277445
-    #投标记录 do=2
-    #还款信用 do=3
-    #标的奖励 4
-    #账户详情 5
-    #资料审核 7
-    #待还记录 8
-    m_toRepay = readFromUrl(getDetailUrl(8))
-    print 'm_toRepay = '+m_toRepay
+    currentDate = getTime('%Y-%m-%d')
+    currentClock = getTime('%H:%M:%S')
 
+    title = updates = backers = comments = ''
 
-    return uid;
+    tag_title = soup.find('meta', {'property':'og:title'})
+    if tag_title:
+        title = tag_title['content']
+    tag_updates = soup.find('span', {'id':'updates_count'})
+    if tag_updates:
+        updates = tag_updates['data-updates-count']
+    tag_backers = soup.find('meta', {'property':'twitter:text:backers'})
+    if tag_backers:
+        backers = tag_backers['content']
+    tag_comments = soup.find('span', {'id':'comments_count'})
+    if tag_comments:
+        comments = tag_comments['data-comments-count']
+        
+    buffer1 = [url, currentDate, currentClock, category, title, updates, backers, comments]
 
+    writers[0].writerow(buffer1)
     '''
     if soup.find('img', {'alt':'404'}):
         return False #页面404
