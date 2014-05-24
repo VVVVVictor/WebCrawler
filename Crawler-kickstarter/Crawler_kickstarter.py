@@ -20,6 +20,7 @@ urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
 headers={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host':'www.kickstarter.com', 'X-Requested-With':'XMLHttpRequest'}
 
+titles = ([u"链接",u"抓取日期",u"抓取时间",u"Category",u"Title",u"Updates",u"Backers",u"Comments",u"PAdd",u"Video",u"DesLength",u'DesPics', u"RiskLength",u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"RAmt1",u"RBkr1",u"RDes1",u"RDel1"], [u"抓取日期",u"抓取时间",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"NBP",u"JoinedDate",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"])
 
 orderCount = 0
 allCount = 0
@@ -37,11 +38,16 @@ def getData(filedirectory):
     writers = [] #csv writer list
     for i in range(1, 2):
         name_sheet = filedirectory+strtime+'_sheet'+str(i)+'.csv'
+        flag_newfile = True
+        if os.path.isfile(name_sheet):
+            flag_newfile = False
         file_sheet = open(name_sheet, 'wb')
         file_sheet.write('\xEF\xBB\xBF') #防止windows下excel打开显示乱码
         
         writer = csv.writer(file_sheet)
         writers.append(writer)
+        if flag_newfile:
+            writer.writerow(titles[i-1])
     #end for
     
     for i in categoryIdList:

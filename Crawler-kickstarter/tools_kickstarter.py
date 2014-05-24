@@ -20,8 +20,6 @@ urlIndex = u'https://www.kickstarter.com/'
 urlCategory = u'https://www.kickstarter.com/discover/advanced?'
 
 #for excel
-mainTitles = [u"链接",u"抓取日期",u"抓取时间",u"Category",u"Title",u"Updates",u"Backers",u"Comments",u"PAdd",u"Video",u"DesLength",u"RiskLength",u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"RAmt1",u"RBkr1",u"RDes1",u"RDel1"]
-backerTitles = [u"抓取日期",u"抓取时间",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"NBP",u"JoinedDate",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"]
 
 username = u'victor1991@126.com'
 password = u'wmf123456'
@@ -42,7 +40,7 @@ def getConfig():
             m = pattern.match(line)
             if m:
                 if m.group(1) == u'filedirectory':
-                    filedirectory =  m.group(2)+'\\'
+                    filedirectory =  m.group(2)+'/'
                     '''
                     tempchar = filedirectory[len(filedirectory)-1]
                     if tempchar != u'\\' and tempchar != u'/':
@@ -56,7 +54,7 @@ def getConfig():
                 #print filedirectory
         configfile.close()
     except:
-        configfile = open(os.getcwd()+'\\'+configfileName, 'wb')
+        configfile = open(os.getcwd()+'/'+configfileName, 'wb')
         configfile.write('filedirectory = '+filedirectory+'\n')
         configfile.write('username = '+username+'\n')
         configfile.write('password = '+password+'\n')
@@ -173,11 +171,12 @@ def getTime(format = None):
 def analyzeData(url, category, writers):
     webcontent = readFromUrl(url)
     soup = BeautifulSoup(webcontent)
+    buffer1 = []
 
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
 
-    title = updates = backers = comments = ''
+    title = updates = backers = comments = PAdd = ''
 
     tag_title = soup.find('meta', {'property':'og:title'})
     if tag_title:
@@ -191,8 +190,31 @@ def analyzeData(url, category, writers):
     tag_comments = soup.find('span', {'id':'comments_count'})
     if tag_comments:
         comments = tag_comments['data-comments-count']
-        
-    buffer1 = [url, currentDate, currentClock, category, title, updates, backers, comments]
+    tag_location = soup.find('meta', {'property':'twitter:text:location'})
+    if tag_location:
+        location = tag_location['content']
+    attrs1 = [url, currentDate, currentClock, category, title, updates, backers, comments, location]
+
+    video = desLength = desPics = riskLength = FAQQ = FAQA = '0'
+    tag_video = soup.find('div', {'id':'video-section'})
+    if tag_video and tag_video['data-has-video']=='true':
+        video = '1'
+    tag_description = soup.find('div', {'class':'full-description'})
+    if tag_description:
+        desLength = str(len(tag_description.get_text()))
+        desPics = str(len(tag_description.find_all('img')))
+    tag_risk = soup.find('div', {'id':'risks'})
+    if tag_risk:
+        #print tag_risk.get_text()
+        riskLength = str(len(tag_risk.get_text()))
+    tag_FAQ = soup.find('div', {'id':'project-faqs'})
+    if tag_FAQ:
+        FAQQ = str(len(tag_FAQ.find_all('div', {'class':'faq-question'})))
+        FAQA = str(len(tag_FAQ.find_all('div', {'class':'faq-answer'})))
+    attrs2 = [video, desLength, desPics, riskLength, FAQQ, FAQA]
+
+    buffer1.extend(attrs1)
+    buffer1.extend(attrs2)
 
     writers[0].writerow(buffer1)
     '''
