@@ -168,16 +168,22 @@ def getTime(format = None):
     return strtime
 
 #--------------------------------------------------
-def analyzeData(url, category, writers):
+def analyzeData(url, writers):
     webcontent = readFromUrl(url)
     soup = BeautifulSoup(webcontent)
     buffer1 = []
-
+    #******************************
+    #页面上栏部分
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
 
-    title = updates = backers = comments = PAdd = ''
+    category = title = updates = backers = comments = location = ''
 
+    tag_category = soup.find('li', class_='category')
+    if tag_category:
+        category = tag_category.a.get_text()
+        category = category.strip()
+        #print category
     tag_title = soup.find('meta', {'property':'og:title'})
     if tag_title:
         title = tag_title['content']
@@ -194,7 +200,8 @@ def analyzeData(url, category, writers):
     if tag_location:
         location = tag_location['content']
     attrs1 = [url, currentDate, currentClock, category, title, updates, backers, comments, location]
-
+    #******************************
+    #页面左侧部分
     video = desLength = desPics = riskLength = FAQQ = FAQA = '0'
     tag_video = soup.find('div', {'id':'video-section'})
     if tag_video and tag_video['data-has-video']=='true':
@@ -213,10 +220,118 @@ def analyzeData(url, category, writers):
         FAQA = str(len(tag_FAQ.find_all('div', {'class':'faq-answer'})))
     attrs2 = [video, desLength, desPics, riskLength, FAQQ, FAQA]
 
+    #******************************
+    #页面右栏上方
+    moneyUnit = backers = pledgedAmount = goal = daysToGo = '0'
+    tag_pledged = soup.find('div', {'id':'pledged'})
+    if tag_pledged:
+        goal = tag_pledged['data-goal']
+        pledgedAmount = tag_pledged['data-pledged']
+        tag_amount = tag_pledged.find('data')
+        if tag_amount:
+            moneyUnit = tag_amount['data-currency']
+    tag_backers = soup.find('meta', {'property':'twitter:text:backers'})
+    if tag_backers:
+        backers = tag_backers['content']
+    tag_days = soup.find('meta', {'property':'twitter:text:time'})
+    if tag_days:
+        daysToGo = tag_days['content']
+    attrs3 = [moneyUnit, backers, pledgedAmount, goal, daysToGo]
+    #******************************
+    #页面右栏最下端
+    beginDate = endDate = spanDays = ''
+    tag_period = soup.find('div', {'id':'meta'})
+    if tag_period:
+        time1 = tag_period.find('time')
+        beginDate = re.match('(\d+-\d+-\d+)T.*', time1['datetime']).group(1)
+        time2 = time1.find_next_sibling('time')
+        endDate = re.match('(\d+-\d+-\d+)T.*', time2['datetime']).group(1)
+    tag_duration = soup.find('span', {'id':'project_duration_data'})
+    if tag_duration:
+        spanDays = re.match('(\d+).\d?', tag_duration['data-duration']).group(1)
+    attrs4 = [beginDate, endDate, spanDays]
+    #******************************
+    #页面右栏中部
+    creatorName = creatorAdd = ''
+    FB_friends = 'NA'
+    tag_creator = soup.find('meta', {'property':'twitter:text:artist'})
+    if tag_creator:
+        creatorName = tag_creator['content']
+    creatorAdd = location #TODO: is there any difference?
+    tag_creatorFB = soup.find('li', {'class':'facebook-connected'})
+    if tag_creatorFB:
+        FB_friends = re.match('(\s|\n)*(\d+).*', tag_creatorFB.find('span', class_='number').string).group(2)
+    attrs5 = [creatorName, creatorAdd, str(FB_friends)]
+    
+    #******************************
+    #about creator
+    creatorID = lastLoginDate = joinedDate = ''
+    bioLength = NBacked = NCreated = '0'
+    bioContent = readFromUrl(url+'/creator_bio.js')
+    soup_bio = BeautifulSoup(bioContent)
+    tag_lastLogin = soup_bio.find('time', class_='js-adjust')
+    if tag_lastLogin:
+        lastLoginDate = re.match('(\d+-\d+-\d+)T.*', tag_lastLogin['datetime']).group(1)
+
+    tag_creatorUrl = soup.find('meta', {'property':'kickstarter:creator'})
+    if tag_creatorUrl:
+        creatorUrl = tag_creatorUrl['content']
+        #print creatorUrl
+        creatorID = re.match('https://www\.kickstarter\.com/profile/(\w+)', creatorUrl).group(1)
+        creatorContent = readFromUrl(creatorUrl)
+        soup2 = BeautifulSoup(creatorContent)
+        tag_joined = soup2.find('meta', {'property':'kickstarter:joined'})
+        if tag_joined:
+            joinedDate = re.match('(\d+-\d+-\d+) .*', tag_joined['content']).group(1)
+        tag_bio = soup2.find('meta', {'property':'og:description'})
+        if tag_bio:
+            bioLength = str(len(tag_bio['content']))
+        tag_NBacked = soup2.find('a', {'id':'list_title'})
+        if tag_NBacked:
+            NBacked = re.search('\d+', tag_NBacked.get_text()).group(0)
+        tag_NCreated = tag_NBacked.parent.find_next_sibling('li')
+        #print tag_NCreated
+        if tag_NCreated:
+            NCreated = re.search('\d+', tag_NCreated.get_text()).group(0)
+        attrs6 = [str(creatorID), bioLength, lastLoginDate, joinedDate, str(NBacked), str(NCreated)]
+    
+    #******************************
     buffer1.extend(attrs1)
     buffer1.extend(attrs2)
+    buffer1.extend(attrs3)
+    buffer1.extend(attrs4)
+    buffer1.extend(attrs5)
+    buffer1.extend(attrs6)
+
+    #******************************
+    #Reward
+    tag_reward = soup.find('ul', {'id':'what-you-get'})
+    if tag_reward:
+        reward_list = tag_reward.find_all('li', class_='NS-projects-reward')
+        for reward_item in reward_list:
+            RAmt = RBkr = RDes = RDel = ''
+            tag_RAmt = reward_item.find('span', class_='money')
+            if tag_RAmt:
+                RAmt = re.match('\D(\d+(\.\d+)?)', tag_RAmt.string).group(1)
+            tag_RBkr = reward_item.find('span', class_='num-backers')
+            if tag_RBkr:
+                RBkr = re.search('\d+', tag_RBkr.string).group(0)
+            tag_RDes = reward_item.find('div', class_='desc')
+            if tag_RDes:
+                RDes = tag_RDes.p.string
+            tag_RDel = reward_item.find('time')
+            if tag_RDel:
+                RDel = tag_RDel.string
+            attrs7 = [RAmt, RBkr, RDes, RDel]
+            buffer1.extend(attrs7)
+    
 
     writers[0].writerow(buffer1)
+    #-------------------------------------
+    buffer2 = [currentDate, currentClock, category, title, creatorID]
+    
+    
+    writers[1].writerow(buffer2)
     '''
     if soup.find('img', {'alt':'404'}):
         return False #页面404

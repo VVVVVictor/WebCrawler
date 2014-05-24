@@ -36,7 +36,7 @@ def getData(filedirectory):
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     
     writers = [] #csv writer list
-    for i in range(1, 2):
+    for i in range(1, 3):
         name_sheet = filedirectory+strtime+'_sheet'+str(i)+'.csv'
         flag_newfile = True
         if os.path.isfile(name_sheet):
@@ -66,7 +66,7 @@ def getData(filedirectory):
                 for proj in projList:
                     url = proj['urls']['web']['project']
                     print url
-                    analyzeData(url, categoryName[i], writers)
+                    analyzeData(url, writers)
                 response.close();
             except (urllib2.URLError) as e:
                 if hasattr(e, 'code'):
@@ -76,18 +76,7 @@ def getData(filedirectory):
             except socket.error as e:
                 print('[ERROR] Socket error: '+str(e.errno))
                 continue    
-    #end for
-        '''
-        print('Downloading '+str(i)+' web page...')
-        if analyzeData(m, writers[0]):
-            lostPageCount = 0
-        else:
-            print('404')
-            lostPageCount += 1
-            if(lostPageCount > LOST_PAGE_LIMIT):
-                print('You have got the latest page!')
-                break
-                '''
+        #endwhile
     #end for
     
     endtime = time.clock()
