@@ -187,6 +187,7 @@ def analyzeData(url, writers):
     tag_title = soup.find('meta', {'property':'og:title'})
     if tag_title:
         title = tag_title['content']
+        title = title.replace(';', '.')
     tag_updates = soup.find('span', {'id':'updates_count'})
     if tag_updates:
         updates = tag_updates['data-updates-count']
@@ -289,10 +290,10 @@ def analyzeData(url, writers):
         tag_NBacked = soup2.find('a', {'id':'list_title'})
         if tag_NBacked:
             NBacked = re.search('\d+', tag_NBacked.get_text()).group(0)
-        tag_NCreated = tag_NBacked.parent.find_next_sibling('li')
-        #print tag_NCreated
-        if tag_NCreated:
-            NCreated = re.search('\d+', tag_NCreated.get_text()).group(0)
+            tag_NCreated = tag_NBacked.parent.find_next_sibling('li')
+            #print tag_NCreated
+            if tag_NCreated:
+                NCreated = re.search('\d+', tag_NCreated.get_text()).group(0)
         attrs6 = [str(creatorID), bioLength, lastLoginDate, joinedDate, str(NBacked), str(NCreated)]
     
     #******************************
@@ -324,18 +325,14 @@ def analyzeData(url, writers):
                 RDel = tag_RDel.string
             attrs7 = [RAmt, RBkr, RDes, RDel]
             buffer1.extend(attrs7)
-    
 
     writers[0].writerow(buffer1)
     #-------------------------------------
     buffer2 = [currentDate, currentClock, category, title, creatorID]
-    
-    
     writers[1].writerow(buffer2)
     '''
     if soup.find('img', {'alt':'404'}):
         return False #页面404
-    
     ### 分析script ###
     jsonString = soup.find(id = 'credit-info-data').string
     #jsonString = jsonString.replace('"[', '[').replace(']"', ']') #多余引号导致分析错误

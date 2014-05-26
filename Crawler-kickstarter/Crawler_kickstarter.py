@@ -27,14 +27,7 @@ allCount = 0
 categoryIdList = [1, 3, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18]
 categoryName = ['','Art', '', 'Comics','','','Dance','Design','','Fashion','Food','Film&Video','Games','','Music','Photography','Technology','Theater', 'Publishing']
 
-def getData(filedirectory):
-    
-    starttime = time.clock()
-    lostPageCount = 0 #记录连续404的页面个数
-    #lastpage = begin_page #记录抓取的最后一个有效页面
-    
-    strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-    
+def createWriters(filedirectory):
     writers = [] #csv writer list
     for i in range(1, 3):
         name_sheet = filedirectory+strtime+'_sheet'+str(i)+'.csv'
@@ -48,7 +41,16 @@ def getData(filedirectory):
         writers.append(writer)
         if flag_newfile:
             writer.writerow(titles[i-1])
-    #end for
+    return writers
+
+def getData(filedirectory):
+    starttime = time.clock()
+    lostPageCount = 0 #记录连续404的页面个数
+    #lastpage = begin_page #记录抓取的最后一个有效页面
+    
+    strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+    
+    writers = createWriters(filedirectory)
     
     for i in categoryIdList:
         pageCount = 0
@@ -57,8 +59,8 @@ def getData(filedirectory):
             print('CATEGORY ID: '+str(i)+';  PAGE: '+str(pageCount))
             req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(i)+'&sort='+SORT_TYPE, headers=headers)
             try:
-                response = urllib2.urlopen(req);
-                m = response.read();
+                response = urllib2.urlopen(req)
+                m = response.read()
                 scriptData = json.loads(m)
                 projList = scriptData['projects']
                 if(len(projList) == 0):
@@ -67,7 +69,7 @@ def getData(filedirectory):
                     url = proj['urls']['web']['project']
                     print url
                     analyzeData(url, writers)
-                response.close();
+                response.close()
             except (urllib2.URLError) as e:
                 if hasattr(e, 'code'):
                     print('[ERROR]'+str(e.code)+' '+str(e.reason))
@@ -75,7 +77,7 @@ def getData(filedirectory):
                 print('url = ')
             except socket.error as e:
                 print('[ERROR] Socket error: '+str(e.errno))
-                continue    
+                continue
         #endwhile
     #end for
     
@@ -90,14 +92,17 @@ reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 sys.setrecursionlimit(1000000)#设置递归调用深度
 
+urlTest = 'https://www.kickstarter.com/projects/1902659823/the-lost-bowl-a-diy-backyard-concrete-skatepark'
 filedirectory = getConfig()
 #test()
 if login():
     #print('Login success!')
     #test()
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-    
-    getData(filedirectory);
+
+    writers = createWriters(filedirectory)
+    analyzeData(urlTest, writers)
+    #getData(filedirectory);
 '''
     req = urllib2.Request(urlCategory+'page='+str(95)+'&category_id='+str(6)+'&sort='+SORT_TYPE, headers=headers)
     try:
@@ -117,7 +122,7 @@ if login():
     except socket.error as e:
         print('[ERROR] Socket error: '+str(e.errno))
 
-            #i = lastpage 
+            #i = lastpage
 
 
     createFolder('log')
