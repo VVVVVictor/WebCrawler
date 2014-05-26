@@ -100,9 +100,9 @@ if login():
     #test()
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
 
-    writers = createWriters(filedirectory)
-    analyzeData(urlTest, writers)
-    #getData(filedirectory);
+    #writers = createWriters(filedirectory)
+    #analyzeData(urlTest, writers)
+    getData(filedirectory);
 '''
     req = urllib2.Request(urlCategory+'page='+str(95)+'&category_id='+str(6)+'&sort='+SORT_TYPE, headers=headers)
     try:
