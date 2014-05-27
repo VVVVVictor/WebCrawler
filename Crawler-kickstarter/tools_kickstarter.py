@@ -9,6 +9,7 @@ import csv
 from bs4 import BeautifulSoup
 import socket
 import hashlib
+from random import randint
 
 configfileName = 'config'
 filedirectory = u'D:\\datas\\pythondatas\\kickstarter\\'
@@ -23,7 +24,8 @@ urlCategory = u'https://www.kickstarter.com/discover/advanced?'
 
 username = u'victor1991@126.com'
 password = u'wmf123456'
-headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.kickstarter.com'}
+headers=[{'Accept': 'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host': 'www.kickstarter.com', 'X-Requested-With': 'XMLHttpRequest'}, {'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Host': 'www.kickstarter.com', 'X-Requested-With': 'XMLHttpRequest'}, {'Accept': 'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host': 'www.kickstarter.com', 'X-Requested-With': 'XMLHttpRequest'}]
+HEADERS_NUMBER = 3
 
 TRY_LOGIN_TIMES = 5 #尝试登录次数
 
@@ -84,7 +86,8 @@ def login():
     postdata = urllib.urlencode(data)
     for i in range(TRY_LOGIN_TIMES):
         try:
-            req = urllib2.Request(urlLogin, postdata, headers)
+            #print headers[randint(0, HEADERS_NUMBER-1)]
+            req = urllib2.Request(urlLogin, postdata, headers[randint(0, HEADERS_NUMBER-1)])
             result = urllib2.urlopen(req)
             if urlIndex != result.geturl(): #通过返回url判断是否登录成功
                 print result.geturl()
@@ -92,7 +95,7 @@ def login():
                 return False
             result.close()
     
-            req2 = urllib2.Request(urlIndex, headers=headers)
+            req2 = urllib2.Request(urlIndex, headers=headers[randint(0, HEADERS_NUMBER-1)])
             result2 = urllib2.urlopen(req2)
             #print result2.read()
             print("LOGIN SUCCESS!")
@@ -128,7 +131,7 @@ def responseFromUrl(url, formdata = None):
             print('URL = '+url)
             break
         try:
-            req = urllib2.Request(url, formdata, headers = headers)
+            req = urllib2.Request(url, formdata, headers = headers[randint(0, HEADERS_NUMBER-1)])
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
             break
@@ -275,6 +278,7 @@ def analyzeData(url, writers):
         lastLoginDate = re.match('(\d+-\d+-\d+)T.*', tag_lastLogin['datetime']).group(1)
 
     tag_creatorUrl = soup.find('meta', {'property':'kickstarter:creator'})
+    attrs6 = []
     if tag_creatorUrl:
         creatorUrl = tag_creatorUrl['content']
         #print creatorUrl

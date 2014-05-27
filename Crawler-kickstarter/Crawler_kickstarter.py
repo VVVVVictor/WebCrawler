@@ -18,7 +18,7 @@ SORT_TYPE = 'launch_date'
 urlHost = u'https://www.kickstarter.com'
 urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
-headers={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host':'www.kickstarter.com', 'X-Requested-With':'XMLHttpRequest'}
+#headers={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host':'www.kickstarter.com', 'X-Requested-With':'XMLHttpRequest'}
 
 titles = ([u"链接",u"抓取日期",u"抓取时间",u"Category",u"Title",u"Updates",u"Backers",u"Comments",u"PAdd",u"Video",u"DesLength",u'DesPics', u"RiskLength",u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"RAmt1",u"RBkr1",u"RDes1",u"RDel1"], [u"抓取日期",u"抓取时间",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"NBP",u"JoinedDate",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"])
 
@@ -57,7 +57,7 @@ def getData(filedirectory):
         while True:
             pageCount += 1
             print('CATEGORY ID: '+str(i)+';  PAGE: '+str(pageCount))
-            req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(i)+'&sort='+SORT_TYPE, headers=headers)
+            req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(i)+'&sort='+SORT_TYPE, headers=headers[randint(0,HEADERS_NUMBER-1)])
             try:
                 response = urllib2.urlopen(req)
                 m = response.read()
