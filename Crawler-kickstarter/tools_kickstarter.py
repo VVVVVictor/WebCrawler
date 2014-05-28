@@ -25,10 +25,14 @@ urlCategory = u'https://www.kickstarter.com/discover/advanced?'
 username = u'victor1991@126.com'
 password = u'wmf123456'
 #'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-headers=[{'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host': 'www.kickstarter.com'}, {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Host': 'www.kickstarter.com'}, {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host': 'www.kickstarter.com'}]
+ipAddress = ['10.0.0.1', '191.234.5.2', '178.98.246.45, 231.67.9.23']
+host = 'www.kickstarter.com'
+userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36']
+#headers=[{'User-Agent': userAgent[0], 'Host': 'www.kickstarter.com', 'X-Forwarded-For':ipAddress}, {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': userAgent[1], 'Host': 'www.kickstarter.com', 'X-Forwarded-For':ipAddress}, {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': userAgent[2], 'Host': 'www.kickstarter.com', 'X-Forwarded-For':ipAddress}]
 HEADERS_NUMBER = 3
 
 TRY_LOGIN_TIMES = 5 #尝试登录次数
+CATEGORY_COUNT = 13
 
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
@@ -88,7 +92,7 @@ def login():
     for i in range(TRY_LOGIN_TIMES):
         try:
             #print headers[randint(0, HEADERS_NUMBER-1)]
-            req = urllib2.Request(urlLogin, postdata, headers[randint(0, HEADERS_NUMBER-1)])
+            req = urllib2.Request(urlLogin, postdata, getRandomHeaders())
             result = urllib2.urlopen(req)
             if urlIndex != result.geturl(): #通过返回url判断是否登录成功
                 print result.geturl()
@@ -96,7 +100,7 @@ def login():
                 return False
             result.close()
     
-            req2 = urllib2.Request(urlIndex, headers=headers[randint(0, HEADERS_NUMBER-1)])
+            req2 = urllib2.Request(urlIndex, headers=getRandomHeaders())
             result2 = urllib2.urlopen(req2)
             #print result2.read()
             print("LOGIN SUCCESS!")
@@ -132,7 +136,7 @@ def responseFromUrl(url, formdata = None):
             print('URL = '+url)
             break
         try:
-            req = urllib2.Request(url, formdata, headers=headers[randint(0, HEADERS_NUMBER-1)])
+            req = urllib2.Request(url, formdata, headers=getRandomHeaders())
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
             break
@@ -151,6 +155,14 @@ def responseFromUrl(url, formdata = None):
     
     return response
 
+#--------------------------------------------------
+#生成一个随机的headers
+def getRandomHeaders():
+    ipNumber = len(ipAddress)
+    agentNumber = len(userAgent)
+    headers = {'User-Agent': userAgent[randint(0, agentNumber-1)], 'Host': host, 'X-Forwarded-For': ipAddress[randint(0, ipNumber-1)]}
+    return headers
+    
 #--------------------------------------------------
 #从url读取页面内容
 def readFromUrl(url, formdata = None):
@@ -174,7 +186,7 @@ def getTime(format = None):
 #--------------------------------------------------
 def analyzeData(url, writers):
     webcontent = readFromUrl(url)
-    print webcontent
+    #print webcontent
     soup = BeautifulSoup(webcontent)
     buffer1 = []
     #******************************
@@ -263,6 +275,7 @@ def analyzeData(url, writers):
     tag_creator = soup.find('meta', {'property':'twitter:text:artist'})
     if tag_creator:
         creatorName = tag_creator['content']
+        creatorName = creatorName.replace(';', '.')
     creatorAdd = location #TODO: is there any difference?
     tag_creatorFB = soup.find('li', {'class':'facebook-connected'})
     if tag_creatorFB:
@@ -300,6 +313,7 @@ def analyzeData(url, writers):
             #print tag_NCreated
             if tag_NCreated:
                 NCreated = re.search('\d+', tag_NCreated.get_text()).group(0)
+        attrs6 = [str(creatorID), bioLength, lastLoginDate, joinedDate, str(NBacked), str(NCreated)]
         #to get number of projects of each category
         tag_circle = soup2.find('div', {'id':'small_circle'})
         if tag_circle:
@@ -307,9 +321,14 @@ def analyzeData(url, writers):
             scriptData = re.search('circle_data = (\[.*\]);', scriptPart).group(1)
             script = json.loads(scriptData)
             for item in script:
-                print item['projects_backed'],
-            print '-'
-        attrs6 = [str(creatorID), bioLength, lastLoginDate, joinedDate, str(NBacked), str(NCreated)]
+                #print item['projects_backed'],
+                attrs6.append(item['projects_backed'])
+        else:
+            #for deleted user
+            for i in range(CATEGORY_COUNT):
+                attrs6.append('')
+            #print '-'
+        
     
     #******************************
     buffer1.extend(attrs1)
@@ -355,11 +374,15 @@ def analyzeData(url, writers):
             #print backerName
             backerID = re.match('/profile/(\w+)', backerItem.a['href']).group(1)
             backerLocation = ''
-            backingNumber = '0'
+            tag_backerLocation = tag_backer.find('p', class_='location')
+            if tag_backerLocation:
+                backerLocation = (tag_backerLocation.get_text()).strip()
+            i_backingNumber = 1
             tag_backing = tag_backer.find('p', class_='backings')
             if tag_backing:
                 backingNumber = re.search('\d+', tag_backing.get_text()).group(0)
-            buffer2.extend([backerName, backerID, backingNumber])
+                i_backingNumber = (int)(str(backingNumber))+1
+            buffer2.extend([backerName, backerID, backerLocation, i_backingNumber])
             writers[1].writerow(buffer2)
 
 #end analyzeData()

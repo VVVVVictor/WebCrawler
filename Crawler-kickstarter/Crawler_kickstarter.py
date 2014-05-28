@@ -20,7 +20,7 @@ urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
 headers={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host':'www.kickstarter.com', 'X-Requested-With':'XMLHttpRequest'}
 
-titles = ([u"链接",u"抓取日期",u"抓取时间",u"Category",u"Title",u"Updates",u"Backers",u"Comments",u"PAdd",u"Video",u"DesLength",u'DesPics', u"RiskLength",u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"RAmt1",u"RBkr1",u"RDes1",u"RDel1"], [u"抓取日期",u"抓取时间",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"NBP",u"JoinedDate",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"])
+titles = ([u"链接",u"抓取日期",u"抓取时间",u"Category",u"Title",u"Updates",u"Backers",u"Comments",u"PAdd",u"Video",u"DesLength",u'DesPics', u"RiskLength",u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater",u"RAmt1",u"RBkr1",u"RDes1", u"RDel1", u"RAmt2",u"RBkr2",u"RDes2",u"RDel2", u"RDel2", u"RAmt3",u"RBkr3",u"RDes3",u"RDel3"], [u"抓取日期",u"抓取时间",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"BackerLocation", u"NBP",u"JoinedDate",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"])
 
 orderCount = 0
 allCount = 0
@@ -92,7 +92,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 sys.setrecursionlimit(1000000)#设置递归调用深度
 
-urlTest = 'https://www.kickstarter.com/projects/1902659823/the-lost-bowl-a-diy-backyard-concrete-skatepark'
+urlTest = 'https://www.kickstarter.com/projects/JenOne/help-support-jen-ones-1-woman-art-show-book'
 filedirectory = getConfig()
 #test()
 if login():
@@ -100,9 +100,9 @@ if login():
     #test()
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
 
-    #writers = createWriters(filedirectory)
-    #analyzeData(urlTest, writers)
-    getData(filedirectory);
+    writers = createWriters(filedirectory)
+    analyzeData(urlTest, writers)
+    #getData(filedirectory);
 '''
     req = urllib2.Request(urlCategory+'page='+str(95)+'&category_id='+str(6)+'&sort='+SORT_TYPE, headers=headers)
     try:
