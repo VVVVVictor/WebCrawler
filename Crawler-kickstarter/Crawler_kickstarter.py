@@ -92,7 +92,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 sys.setrecursionlimit(1000000)#设置递归调用深度
 
-urlTest = 'https://www.kickstarter.com/projects/JenOne/help-support-jen-ones-1-woman-art-show-book'
+urlTest = 'https://www.kickstarter.com/projects/surprise/enter-the-surprise-house-mystery-and-wonder-await'
 filedirectory = getConfig()
 #test()
 if login():

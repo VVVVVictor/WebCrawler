@@ -354,6 +354,7 @@ def analyzeData(url, writers):
             tag_RDes = reward_item.find('div', class_='desc')
             if tag_RDes:
                 RDes = tag_RDes.p.string
+                RDes = RDes.replace(u'\u000D\u000A', ' ')
             tag_RDel = reward_item.find('time')
             if tag_RDel:
                 RDel = tag_RDel.string
