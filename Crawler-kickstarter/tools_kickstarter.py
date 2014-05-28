@@ -24,7 +24,8 @@ urlCategory = u'https://www.kickstarter.com/discover/advanced?'
 
 username = u'victor1991@126.com'
 password = u'wmf123456'
-headers=[{'Accept': 'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host': 'www.kickstarter.com', 'X-Requested-With': 'XMLHttpRequest'}, {'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Host': 'www.kickstarter.com', 'X-Requested-With': 'XMLHttpRequest'}, {'Accept': 'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host': 'www.kickstarter.com', 'X-Requested-With': 'XMLHttpRequest'}]
+#'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+headers=[{'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host': 'www.kickstarter.com'}, {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Host': 'www.kickstarter.com'}, {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host': 'www.kickstarter.com'}]
 HEADERS_NUMBER = 3
 
 TRY_LOGIN_TIMES = 5 #尝试登录次数
@@ -131,7 +132,7 @@ def responseFromUrl(url, formdata = None):
             print('URL = '+url)
             break
         try:
-            req = urllib2.Request(url, formdata, headers = headers[randint(0, HEADERS_NUMBER-1)])
+            req = urllib2.Request(url, formdata, headers=headers[randint(0, HEADERS_NUMBER-1)])
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
             break
@@ -173,6 +174,7 @@ def getTime(format = None):
 #--------------------------------------------------
 def analyzeData(url, writers):
     webcontent = readFromUrl(url)
+    print webcontent
     soup = BeautifulSoup(webcontent)
     buffer1 = []
     #******************************
