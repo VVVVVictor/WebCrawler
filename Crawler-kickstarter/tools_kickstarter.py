@@ -13,6 +13,7 @@ from random import randint
 
 configfileName = 'config'
 filedirectory = u'D:\\datas\\pythondatas\\kickstarter\\'
+enable_proxy = True
 
 #For login
 urlHost = u'https://www.kickstarter.com'
@@ -125,6 +126,10 @@ def createFolder(filedirectory):
 #从url读取response
 def responseFromUrl(url, formdata = None):
     response = None
+    proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
+    if enable_proxy:
+        opener = urllib2.build_opener(proxy_handler)
+        urllib2.install_opener(opener)
     if formdata != None:
         formdata = urllib.urlencode(formdata)
 
