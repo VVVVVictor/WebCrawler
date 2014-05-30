@@ -15,6 +15,7 @@ LIST_LENGTH = int(6)
 GAP_TIME = int(1)#连续抓取时的等待时间
 SLEEP_TIME = int(20) #抓取最新页面的等待时间
 CLOSE_WAIT_TIME = int(100) #爬虫被服务器强行关闭后的等待时间
+ENABLE_PROXY = True
 
 MAX_PAGE = int(10000000)
 
@@ -26,8 +27,8 @@ logfileName = 'log'
 configfileName = 'config'
 datafilePrefix = 'data_sheet'
 filedirectory = u'D:\\datas\\pythondatas\\ppdailist\\'
-dataFolder = u'pages\\' #保存订单的文件夹名字
-userFolder = u'users\\' #保存用户的文件夹名字
+dataFolder = u'pages/' #保存订单的文件夹名字
+userFolder = u'users/' #保存用户的文件夹名字
 
 #登录相关
 urlAuth = u'http://www.ppdai.com/Json/SyncReply/Auth'
@@ -709,14 +710,16 @@ def analyzeUserData_ppdai(userID, usercontent):
     buffer3.append(sex)
     buffer3.append(ageGrade)
     buffer3.append(profession)
-    
     #注册时间
-    tag_registerTime = soup.find(text = re.compile(u'(\s|\n)*注册时间：.*'))
-    m = re.split(u'：', tag_registerTime)
-    if len(m) > 1:
-        registerTime = m[1]
-    else:
-        registerTime = 'None'
+    #TODO: cannot get registertime
+    tag_registerTime = soup.find(text = re.compile(u'\.*注册时间：\.*'))
+    #tag_registerTime = soup.find('li', {'class': 'user_li'}).find_next_sibling('li')
+    #print tag_registerTime
+    registerTime = 'None'
+    if tag_registerTime:
+        m = re.split(u'：', tag_registerTime.p.string)
+        if len(m) > 1:
+            registerTime = m[1]
     buffer3.append(registerTime)
     
     
@@ -1050,7 +1053,7 @@ def getLatestPage():
         
         pattern = re.compile(u'\s*(LatestPage)\s*=\s*(\d+)\s*')
         m = pattern.match(line)
-        latestPage = 456360 #default
+        latestPage = 651850 #default
         if m:
             latestPage =  m.group(2)
         logfile.close()
@@ -1066,7 +1069,7 @@ def getLatestPage():
 def getConfig():
     global filedirectory
     try:
-        configfile = open(os.getcwd()+'\\'+configfileName, 'r')
+        configfile = open(os.getcwd()+'/'+configfileName, 'r')
         #line = configfile.readline()
         pattern = re.compile(u'\s*(\w+)\s*=\s*(\S+)\s*')
         for line in configfile:
@@ -1074,7 +1077,7 @@ def getConfig():
             m = pattern.match(line)
             if m:
                 if m.group(1) == u'filedirectory':
-                    filedirectory =  m.group(2)+'\\'
+                    filedirectory =  m.group(2)+'/'
                 elif m.group(1) == u'username':
                     username = m.group(2)
                 elif m.group(1) == u'password':
@@ -1082,7 +1085,7 @@ def getConfig():
                 #print filedirectory
         configfile.close()
     except:
-        configfile = open(os.getcwd()+'\\'+configfileName, 'wb')
+        configfile = open(os.getcwd()+'/'+configfileName, 'wb')
         configfile.write('filedirectory = '+filedirectory+'\n')
         configfile.write('username = '+username+'\n')
         configfile.write('password = '+password+'\n')
@@ -1094,7 +1097,12 @@ def getConfig():
     print('username = '+username)
     print('password = '+password)
     return
-
+#--------------------------------------------------
+def setProxy():
+    if ENABLE_PROXY:
+        proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
+        opener = urllib2.build_opener(proxy_handler)
+        urllib2.install_opener(opener)
 #--------------------------------------------------
 #main
 reload(sys)
@@ -1108,6 +1116,7 @@ createFolder(filedirectory+userFolder)
 
 print('[Data Path] '+filedirectory)
 if login():
+    setProxy()
     tempCount = 0
     while True:
         latestpage = int(getLatestPage())
