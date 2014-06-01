@@ -52,7 +52,8 @@ titles = (('抓取时间','抓取时刻','订单号','安','非','赔','保','�
 '''登录网页'''
 def login():
     cj = cookielib.CookieJar()
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
     #opener.addheaders = headers
     urllib2.install_opener(opener)
     
@@ -145,6 +146,7 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
     buffer3.append(gettime)
     #借款ID
     buffer3.append(userID)
+    #print userID
     
     #借入信用
     tag_credit = soup.find('span', text=u'借入信用：')
@@ -198,7 +200,8 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
     
     #注册时间
     #TODO: cannot get registertime
-    tag_registerTime = soup.find(text = re.compile(u'\.*注册时间：\.*'))
+    #tag_registerTime = soup.find(text = re.compile(u'\.*注册时间：\.*'))
+    tag_registerTime = soup.find('li', class_='reg_login_li')
     #tag_registerTime = soup.find('li', {'class': 'user_li'}).find_next_sibling('li')
     #print tag_registerTime
     registerTime = 'None'

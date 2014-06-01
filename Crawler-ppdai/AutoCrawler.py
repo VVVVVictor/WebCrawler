@@ -173,7 +173,7 @@ createFolder(filedirectory+userFolder)
 
 print('[Data Path] '+filedirectory)
 if login():
-    setProxy()
+    #setProxy()
     tempCount = 0
     while True:
         latestpage = int(getLatestPage())
