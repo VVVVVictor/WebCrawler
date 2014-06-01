@@ -203,6 +203,7 @@ def analyzeData(url, writers):
     currentClock = getTime('%H:%M:%S')
 
     category = title = updates = backers = comments = location = ''
+    updatesContent = commentsContent = ''
 
     tag_category = soup.find('li', class_='category')
     if tag_category:
@@ -216,6 +217,13 @@ def analyzeData(url, writers):
     tag_updates = soup.find('span', {'id':'updates_count'})
     if tag_updates:
         updates = tag_updates['data-updates-count']
+    tag_updatesNav = soup.find('a', {'id': 'updates_nav'})
+    if tag_updatesNav:
+        updatesUrl = tag_updatesNav['href']
+        updatesUrl = urlHost + updatesUrl
+        updatesContent = readFromUrl(updatesUrl)
+        soup_updates = BeautifulSoup(updatesContent)
+        #TODO:
     tag_backers = soup.find('meta', {'property':'twitter:text:backers'})
     if tag_backers:
         backers = tag_backers['content']
