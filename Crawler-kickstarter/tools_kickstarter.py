@@ -217,13 +217,7 @@ def analyzeData(url, writers):
     tag_updates = soup.find('span', {'id':'updates_count'})
     if tag_updates:
         updates = tag_updates['data-updates-count']
-    tag_updatesNav = soup.find('a', {'id': 'updates_nav'})
-    if tag_updatesNav:
-        updatesUrl = tag_updatesNav['href']
-        updatesUrl = urlHost + updatesUrl
-        updatesContent = readFromUrl(updatesUrl)
-        soup_updates = BeautifulSoup(updatesContent)
-        #TODO:
+    
     tag_backers = soup.find('meta', {'property':'twitter:text:backers'})
     if tag_backers:
         backers = tag_backers['content']
@@ -402,4 +396,78 @@ def analyzeData(url, writers):
             buffer2.extend([backerName, backerID, backerLocation, i_backingNumber])
             writers[1].writerow(buffer2)
 
+    tag_updatesNav = soup.find('a', {'id': 'updates_nav'})
+    if tag_updatesNav:
+        updatesUrl = tag_updatesNav['href']
+        updatesUrl = urlHost + updatesUrl
+        analyzeUpdatesData(updatesUrl, writers[2], [currentDate, currentClock, category, title, creatorID])
+
+    tag_commentsNav = soup.find('a', {'id': 'comments_nav'})
+    if tag_commentsNav:
+        commentsUrl = tag_commentsNav['href']
+        commentsUrl = urlHost + commentsUrl
+        analyzeCommentsData(commentsUrl, writers[3], [currentDate, currentClock, category, title, creatorID])
 #end analyzeData()
+
+#-----------------------------------------------------
+def analyzeUpdatesData(url, writer, attrs):
+    pageCount = 0
+    while True:
+        pageCount += 1
+        updateContent = readFromUrl(url+'?page='+str(pageCount))
+        soup_updates = BeautifulSoup(updateContent)
+        tag_posts = soup_updates.find('div', class_='grid_11')
+        list_posts = tag_posts.find_all('div', class_='post')
+        if len(list_posts) == 0:
+            break
+        for post in list_posts:
+            buffer3 = []
+            buffer3.extend(attrs)
+            date = title = content = ''
+            likes = '0'
+            tag_date = post.find('time')
+            if tag_date:
+                date = re.match('(\d+-\d+-\d+)T.*', tag_date['datetime']).group(1)
+            tag_title = post.find('h3', class_='title')
+            if tag_title:
+                title = tag_title.a.string
+            tag_likes = post.find('data', {'itemprop': 'Post[post_likes]'})
+            if tag_likes.string:
+                likes = re.match('(\d+) .*', tag_likes.string).group(1)
+            tag_content = post.find('div', class_='body')
+            if tag_content:
+                content = tag_content.get_text().strip()
+            if post.find('div', {'id':'for-backers'}):
+                content = 'FOR BACKERS ONLY!'
+            buffer3.extend([title, date, likes, content])
+            writer.writerow(buffer3)
+#end analyzeUpdatesData()
+
+#---------------------------------------------------
+def analyzeCommentsData(url, writer, attrs):
+    commentsContent = readFromUrl(url)
+    soup_comments = BeautifulSoup(commentsContent)
+    tag_comments = soup_comments.find('ol', class_='comments')
+    if tag_comments:
+        list_comments = tag_comments.find_all('li', class_='comment')
+    else:
+        return
+    for comment in list_comments:
+        buffer4 = []
+        buffer4.extend(attrs)
+        commentator = commentatorID = date = content = ''
+        tag_commentator = comment.find('a', class_='author')
+        if tag_commentator:
+            commentator = tag_commentator.string
+            commentatorID = re.match('/profile/(\w+)', tag_commentator['href']).group(1)
+        tag_date = comment.find('data', {'data-format': 'distance_date'})
+        if tag_date:
+            date = re.search('(\d+-\d+-\d+)T', tag_date['data-value']).group(1)
+        tag_content = comment.find_all('p')
+        for p in tag_content:
+            #print p
+            if p.get_text():
+                content += p.get_text()
+        buffer4.extend([commentator, commentatorID, date, content])
+        writer.writerow(buffer4)
+#end analyzeCommentData
