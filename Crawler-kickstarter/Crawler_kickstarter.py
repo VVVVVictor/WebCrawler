@@ -19,17 +19,17 @@ urlStart = u'http://www.my089.com/Loan/default.aspx'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
 headers={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Host':'www.kickstarter.com', 'X-Requested-With':'XMLHttpRequest'}
 
-titles = ([u"链接",u"抓取日期",u"抓取时间",u"Category",u"Title",u"Updates", u"Backers",u"Comments", u"PAdd",u"Video",u"DesLength",u'DesPics', u"RiskLength",u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"], ['link', u"抓取日期",u"抓取时间",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"BackerLocation", u"NBP"], ['link', u'抓取日期', u'抓取时间', u'category', u'Title', u'CreatorID', 'updateTitle', 'updateDate', 'likeNumber','updateContent'], ['link', u'抓取日期', u'抓取时间', u'category', u'Title', u'CreatorID', u'commentator', u'commentatorID', u'commentDate', u'commentContent'], ['link', u'抓取日期', u'抓取时间', 'category', 'Title', 'CreatorID', 'Amount', 'backersNumber', 'Description', 'DeliveryDate'])
+titles = ([u"link",u"dataDate",u"dataClock",u"Category",u"Title",u"Updates", u"Backers",u"Comments", u"PAdd",u"Video",u"DesLength",u'DesPics', u'DescriptionContent', u"RiskLength", u'RiskContent', u"FAQQ",u"FAQA",u"货币单位",u"Bkrs",u"PlgAmt",u"Goal",u"DaysToGo",u"BgnDate",u"EndDate",u"SpanDays",u"CreatorNM",u"CAdd",u"FB",u"CreatorID",u"BioLength",u"LastLoginDate",u"JoinedDate",u"NBacked",u"NCreated",u"Art",u"Comics",u"Dance",u"Design",u"Fashion",u"Film&Video",u"Food",u"Games",u"Music",u"Photograph",u"Publishing",u"Technology",u"Theater"], ['link', u"dataDate",u"dataClock",u"Category",u"Title",u"CreatorID",u"BackerNM",u"BackerID",u"BackerLocation", u"NBP"], ['link', u"dataDate",u"dataClock", u'Category', u'Title', u'CreatorID', 'updateTitle', 'updateDate', 'likeNumber','updateContent'], ['link', u"dataDate",u"dataClock", u'Category', u'Title', u'CreatorID', u'commentator', u'commentatorID', u'commentDate', u'commentContent'], ['link', u"dataDate",u"dataClock", 'Category', 'Title', 'CreatorID', 'Amount', 'backersNumber', 'Description', 'DeliveryDate'], ['link', u"dataDate",u"dataClock", 'Category', 'Title', 'CreatorID', 'Question', 'Answer'])
 
 orderCount = 0
 allCount = 0
 categoryIdList = [1, 3, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18]
 categoryName = ['','Art', '', 'Comics','','','Dance','Design','','Fashion','Food','Film&Video','Games','','Music','Photography','Technology','Theater', 'Publishing']
-sheetName = ['projects', 'backers', 'updates', 'comments', 'rewards']
+sheetName = ['projects', 'backers', 'updates', 'comments', 'rewards', 'FAQs']
 
 def createWriters(filedirectory):
     writers = [] #csv writer list
-    for i in range(1, 6):
+    for i in range(1, 7):
         name_sheet = filedirectory+strtime+'_'+sheetName[i-1]+'.csv'
         flag_newfile = True
         if os.path.isfile(name_sheet):
@@ -94,12 +94,12 @@ sys.setrecursionlimit(1000000)#设置递归调用深度
 
 urlTest = 'https://www.kickstarter.com/projects/truelovehealth/strongest-hearts-documentary-series-on-vegan-athle'
 filedirectory = getConfig()
-#test()
+strTest = 'At Dear Kate, we’ve engineered a new type of yoga pant that means you’ll never again find your undies in a bunch at the end of a workout. Incorporating a small inset of our patent-pending Underlux fabric, these pants have your back if you decide to “go commando.” Imagine the freedom of no more VPL (visible panty lines), no bunching or riding up, and no stress over winging it without underwear. We’re done with flimsy leggings: Dear Kate Yoga Pants and Shorts are designed to give you comfort, a killer looking backside, and most importantly, freedom of movement.  Our Story: Dear Kate redefined underwear with our patent-pending Underlux blend of fabric that is wicking, stain-releasing, and leak-resistant. We knew if we were going to expand beyond underwear, our new line had to be equally revolutionary. Our customers had an answer for us: they wanted a reinvented Yoga Pant. '
 if login():
     #print('Login success!')
     #test()
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-
+    
     #writers = createWriters(filedirectory)
     #analyzeData(urlTest, writers)
     getData(filedirectory)

@@ -192,6 +192,16 @@ def getTime(format = None):
     return strtime
 
 #--------------------------------------------------
+def getWordNumber(str):
+    list_word = str.split()
+    return len(list_word)
+    
+#--------------------------------------------------
+def cleanString(str):
+    str = str.replace('\r\n', ' ')
+    str = str.replace('\n', ' ')
+    return str.strip()
+#--------------------------------------------------
 def analyzeData(url, writers):
     webcontent = readFromUrl(url)
     #print webcontent
@@ -231,22 +241,25 @@ def analyzeData(url, writers):
     #******************************
     #页面左侧部分
     video = desLength = desPics = riskLength = FAQQ = FAQA = '0'
+    desContent = riskContent = ''
     tag_video = soup.find('div', {'id':'video-section'})
     if tag_video and tag_video['data-has-video']=='true':
         video = '1'
     tag_description = soup.find('div', {'class':'full-description'})
     if tag_description:
-        desLength = str(len(tag_description.get_text()))
+        desContent = cleanString(tag_description.get_text())
+        desLength = getWordNumber(desContent)
         desPics = str(len(tag_description.find_all('img')))
     tag_risk = soup.find('div', {'id':'risks'})
     if tag_risk:
         #print tag_risk.get_text()
-        riskLength = str(len(tag_risk.get_text()))
+        riskContent = cleanString(tag_risk.get_text())
+        riskLength = getWordNumber(riskContent)
     tag_FAQ = soup.find('div', {'id':'project-faqs'})
     if tag_FAQ:
         FAQQ = str(len(tag_FAQ.find_all('div', {'class':'faq-question'})))
         FAQA = str(len(tag_FAQ.find_all('div', {'class':'faq-answer'})))
-    attrs2 = [video, desLength, desPics, riskLength, FAQQ, FAQA]
+    attrs2 = [video, desLength, desPics, desContent, riskLength, riskContent, FAQQ, FAQA]
 
     #******************************
     #页面右栏上方
@@ -315,7 +328,7 @@ def analyzeData(url, writers):
             joinedDate = re.match('(\d+-\d+-\d+) .*', tag_joined['content']).group(1)
         tag_bio = soup2.find('meta', {'property':'og:description'})
         if tag_bio:
-            bioLength = str(len(tag_bio['content']))
+            bioLength = getWordNumber(tag_bio['content'])
         tag_NBacked = soup2.find('a', {'id':'list_title'})
         if tag_NBacked:
             NBacked = re.search('\d+', tag_NBacked.get_text()).group(0)
@@ -370,6 +383,7 @@ def analyzeData(url, writers):
     tempBuff.extend(basicInfo)
     analyzeRewardData(soup, writers[4], tempBuff)
     
+    analyzeFaqData(soup, writers[5], tempBuff)
 #end analyzeData()
 #-----------------------------------------------------
 def analyzeBackersData(url, writer, attrs):
@@ -424,7 +438,7 @@ def analyzeUpdatesData(url, writer, attrs):
                 likes = re.match('(\d+) .*', tag_likes.string).group(1)
             tag_content = post.find('div', class_='body')
             if tag_content:
-                content = tag_content.get_text().strip()
+                content = cleanString(tag_content.get_text().strip())
             if post.find('div', {'id':'for-backers'}):
                 content = 'FOR BACKERS ONLY!'
             buffer3.extend([title, date, likes, content])
@@ -456,6 +470,7 @@ def analyzeCommentsData(url, writer, attrs):
             #print p
             if p.get_text():
                 content += p.get_text()
+        content = cleanString(content)
         buffer4.extend([commentator, commentatorID, date, content])
         writer.writerow(buffer4)
 #end analyzeCommentData
@@ -480,10 +495,34 @@ def analyzeRewardData(soup, writer, attrs):
             tag_RDes = reward_item.find('div', class_='desc')
             if tag_RDes:
                 RDes = tag_RDes.p.string
-                RDes = RDes.replace(u'\u000D\u000A', ' ')
+                RDes = cleanString(RDes)
             tag_RDel = reward_item.find('time')
             if tag_RDel:
                 RDel = tag_RDel.string
             buffer5.extend([RAmt, RBkr, RDes, RDel])
             writer.writerow(buffer5)
 #end analyzeRewardData()
+
+#-----------------------------------------------------
+def analyzeFaqData(soup, writer, attrs):
+    tag_faq = soup.find('ul', class_='faqs')
+    if tag_faq:
+        faq_list = tag_faq.find_all('li', class_='faq')
+        for faq in faq_list:
+            buffer6 = []
+            buffer6.extend(attrs)
+            question = answer = updateDate = updateClock = ''
+            tag_question = faq.find('span', class_='question')
+            if tag_question:
+                question = tag_question.get_text()
+            tag_answer = faq.find('div', class_='faq-answer')
+            if tag_answer:
+                answer = tag_answer.get_text()
+                answer = cleanString(answer)
+            tag_time = faq.find('time', class_='js-adjust')
+            if tag_time:
+                updateDate = re.search('(\d+-\d+-\d+)T', tag_time['datetime']).group(1)
+                updateClock = re.search('T(\d+:\d+:\d+)-', tag_time['datetime']).group(1)
+            buffer6.extend([question, answer, updateDate, updateClock])
+            writer.writerow(buffer6)
+#end analyzeFaqData
