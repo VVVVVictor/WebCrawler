@@ -348,38 +348,39 @@ def analyzeData(url, writers):
     buffer1.extend(attrs5)
     buffer1.extend(attrs6)
 
-    #******************************
-    #Reward
-    tag_reward = soup.find('ul', {'id':'what-you-get'})
-    if tag_reward:
-        reward_list = tag_reward.find_all('li', class_='NS-projects-reward')
-        for reward_item in reward_list:
-            RAmt = RBkr = RDes = RDel = ''
-            tag_RAmt = reward_item.find('span', class_='money')
-            if tag_RAmt:
-                RAmt = re.match('\D(\d+(\.\d+)?)', tag_RAmt.string).group(1)
-            tag_RBkr = reward_item.find('span', class_='num-backers')
-            if tag_RBkr:
-                RBkr = re.search('\d+', tag_RBkr.string).group(0)
-            tag_RDes = reward_item.find('div', class_='desc')
-            if tag_RDes:
-                RDes = tag_RDes.p.string
-                RDes = RDes.replace(u'\u000D\u000A', ' ')
-            tag_RDel = reward_item.find('time')
-            if tag_RDel:
-                RDel = tag_RDel.string
-            attrs7 = [RAmt, RBkr, RDes, RDel]
-            buffer1.extend(attrs7)
-
     writers[0].writerow(buffer1)
     #-------------------------------------
-    backersContent = readFromUrl(url+'/backers')
+    basicInfo = [currentDate, currentClock, category, title, creatorID]
+    backersUrl = url+'/backers'
+    analyzeBackersData(backersUrl, writers[1], basicInfo)
+
+    tag_updatesNav = soup.find('a', {'id': 'updates_nav'})
+    if tag_updatesNav:
+        updatesUrl = tag_updatesNav['href']
+        updatesUrl = urlHost + updatesUrl
+        analyzeUpdatesData(updatesUrl, writers[2], basicInfo)
+
+    tag_commentsNav = soup.find('a', {'id': 'comments_nav'})
+    if tag_commentsNav:
+        commentsUrl = tag_commentsNav['href']
+        commentsUrl = urlHost + commentsUrl
+        analyzeCommentsData(commentsUrl, writers[3], basicInfo)
+
+    tempBuff = [url]
+    tempBuff.extend(basicInfo)
+    analyzeRewardData(soup, writers[4], tempBuff)
+    
+#end analyzeData()
+#-----------------------------------------------------
+def analyzeBackersData(url, writer, attrs):
+    backersContent = readFromUrl(url)
     soup_backers = BeautifulSoup(backersContent)
     tag_backerPage = soup_backers.find('li', class_='page')
     if tag_backerPage:
         backerList = tag_backerPage.find_all('div', class_='NS_backers__backing_row')
         for backerItem in backerList:
-            buffer2 = [currentDate, currentClock, category, title, creatorID]
+            buffer2 = [url+'/backers']
+            buffer2.extend(attrs)
             tag_backer = backerItem.div
             backerName = tag_backer.h5.get_text().strip()
             #print backerName
@@ -394,20 +395,7 @@ def analyzeData(url, writers):
                 backingNumber = re.search('\d+', tag_backing.get_text()).group(0)
                 i_backingNumber = (int)(str(backingNumber))+1
             buffer2.extend([backerName, backerID, backerLocation, i_backingNumber])
-            writers[1].writerow(buffer2)
-
-    tag_updatesNav = soup.find('a', {'id': 'updates_nav'})
-    if tag_updatesNav:
-        updatesUrl = tag_updatesNav['href']
-        updatesUrl = urlHost + updatesUrl
-        analyzeUpdatesData(updatesUrl, writers[2], [currentDate, currentClock, category, title, creatorID])
-
-    tag_commentsNav = soup.find('a', {'id': 'comments_nav'})
-    if tag_commentsNav:
-        commentsUrl = tag_commentsNav['href']
-        commentsUrl = urlHost + commentsUrl
-        analyzeCommentsData(commentsUrl, writers[3], [currentDate, currentClock, category, title, creatorID])
-#end analyzeData()
+            writer.writerow(buffer2)
 
 #-----------------------------------------------------
 def analyzeUpdatesData(url, writer, attrs):
@@ -421,7 +409,7 @@ def analyzeUpdatesData(url, writer, attrs):
         if len(list_posts) == 0:
             break
         for post in list_posts:
-            buffer3 = []
+            buffer3 = [url]
             buffer3.extend(attrs)
             date = title = content = ''
             likes = '0'
@@ -453,7 +441,7 @@ def analyzeCommentsData(url, writer, attrs):
     else:
         return
     for comment in list_comments:
-        buffer4 = []
+        buffer4 = [url]
         buffer4.extend(attrs)
         commentator = commentatorID = date = content = ''
         tag_commentator = comment.find('a', class_='author')
@@ -471,3 +459,31 @@ def analyzeCommentsData(url, writer, attrs):
         buffer4.extend([commentator, commentatorID, date, content])
         writer.writerow(buffer4)
 #end analyzeCommentData
+
+#-----------------------------------------------------
+def analyzeRewardData(soup, writer, attrs):
+    #******************************
+    #Reward
+    tag_reward = soup.find('ul', {'id':'what-you-get'})
+    if tag_reward:
+        reward_list = tag_reward.find_all('li', class_='NS-projects-reward')
+        for reward_item in reward_list:
+            buffer5 = []
+            buffer5.extend(attrs)
+            RAmt = RBkr = RDes = RDel = ''
+            tag_RAmt = reward_item.find('span', class_='money')
+            if tag_RAmt:
+                RAmt = re.match('\D(\d+(\.\d+)?)', tag_RAmt.string).group(1)
+            tag_RBkr = reward_item.find('span', class_='num-backers')
+            if tag_RBkr:
+                RBkr = re.search('\d+', tag_RBkr.string).group(0)
+            tag_RDes = reward_item.find('div', class_='desc')
+            if tag_RDes:
+                RDes = tag_RDes.p.string
+                RDes = RDes.replace(u'\u000D\u000A', ' ')
+            tag_RDel = reward_item.find('time')
+            if tag_RDel:
+                RDel = tag_RDel.string
+            buffer5.extend([RAmt, RBkr, RDes, RDel])
+            writer.writerow(buffer5)
+#end analyzeRewardData()
