@@ -8,7 +8,6 @@ import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket
-import hashlib
 from random import randint
 
 configfileName = 'config'
