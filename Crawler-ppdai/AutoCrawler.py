@@ -57,6 +57,8 @@ def getData_ppdai(url, filedirectory, begin_page, end_page=MAX_PAGE):
         lastlastpage = lastpage #用于判断lastpage是否更新
         req = urllib2.Request(url+str(i), None, getRandomHeaders())
         try:
+            #response = responseFromUrl(url+str(i))
+            req.
             response = urllib2.urlopen(req)
             #部分页面会重定向到/default.html，（如400001），以此来判定
             r = re.search(str(i), response.geturl())
@@ -170,6 +172,7 @@ filedirectory = getConfig()
 createFolder(filedirectory)
 createFolder(filedirectory+dataFolder)
 createFolder(filedirectory+userFolder)
+getProxy()
 
 print('[Data Path] '+filedirectory)
 if login():

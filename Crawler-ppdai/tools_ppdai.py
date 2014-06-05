@@ -16,7 +16,7 @@ LIST_LENGTH = int(6)
 GAP_TIME = int(1)#连续抓取时的等待时间
 SLEEP_TIME = int(20) #抓取最新页面的等待时间
 CLOSE_WAIT_TIME = int(100) #爬虫被服务器强行关闭后的等待时间
-ENABLE_PROXY = True
+ENABLE_PROXY = True #是否使用代理
 
 MAX_PAGE = int(10000000)
 
@@ -30,6 +30,10 @@ datafilePrefix = 'data_sheet'
 filedirectory = u'D:\\datas\\pythondatas\\ppdailist\\'
 dataFolder = u'pages/' #保存订单的文件夹名字
 userFolder = u'users/' #保存用户的文件夹名字
+
+#代理相关
+proxyfileName = 'proxylist'
+proxyList = ['111.206.81.248:80']
 
 #登录相关
 urlAuth = u'http://www.ppdai.com/Json/SyncReply/Auth'
@@ -52,8 +56,9 @@ titles = (('抓取时间','抓取时刻','订单号','安','非','赔','保','�
 '''登录网页'''
 def login():
     cj = cookielib.CookieJar()
-    proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+    #proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
+    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     #opener.addheaders = headers
     urllib2.install_opener(opener)
     
@@ -62,12 +67,14 @@ def login():
     
     try:
         req = urllib2.Request(urlAuth, postdata, headers = getRandomHeaders())
+        req.set_proxy('111.206.81.248:80', 'http')
         result = urllib2.urlopen(req)
         result.close()
         #for index, cookie in enumerate(cj):
         #    print '[',index,']',cookie
             
         req2 = urllib2.Request(urlAccount, headers = getRandomHeaders())
+        req2.set_proxy('111.206.81.248:80', 'http')
         result2 = opener.open(req2)
         result2.close()
         return True
@@ -116,9 +123,19 @@ def getConfig():
     print('username = '+username)
     print('password = '+password)
     return filedirectory
-
 #--------------------------------------------------
-def setProxy():
+def getProxy(proxy = None):
+    global proxyList
+    if proxy == None:
+        proxy = proxyfileName
+    try:
+        proxyfile = open(os.getcwd()+'/'+proxy, 'r')
+        proxyList = proxyfile.readlines()
+    except:
+        print('No proxy file!')
+    return proxyList
+#--------------------------------------------------
+def setProxy(proxyList):
     if ENABLE_PROXY:
         proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
         opener = urllib2.build_opener(proxy_handler)
@@ -130,7 +147,56 @@ def getRandomHeaders():
     agentNumber = len(userAgent)
     headers = {'User-Agent': userAgent[randint(0, agentNumber-1)], 'Host': host, 'X-Forwarded-For': ipAddress[randint(0, ipNumber-1)]}
     return headers
+
+#--------------------------------------------------
+#生成随机的proxy
+def getRandomProxy():
+    proxyNumber = len(proxyList)
+    proxy = {'http':proxyList[randint(0, proxyNumber-1)]}
+    print proxy
+    return proxy
+
+#--------------------------------------------------
+#从url读取response
+def responseFromUrl(url, formdata = None):
+    response = None
+    if formdata != None:
+        formdata = urllib.urlencode(formdata)
+
+    loopCount = 0
+    proxyNumber = len(proxyList)
+    while True:
+        loopCount += 1
+        if loopCount > 5:
+            print('Failed when trying responseFromUrl().')
+            print('URL = '+url)
+            break
+        try:
+            req = urllib2.Request(url, formdata, headers=getRandomHeaders())
+            proxyNo = randint(0, proxyNumber-1)
+            req.set_proxy(proxyList[proxyNo], 'http')
+            response = urllib2.urlopen(req)
+            curUrl = response.geturl()
+            break
+        except (urllib2.URLError) as e:
+            if hasattr(e, 'code'):
+                print('ERROR:'+str(e.code)+' '+str(e.reason))
+                if(e.code == 404):
+                    print('url = '+url)
+                    return None
+            else:
+                print(str(e.reason))
+            print('url = '+url)
+            
+        if(response == None):
+            print('responseFromUrl get a None')
+            time.sleep(1)
+            login()
+            continue
+    #end while
     
+    return response
+
 #--------------------------------------------------
 #解析用户个人信息，抓取其中各项数据，存入logfile中
 def analyzeUserData_ppdai(userID, usercontent, writers):
@@ -370,7 +436,8 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
             req_userPage = urllib2.Request(pageurl, None, headers = getRandomHeaders())
             while True:
                 try:
-                    response_userPage = urllib2.urlopen(req_userPage)
+                    response_userPage = responseFromUrl(pageurl)
+                    #response_userPage = urllib2.urlopen(req_userPage)
                     m_user = response_userPage.read()
                     response_userPage.close()
                     break
@@ -931,7 +998,10 @@ def analyzeData_ppdai(orderID, webcontent, writers):
     
     while True:
         try:
-            response_user = urllib2.urlopen(req_user)
+            response_user = responseFromUrl(userurl)
+            #response_user = urllib2.urlopen(req_user)
+            if response_user == None:
+                break;
             m_user = response_user.read()
             response_user.close()
             #print m_user
