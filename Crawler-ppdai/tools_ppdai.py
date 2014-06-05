@@ -314,7 +314,7 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
     
     
     #借入等级记录 #缺省得分都为0
-    identitySocre = videoScore = educationScore = mobileScore = bankScore = 0
+    identityScore = videoScore = educationScore = mobileScore = bankScore = 0
     fullpayTimes = fullpayScore = overdueTimes = infoScore = communityScore = 0
     #身份认证
     tag_identity = soup.find(href='/cert/identitycert')
@@ -436,8 +436,9 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
             req_userPage = urllib2.Request(pageurl, None, headers = getRandomHeaders())
             while True:
                 try:
-                    response_userPage = responseFromUrl(pageurl)
-                    #response_userPage = urllib2.urlopen(req_userPage)
+                    #response_userPage = responseFromUrl(pageurl)
+                    req_userPage.set_proxy(proxyList[0], 'http')
+                    response_userPage = urllib2.urlopen(req_userPage)
                     m_user = response_userPage.read()
                     response_userPage.close()
                     break
@@ -998,8 +999,9 @@ def analyzeData_ppdai(orderID, webcontent, writers):
     
     while True:
         try:
-            response_user = responseFromUrl(userurl)
-            #response_user = urllib2.urlopen(req_user)
+            #response_user = responseFromUrl(userurl)
+            req_user.set_proxy(proxyList[0], 'http')
+            response_user = urllib2.urlopen(req_user)
             if response_user == None:
                 break;
             m_user = response_user.read()

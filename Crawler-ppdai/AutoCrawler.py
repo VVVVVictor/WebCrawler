@@ -58,7 +58,7 @@ def getData_ppdai(url, filedirectory, begin_page, end_page=MAX_PAGE):
         req = urllib2.Request(url+str(i), None, getRandomHeaders())
         try:
             #response = responseFromUrl(url+str(i))
-            req.
+            req.set_proxy(proxyList[0], 'http')
             response = urllib2.urlopen(req)
             #部分页面会重定向到/default.html，（如400001），以此来判定
             r = re.search(str(i), response.geturl())
