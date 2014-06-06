@@ -149,7 +149,7 @@ filedirectory = getConfig()
 createFolder(filedirectory)
 createFolder(filedirectory+dataFolder)
 createFolder(filedirectory+userFolder)
-
+getProxyList()
 print('[Data Path] '+filedirectory)
 if login():
     getData_ppdai(ppdaiurl, begin_page, end_page, filedirectory)
