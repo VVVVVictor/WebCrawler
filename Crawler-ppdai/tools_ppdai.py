@@ -56,9 +56,9 @@ titles = (('抓取时间','抓取时刻','订单号','安','非','赔','保','�
 '''登录网页'''
 def login():
     cj = cookielib.CookieJar()
-    #proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
-    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     #opener.addheaders = headers
     urllib2.install_opener(opener)
     
@@ -67,17 +67,24 @@ def login():
     
     try:
         req = urllib2.Request(urlAuth, postdata, headers = getRandomHeaders())
-        req.set_proxy('111.206.81.248:80', 'http')
+        #req.set_proxy('111.206.81.248:80', 'http')
         result = urllib2.urlopen(req)
         result.close()
         #for index, cookie in enumerate(cj):
         #    print '[',index,']',cookie
             
         req2 = urllib2.Request(urlAccount, headers = getRandomHeaders())
-        req2.set_proxy('111.206.81.248:80', 'http')
+        #req2.set_proxy('111.206.81.248:80', 'http')
         result2 = opener.open(req2)
         result2.close()
         return True
+    except (urllib2.URLError) as e:
+        if hasattr(e, 'code'):
+            print('ERROR:'+str(e.code)+' '+str(e.reason))
+        else:
+            print(str(e.reason))
+    except socket.error as e:
+        print('[ERROR] Socket error: '+str(e.errno))
     except:
         print(u'[FAIL]Login failed. Please try again!')
         return False
@@ -124,7 +131,7 @@ def getConfig():
     print('password = '+password)
     return filedirectory
 #--------------------------------------------------
-def getProxy(proxy = None):
+def getProxyList(proxy = None):
     global proxyList
     if proxy == None:
         proxy = proxyfileName
@@ -174,7 +181,7 @@ def responseFromUrl(url, formdata = None):
         try:
             req = urllib2.Request(url, formdata, headers=getRandomHeaders())
             proxyNo = randint(0, proxyNumber-1)
-            req.set_proxy(proxyList[proxyNo], 'http')
+            #req.set_proxy(proxyList[proxyNo], 'http')
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
             break
@@ -437,7 +444,7 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
             while True:
                 try:
                     #response_userPage = responseFromUrl(pageurl)
-                    req_userPage.set_proxy(proxyList[0], 'http')
+                    #req_userPage.set_proxy(proxyList[0], 'http')
                     response_userPage = urllib2.urlopen(req_userPage)
                     m_user = response_userPage.read()
                     response_userPage.close()
@@ -1000,7 +1007,7 @@ def analyzeData_ppdai(orderID, webcontent, writers):
     while True:
         try:
             #response_user = responseFromUrl(userurl)
-            req_user.set_proxy(proxyList[0], 'http')
+            #req_user.set_proxy(proxyList[0], 'http')
             response_user = urllib2.urlopen(req_user)
             if response_user == None:
                 break;

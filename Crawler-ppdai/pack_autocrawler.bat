@@ -1,0 +1,1 @@
+cxfreeze --include-modules=bs4 --target-dir=..\build\ppdai AutoCrawler.py
