@@ -3,7 +3,7 @@
 
 __author__ = "Wang Miaofei"
 
-import urllib, urllib2, cookielib
+import urllib, urllib2, cookielib, httplib
 import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
@@ -194,6 +194,9 @@ def responseFromUrl(url, formdata = None):
             else:
                 print(str(e.reason))
             print('url = '+url)
+        except httplib.IncompleteRead, e:
+            print('[ERROR]IncompleteRead! '+userurl)
+            continue
             
         if(response == None):
             print('responseFromUrl get a None')
@@ -464,6 +467,9 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
                     #等待一定时间后重新连接
                     time.sleep(CLOSE_WAIT_TIME)
                     login()
+                    continue
+                except httplib.IncompleteRead, e:
+                    print('[ERROR]IncompleteRead! '+userurl)
                     continue
             #end while
             soup_user = BeautifulSoup(m_user)
@@ -1041,6 +1047,9 @@ def analyzeData_ppdai(orderID, webcontent, writers):
             #等待一定时间后重新连接
             time.sleep(CLOSE_WAIT_TIME)
             login()
+            continue
+        except httplib.IncompleteRead, e:
+            print('[ERROR]IncompleteRead! '+userurl)
             continue
     #end while
 
