@@ -60,7 +60,9 @@ def getCategory(categoryNo, filedirectory):
     pageCount = 0
     while True:
         pageCount += 1
-        print('CATEGORY ID='+str(i)+';  '+'CATEGORY NAME='+categoryName+'; PAGE='+str(pageCount))
+        print('************************************************************')
+        print('* CATEGORY ID='+str(i)+';  '+'CATEGORY NAME='+categoryName+'; PAGE='+str(pageCount)+' ')
+        print('************************************************************')
         req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(i)+'&sort='+SORT_TYPE, headers=headers)
         try:
             response = urllib2.urlopen(req)
