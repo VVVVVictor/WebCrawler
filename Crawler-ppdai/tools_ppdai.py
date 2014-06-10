@@ -195,7 +195,7 @@ def responseFromUrl(url, formdata = None):
                 print(str(e.reason))
             print('url = '+url)
         except httplib.IncompleteRead, e:
-            print('[ERROR]IncompleteRead! '+userurl)
+            print('[ERROR]IncompleteRead! '+url)
             continue
             
         if(response == None):
@@ -469,7 +469,7 @@ def analyzeUserData_ppdai(userID, usercontent, writers):
                     login()
                     continue
                 except httplib.IncompleteRead, e:
-                    print('[ERROR]IncompleteRead! '+userurl)
+                    print('[ERROR]IncompleteRead! '+pageurl)
                     continue
             #end while
             soup_user = BeautifulSoup(m_user)

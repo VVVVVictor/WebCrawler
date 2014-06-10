@@ -434,8 +434,9 @@ def analyzeUpdatesData(url, writer, attrs):
             if tag_title:
                 title = tag_title.a.string
             tag_likes = post.find('data', {'itemprop': 'Post[post_likes]'})
-            if tag_likes.string:
-                likes = re.match('(\d+) .*', tag_likes.string).group(1)
+            if tag_likes:
+                if tag_likes.string:
+                    likes = re.match('(\d+) .*', tag_likes.string).group(1)
             tag_content = post.find('div', class_='body')
             if tag_content:
                 content = cleanString(tag_content.get_text().strip())
