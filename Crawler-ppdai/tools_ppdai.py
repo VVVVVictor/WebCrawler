@@ -11,7 +11,7 @@ import socket
 from random import randint
 
 #常量参数
-LOST_PAGE_LIMIT = int(10)
+LOST_PAGE_LIMIT = int(30)
 LIST_LENGTH = int(6)
 GAP_TIME = int(1)#连续抓取时的等待时间
 SLEEP_TIME = int(20) #抓取最新页面的等待时间

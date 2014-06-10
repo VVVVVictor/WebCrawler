@@ -34,6 +34,7 @@ HEADERS_NUMBER = 3
 TRY_LOGIN_TIMES = 5 #尝试登录次数
 CATEGORY_COUNT = 13
 
+
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
@@ -319,7 +320,7 @@ def analyzeData(url, writers):
     if tag_creatorUrl:
         creatorUrl = tag_creatorUrl['content']
         #print creatorUrl
-        creatorID = re.match('https://www\.kickstarter\.com/profile/(\w+)', creatorUrl).group(1)
+        creatorID = re.match('https://www\.kickstarter\.com/profile/(\S+)', creatorUrl).group(1)
         creatorContent = readFromUrl(creatorUrl)
         soup2 = BeautifulSoup(creatorContent)
         tag_joined = soup2.find('meta', {'property':'kickstarter:joined'})
@@ -397,7 +398,7 @@ def analyzeBackersData(url, writer, attrs):
             tag_backer = backerItem.div
             backerName = tag_backer.h5.get_text().strip()
             #print backerName
-            backerID = re.match('/profile/(\w+)', backerItem.a['href']).group(1)
+            backerID = re.match('/profile/(\S+)', backerItem.a['href']).group(1)
             backerLocation = ''
             tag_backerLocation = tag_backer.find('p', class_='location')
             if tag_backerLocation:
@@ -460,7 +461,7 @@ def analyzeCommentsData(url, writer, attrs):
         tag_commentator = comment.find('a', class_='author')
         if tag_commentator:
             commentator = tag_commentator.string
-            commentatorID = re.match('/profile/(\w+)', tag_commentator['href']).group(1)
+            commentatorID = re.match('/profile/(\S+)', tag_commentator['href']).group(1)
         tag_date = comment.find('data', {'data-format': 'distance_date'})
         if tag_date:
             date = re.search('(\d+-\d+-\d+)T', tag_date['data-value']).group(1)
