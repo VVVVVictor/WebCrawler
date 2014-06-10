@@ -63,7 +63,7 @@ def getData_ppdai(url, filedirectory, begin_page, end_page=MAX_PAGE):
             #部分页面会重定向到/default.html，（如400001），以此来判定
             r = re.search(str(i), response.geturl())
             if not r:
-                print('页面重定向')
+                print(str(i)+': Page Redirected!')
                 continue
             
             m = response.read()
