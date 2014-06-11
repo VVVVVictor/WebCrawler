@@ -27,10 +27,10 @@ categoryIdList = [1, 3, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18]
 categoryNameList = ['','Art', '', 'Comics','','','Dance','Design','','Fashion','Food','Film&Video','Games','','Music','Photography','Technology','Theater', 'Publishing']
 sheetName = ['projects', 'backers', 'updates', 'comments', 'rewards', 'FAQs']
 
-def createWriters(filedirectory):
+def createWriters(filedirectory, prefix):
     writers = [] #csv writer list
     for i in range(1, 7):
-        name_sheet = filedirectory+strtime+'_'+sheetName[i-1]+'.csv'
+        name_sheet = filedirectory+prefix+'_'+strtime+'_'+sheetName[i-1]+'.csv'
         flag_newfile = True
         if os.path.isfile(name_sheet):
             flag_newfile = False
@@ -44,7 +44,7 @@ def createWriters(filedirectory):
     return writers
 
 #----------------------------------------------
-def getCategory(categoryNo, filedirectory):
+def getCategory(filedirectory, categoryNo, startPage, endPage):
     starttime = time.clock()
     #lastpage = begin_page #记录抓取的最后一个有效页面
     
@@ -54,12 +54,14 @@ def getCategory(categoryNo, filedirectory):
     categoryName = categoryNameList[categoryId]
     subFolder = filedirectory+categoryName+'/'
     createFolder(subFolder)
-    writers = createWriters(subFolder)
+    writers = createWriters(subFolder, categoryName+'_'+str(startPage)+'-'+str(endPage))
     
     i = categoryId
-    pageCount = 0
+    pageCount = startPage-1
     while True:
         pageCount += 1
+        if pageCount > endPage:
+            break
         print('************************************************************')
         print('* CATEGORY ID='+str(i)+';  '+'CATEGORY NAME='+categoryName+'; PAGE='+str(pageCount)+' ')
         print('************************************************************')
@@ -132,7 +134,52 @@ def getAllCategory(filedirectory):
     print(u'[execute time]:'+str(endtime-starttime)+'s') #50:47.9s
     return
 #end def getData()
-
+#---------------------------
+def getInput():
+    global categoryNo, startPage, endPage
+    while True:
+        try:
+            raw_categoryNo = raw_input(u'Input category number(1-13, default=1):\n')
+            categoryNo = int(raw_categoryNo)
+            if categoryNo < 1 or categoryNo > 13:
+                print('Category number illegal! Please input again!')
+                continue
+            break
+        except:
+            if(raw_categoryNo == ''):
+                categoryNo = 1
+                break
+            print('Not a number. Please input again!')
+            continue
+    while True:
+        try:
+            raw_startPage = raw_input('Input start page(default=1):\n')
+            startPage = int(raw_startPage)
+            if startPage < 1:
+                print('Start page illegal! Please input again!')
+                continue
+            break
+        except:
+            if(raw_startPage == ''):
+                startPage = 1
+                break
+            print('Not a number. Please input again!')
+            continue
+        
+    while True:
+        try:
+            raw_endPage = raw_input('Input end page(default=100000):\n')
+            endPage = int(raw_endPage)
+            if endPage < 1:
+                print('End page illegal! Please input again!')
+                continue
+            break
+        except:
+            if(raw_endPage == ''):
+                endPage = 100000
+                break
+            print('Not a number. Please input again!')
+            continue
 #----------------------------
 #main
 reload(sys)
@@ -143,18 +190,16 @@ urlTest = 'https://www.kickstarter.com/projects/truelovehealth/strongest-hearts-
 filedirectory = getConfig()
 
 categoryNo = 1
-while True:
-    try:
-        categoryNo = int(input(u'Please input category number(1-13):\n'))
-        if categoryNo < 1 or categoryNo > 13:
-            print('Illegal! Please input again!')
-            continue
-        break
-    except:
-        print('Not a number. Please input again!')
-        continue
-        
+startPage = 1
+endPage = 100000
+
 if login():
+    getInput()
+    print '------------INPUT INFORMATION---------------------'
+    print '- CategoryNumber='+str(categoryNo)
+    print '- StartPage='+str(startPage)
+    print '- EndPage='+str(endPage)
+    print '------------INPUT INFORMATION---------------------'
     #print('Login success!')
     #test()
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
@@ -162,5 +207,5 @@ if login():
     #writers = createWriters(filedirectory)
     #analyzeData(urlTest, writers)
     #getAllCategory(filedirectory)
-    getCategory(categoryNo, filedirectory)
+    getCategory(filedirectory, categoryNo, startPage, endPage)
 

@@ -81,6 +81,7 @@ def getConfig():
 #--------------------------------------------------
 #登录函数
 def login():
+    print('Logging in...')
     cj = cookielib.CookieJar()
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     urllib2.install_opener(opener)
