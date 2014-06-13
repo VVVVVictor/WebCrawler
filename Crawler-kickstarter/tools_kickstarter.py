@@ -49,12 +49,6 @@ def getConfig():
             if m:
                 if m.group(1) == u'filedirectory':
                     filedirectory =  m.group(2)+'/'
-                    '''
-                    tempchar = filedirectory[len(filedirectory)-1]
-                    if tempchar != u'\\' and tempchar != u'/':
-                        print('temp')
-                        filedirectory = filedirectory + '\\'
-                        '''
                 elif m.group(1) == u'username':
                     username = m.group(2)
                 elif m.group(1) == u'password':

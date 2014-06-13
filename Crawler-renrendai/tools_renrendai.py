@@ -8,6 +8,7 @@ import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket
+from random import randint
 
 configfileName = 'config'
 filedirectory = u'D:\\datas\\pythondatas\\renrendai\\'
@@ -21,14 +22,19 @@ urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.a
 urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
 username = u'15120000823'
 password = u'wmf123456'
+
+ipAddress = ['10.0.0.1', '191.124.5.2', '178.98.24.45, 231.67.9.28']
+host = 'www.renrendai.com'
+userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36']
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
+TRY_LOGIN_TIMES = 5 
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
     global filedirectory, username, password
     try:
-        configfile = open(os.getcwd()+'\\'+configfileName, 'r')
+        configfile = open(os.getcwd()+'/'+configfileName, 'r')
         #line = configfile.readline()
         pattern = re.compile(u'\s*(\w+)\s*=\s*(\S+)\s*')
         for line in configfile:
@@ -36,13 +42,7 @@ def getConfig():
             m = pattern.match(line)
             if m:
                 if m.group(1) == u'filedirectory':
-                    filedirectory =  m.group(2)+'\\'
-                    '''
-                    tempchar = filedirectory[len(filedirectory)-1]
-                    if tempchar != u'\\' and tempchar != u'/':
-                        print('temp')
-                        filedirectory = filedirectory + '\\'
-                        '''
+                    filedirectory =  m.group(2)+'/'
                 elif m.group(1) == u'username':
                     username = m.group(2)
                 elif m.group(1) == u'password':
@@ -50,7 +50,7 @@ def getConfig():
                 #print filedirectory
         configfile.close()
     except:
-        configfile = open(os.getcwd()+'\\'+configfileName, 'wb')
+        configfile = open(os.getcwd()+'/'+configfileName, 'wb')
         configfile.write('filedirectory = '+filedirectory+'\n')
         configfile.write('username = '+username+'\n')
         configfile.write('password = '+password+'\n')
@@ -69,23 +69,26 @@ def getConfig():
 #--------------------------------------------------
 #登录函数
 def login():
+    print('Logging in...')
     cj = cookielib.CookieJar()
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     urllib2.install_opener(opener)
 
     data = {'j_username':username, 'j_password':password, 'rememberme':'on', 'targetUrl':'http://www.renrendai.com', 'returnUrl':''}
     postdata = urllib.urlencode(data)
-
-    try:
-        req = urllib2.Request(urlLogin, postdata, headers)
-        result = urllib2.urlopen(req)
-        if urlIndex != result.geturl(): #通过返回url判断是否登录成功
-            print(u'[FAIL]Wrong USERNAME or PASSWORD. Please try again!')
-            return False
-        result.close()
-    except:
-        print(u'[FAIL]Login failed. Please try again!')
-        return False
+    for i in range(TRY_LOGIN_TIMES):
+        try:
+            req = urllib2.Request(urlLogin, postdata, getRandomHeaders())
+            result = urllib2.urlopen(req)
+            if urlIndex != result.geturl(): #通过返回url判断是否登录成功
+                print(u'[FAIL]Wrong USERNAME or PASSWORD. Please try again!')
+                return False
+            result.close()
+            print('LOGIN SUCCESS')
+            return True
+        except:
+            print(u'[FAIL]Login failed. Please try again!')
+    #end for
     return True
 #end def login()
 
@@ -97,7 +100,14 @@ def createFolder(filedirectory):
     else:
         os.makedirs(filedirectory) #可以创建多级目录
     return
-
+#--------------------------------------------------
+#生成一个随机的headers
+def getRandomHeaders():
+    ipNumber = len(ipAddress)
+    agentNumber = len(userAgent)
+    headers = {'User-Agent': userAgent[randint(0, agentNumber-1)], 'Host': host, 'X-Forwarded-For': ipAddress[randint(0, ipNumber-1)]}
+    return headers
+    
 #--------------------------------------------------
 def analyzeData(webcontent, csvwriter):
     soup = BeautifulSoup(webcontent)
