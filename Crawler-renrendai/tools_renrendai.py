@@ -11,7 +11,7 @@ import socket
 from random import randint
 
 configfileName = 'config'
-filedirectory = u'D:\\datas\\pythondatas\\renrendai\\'
+filedirectory = u'D:/datas/pythondatas/renrendai/'
 
 #For login
 urlLogin = u'https://www.renrendai.com/j_spring_security_check'
@@ -107,13 +107,28 @@ def getRandomHeaders():
     agentNumber = len(userAgent)
     headers = {'User-Agent': userAgent[randint(0, agentNumber-1)], 'Host': host, 'X-Forwarded-For': ipAddress[randint(0, ipNumber-1)]}
     return headers
-    
+
 #--------------------------------------------------
-def analyzeData(webcontent, csvwriter):
+def getTime(format = None):
+    if format:
+        strtime = str(time.strftime(format, time.localtime(time.time())))
+    else:
+        strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+    return strtime
+#--------------------------------------------------
+def cleanString(str):
+    str = str.replace('\r\n', ' ')
+    str = str.replace('\n', ' ')
+    return str.strip()
+#--------------------------------------------------
+def analyzeData(webcontent, writers):
     soup = BeautifulSoup(webcontent)
     
     if soup.find('img', {'alt':'404'}):
         return False #页面404
+    
+    currentDate = getTime('%Y-%m-%d')
+    currentClock = getTime('%H:%M:%S')
     
     ### 分析script ###
     jsonString = soup.find(id = 'credit-info-data').string
@@ -123,6 +138,11 @@ def analyzeData(webcontent, csvwriter):
     ###本次借款基本信息###
     loanData = scriptData['data']['loan']
     loanId = loanData['loanId']
+    tag_loanType = loanData['displayLoanType']
+    if tag_loanType == 'SDRZ':
+        loanType = '实'
+    elif tag_loanType == 'XYRZ':
+        loanType = '信'
     title = loanData['title']
     borrowType = loanData['borrowType']
     amount = loanData['amount']
@@ -133,20 +153,10 @@ def analyzeData(webcontent, csvwriter):
     borrowerLevel = loanData['borrowerLevel']
     leftMonths = loanData['leftMonths'] #剩余期数（月）
     
-    buffer1 = [loanId, title, userId, borrowType, amount, interest, months]
-    print(buffer1)
+    buffer1 = [currentDate, currentClock, loanId, loanType, title, amount, interest, months]
+    #print(buffer1)
     
-    ###审核信息###
-    creditInfo = scriptData['data']['creditInfo']
-    
-    ###审核通过时间###
-    #"creditPassedTime":{"creditPassedTimeId":77028,"user":77078,"credit":"Dec 26, 2011 12:58:55 PM","work":"Dec 19, 2011 2:47:29 PM","incomeDuty":"Dec 22, 2011 1:34:36 PM","identificationScanning":"Dec 17, 2011 1:43:35 PM","marriage":"Dec 19, 2011 9:55:20 AM"}
-    creditPassedTime = scriptData['data']['creditPassedTime']
-    #信用报告，工作认证，收入认证，身份认证，婚姻认证
-    list_passedTime = {'credit':'', 'work':'', 'incomeDuty':'', 'identificationScanning':'', 'marriage':''}
-    for item in creditPassedTime.keys():
-        list_passedTime[item] = creditPassedTime[item]
-    print list_passedTime
+
     
     
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
@@ -158,35 +168,37 @@ def analyzeData(webcontent, csvwriter):
     tag_guaranteeType = soup.find('span', text = u'保障方式')
     if tag_guaranteeType:
         guaranteeType = tag_guaranteeType.find_next_sibling('span').contents[0]
-        print guaranteeType
+        #print guaranteeType
     #还款方式
     tag_repayType = soup.find('span', text=u'还款方式')
     if tag_repayType:
         repayType = tag_repayType.find_next_sibling('span').contents[0]
-        print repayType
+        #print repayType
     #提前还款费率
     tag_prepaymentRate = soup.find('span', text=u'提前还款费率')
     if tag_prepaymentRate:
         prepaymentRate = tag_prepaymentRate.find_next_sibling('span').find('em').string
-        print prepaymentRate
+        #print prepaymentRate
     #月还本息    
     tag_repayEachMonth = soup.find('span', text=u'月还本息（元）')
     if tag_repayEachMonth:
         repayEachMonth = tag_repayEachMonth.find_next_sibling('span').find('em').string
         repayEachMonth = repayEachMonth.replace(',', '')
-        print repayEachMonth
+        #print repayEachMonth
     #待还本息
     amountToRepay = 0
     tag_amountToRepay = soup.find('em', text=re.compile(u'待还本息\w*'))
     if tag_amountToRepay:
         amountToRepay = tag_amountToRepay.find_next_sibling('span').string.replace(',', '')
         amountToRepay = re.search(r'\d+', amountToRepay).group()
-    print amountToRepay
+    #print amountToRepay
+    buffer1.extend([guaranteeType, prepaymentRate, repayType, repayEachMonth, ''])
     
     ###用户个人信息###
     tag_userinfo = soup.find('div', class_='ui-tab-content-basic')
     list_userinfo = tag_userinfo.find('ul').find_all('li')
     #print list_userinfo
+    sex = list_userinfo[0].find('em', class_='mt5')['title']
     company = list_userinfo[1].find(class_='tab-list-value').string
     incomeRange = list_userinfo[2].find(class_='tab-list-value').string
     age = list_userinfo[3].find(class_='tab-list-value').string
@@ -202,12 +214,12 @@ def analyzeData(webcontent, csvwriter):
     workTime = list_userinfo[13].find(class_='tab-list-value').string
     carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
     
-    userinfo = [company, incomeRange, age, companyScale, house, education, position, houseLoan, school, city, car, marriage, workTime, carLoan]
-    #print buffer_personal
-    #csvwriter.writerow(buffer_personal)
+    userinfo = [userId, username, sex, age, education, school, marriage, company, companyScale, position, city, workTime, incomeRange, house, houseLoan, car, carLoan]
+    buffer1.extend(userinfo)
     
     ###信用档案###
-    tag_creditRecord = soup.find('div', class_='ui-tab-content-expediente') 
+    tag_creditRecord = soup.find('div', class_='ui-tab-content-expediente')
+    creditRank = tag_creditRecord.h4.span.get_text()
     list_creditRecord = tag_creditRecord.find('ul').find_all('li')
     loanTimes = list_creditRecord[0].find(class_='tab-list-value').string #申请借款（笔）
     creditLine = list_creditRecord[1].find(class_='tab-list-value').string #信用额度
@@ -218,11 +230,34 @@ def analyzeData(webcontent, csvwriter):
     payoffTimes = list_creditRecord[6].find(class_='tab-list-value').string #还清笔数
     torepayAmount = list_creditRecord[7].find(class_='tab-list-value').string #待还本息
     seriousOverdueTimes = list_creditRecord[8].find(class_='tab-list-value').string #严重逾期
-    creditRecord = [loanTimes, loanSuccessTimes, payoffTimes, creditLine, loanTotalAmount, torepayAmount, overdueAmount, overdueTimes, seriousOverdueTimes]
-    print(creditRecord)
+    creditRecord = [creditRank, loanTimes, loanSuccessTimes, payoffTimes, creditLine, loanTotalAmount, torepayAmount, overdueAmount, overdueTimes, seriousOverdueTimes]
+    buffer1.extend(creditRecord)
+
+    ###审核信息###
+    list_renzheng = ['credit', 'identificationScanning', 'work', 'incomeDuty', 'house', 'car', 'marriage', 'graduation', 'fieldAudit', 'mobileReceipt', 'kaixin', 'residence', 'video']
+    #"creditInfo":{"creditInfoId":490655,"user":495364,"identificationScanning":"VALID","mobile":"INVALID","graduation":"INVALID","credit":"OVERDUE","residence":"INVALID","marriage":"INVALID","child":"INVALID","album":"INVALID","work":"OVERDUE","renren":"INVALID","kaixin":"INVALID","house":"INVALID","car":"INVALID","identification":"VALID","detailInformation":"INVALID","borrowStudy":"VALID","mobileReceipt":"INVALID","incomeDuty":"OVERDUE","other":"INVALID","account":"INVALID","titles":"INVALID","fieldAudit":"INVALID","mobileAuth":"INVALID","video":"INVALID","version":1}
+    creditInfo = scriptData['data']['creditInfo']
+    list_creditInfo = {'credit':'0', 'identificationScanning':'0', 'work':'0', 'incomeDuty':'0', 'house':'0', 'car':'0', 'marriage':'0', 'graduation':'0', 'fieldAudit':'0', 'mobileReceipt':'0', 'kaixin':'0', 'residence':'0', 'video':'0'}
+    #kaixin为微博，技术职称认证不详暂为fieldAudit
+    for item in creditInfo.keys():
+        if(creditInfo[item] == 'VALID'):
+            list_creditInfo[item] = '1'
+    ###审核通过时间###
+    #"creditPassedTime":{"creditPassedTimeId":77028,"user":77078,"credit":"Dec 26, 2011 12:58:55 PM","work":"Dec 19, 2011 2:47:29 PM","incomeDuty":"Dec 22, 2011 1:34:36 PM","identificationScanning":"Dec 17, 2011 1:43:35 PM","marriage":"Dec 19, 2011 9:55:20 AM"}
+    creditPassedTime = scriptData['data']['creditPassedTime']
+    #信用报告，工作认证，收入认证，身份认证，婚姻认证
+    list_passedTime = {'credit':'', 'identificationScanning':'', 'work':'', 'incomeDuty':'', 'house':'', 'car':'', 'marriage':'', 'graduation':'', 'fieldAudit':'', 'mobileReceipt':'', 'kaixin':'', 'residence':'', 'video':''}
+    for item in creditPassedTime.keys():
+        list_passedTime[item] = creditPassedTime[item]
+
+    for i in range(0, len(list_renzheng)):
+        print list_renzheng[i]+': '+list_creditInfo[list_renzheng[i]]+' '+list_passedTime[list_renzheng[i]]
+    #print list_creditInfo[0]
+    #for item in list_creditInfo:
+        #print item
     
-    
-    #-----------------------------------------------------
+    writers[0].writerow(buffer1)
+    #==================================================
     ###js获得投标记录###
     req_lenderRecords = urllib2.Request(urlLenderRecordsPrefix+str(loanId), headers=headers)
     #while:
