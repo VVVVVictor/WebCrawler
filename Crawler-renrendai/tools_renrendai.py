@@ -7,7 +7,7 @@ import urllib, urllib2, cookielib
 import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
-import socket
+import socket, ssl
 from random import randint
 
 configfileName = 'config'
@@ -24,7 +24,7 @@ urlUserPrefix = 'https://www.renrendai.com/account/myInfo.action?userId='
 username = u'15120000823'
 password = u'wmf123456'
 
-ipAddress = ['10.0.0.1', '191.124.5.2', '178.98.24.45, 231.67.9.28']
+ipAddress = ['191.124.5.2', '178.98.24.45, 231.67.9.28']
 host = 'www.renrendai.com'
 userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36']
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
@@ -125,12 +125,27 @@ def cleanString(str):
 #从url读取页面内容
 def readFromUrl(url, formdata = None):
     response = responseFromUrl(url, formdata)
-    if response:
-        m = response.read()
-        response.close()
-        return m
-    else:
-        return None
+    loopCount = 0
+    while True:
+        loopCount += 1
+        if loopCount > 5:
+            break
+        try:
+            if response:
+                m = response.read()
+                #response.close()
+                return m
+            else:
+                print('response is None')
+                return None
+        except ssl.SSLError, e:
+            print('[ERROR]ssl error in readFromUrl()!')
+            login()
+            continue
+        except:
+            print('i do not know what is wrong. When readFromUrl()!')
+            continue
+        
 #end def readFromUrl
 #--------------------------------------------------
 #从url读取response
@@ -166,6 +181,13 @@ def responseFromUrl(url, formdata = None):
         except httplib.IncompleteRead, e:
             print('[ERROR]IncompleteRead! '+url)
             continue
+        except ssl.SSLError, e:
+            print('[ERROR]ssl error!')
+            continue
+        except:
+            print('some error: '+url)
+            login()
+            continue
             
         if(response == None):
             print('responseFromUrl get a None')
@@ -179,14 +201,14 @@ def responseFromUrl(url, formdata = None):
 def analyzeData(webcontent, writers):
     soup = BeautifulSoup(webcontent)
     
-    if soup.find('img', {'alt':'404'}):
+    if soup.find('src', {'alt':'/exceptions/network-busy/img/404.png'}):
         return False #页面404
     
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
     
     ### 分析script ###
-    jsonString = soup.find(id = 'credit-info-data').string
+    jsonString = soup.find(id = 'credit-info-data').get_text()
     #jsonString = jsonString.replace('"[', '[').replace(']"', ']') #多余引号导致分析错误
     scriptData = json.loads(jsonString)
     
@@ -212,10 +234,7 @@ def analyzeData(webcontent, writers):
     
     buffer1 = [currentDate, currentClock, loanId, loanType, title, amount, interest, months]
     #print(buffer1)
-    
 
-    
-    
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
     #print soup
     
@@ -257,15 +276,21 @@ def analyzeData(webcontent, writers):
     #print list_userinfo
     sex = list_userinfo[0].find('em', class_='mt5')['title']
     company = list_userinfo[1].find(class_='tab-list-value').string
+    if company == '--': company = ''
     incomeRange = list_userinfo[2].find(class_='tab-list-value').string
+    if incomeRange == '--': incomeRange = ''
     age = list_userinfo[3].find(class_='tab-list-value').string
     companyScale = list_userinfo[4].find(class_='tab-list-value').string
+    if companyScale == '--': companyScale = ''
     house = list_userinfo[5].find(class_='icon-check-checked').next_sibling
     education = list_userinfo[6].find(class_='tab-list-value').string
+    if education=='--': education=''
     position = list_userinfo[7].find(class_='tab-list-value').string
+    if position == '--': position = ''
     houseLoan = list_userinfo[8].find(class_='icon-check-checked').next_sibling
     school = list_userinfo[9].find(id='university')['title']
     city = list_userinfo[10].find(class_='tab-list-value').string
+    if city == u'请选择 请选择' or city == '--': city = ''
     tag_car = list_userinfo[11].find(class_='icon-check-checked')
     if tag_car:
         car = tag_car.next_sibling
@@ -273,6 +298,7 @@ def analyzeData(webcontent, writers):
         car = list_userinfo[11].find('em')['title']
     marriage =list_userinfo[12].find(class_='tab-list-value').string
     workTime = list_userinfo[13].find(class_='tab-list-value').string
+    if workTime=='--': workTime = ''
     carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
     
     userinfo = [userId, username, sex, age, education, school, marriage, company, companyScale, position, city, workTime, incomeRange, house, houseLoan, car, carLoan]
@@ -342,7 +368,7 @@ def analyzeData(webcontent, writers):
 #---------------------------------------------
 def analyzeLenderData(loanId, writer, attrs):
     ###js获得投标记录###
-    print('Get Lender Records...')
+    print(' Get Lender Records...')
     lenderRecordsString = readFromUrl(urlLenderRecordsPrefix+str(loanId))
     lenderRecords = json.loads(lenderRecordsString)
     list_lenderRecords = lenderRecords['data']['lenderRecords']
@@ -365,7 +391,7 @@ def analyzeLenderData(loanId, writer, attrs):
 #end def analyzeLenderData
 #-------------------------------------------------
 def analyzeRepayData(loanId, writer, attrs):
-    print('Get Repay Log...')
+    print(' Get Repay Log...')
     repayDetailString = readFromUrl(urlRepayDetailPrefix+str(loanId))
     repayDetail = json.loads(repayDetailString)
     
@@ -373,15 +399,20 @@ def analyzeRepayData(loanId, writer, attrs):
     totalRepaid = repayDetail['data']['repaid']
     list_repayDetail = repayDetail['data']['phases']
     for item in list_repayDetail:
+        repayTime = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['repayTime']).group(1)
+        if item['actualRepayTime']:
+            actualRepayTime = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['actualRepayTime']).group(1)
+        else:
+            actualRepayTime = ''
         buffer_repayDetail = []
         buffer_repayDetail.extend(attrs)
-        buffer_repayDetail.extend([loanId, item['repayTime'], item['status'], item['unRepaidAmount'], item['unRepaidFee'], item['actualRepayTime']])
+        buffer_repayDetail.extend([loanId, repayTime, item['status'], item['unRepaidAmount'], item['unRepaidFee'], actualRepayTime])
         writer.writerow(buffer_repayDetail)
 #end def analyzeRepayData
 #---------------------------------------------------
 def analyzeLenderInfoData(loanId, writer, attrs):
     ###js获得债权信息###
-    print('Get Lender Infomation...')
+    print(' Get Lender Infomation...')
     lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
     lenderInfo = json.loads(lenderInfoString)
     list_lenderInfo = lenderInfo['data']['lenders']
@@ -401,7 +432,7 @@ def analyzeLenderInfoData(loanId, writer, attrs):
 #---------------------------------------------------
 def analyzeTransferData(loanId, writer, attrs):
 ###js获得债券转让记录###
-    print('Get Transfer Log...')
+    print(' Get Transfer Log...')
     transferLogString = readFromUrl(urlTransferLogPrefix+str(loanId))
     transferLog = json.loads(transferLogString)
     
@@ -419,7 +450,7 @@ def analyzeTransferData(loanId, writer, attrs):
 #end def analyzeTransferData()
 #-------------------------------------------------------
 def analyzeUserData(userId, writer, attrs):
-    print('Get User Info...')
+    print(' Get User Info...')
     content_user = readFromUrl(urlUserPrefix+str(userId))
     soup = BeautifulSoup(content_user)
     currentDate = getTime('%Y-%m-%d')
