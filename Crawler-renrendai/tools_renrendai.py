@@ -20,6 +20,7 @@ urlLenderRecordsPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinf
 urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=repayDetail&loanId='
 urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
 urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
+urlUserPrefix = 'https://www.renrendai.com/account/myInfo.action?userId='
 username = u'15120000823'
 password = u'wmf123456'
 
@@ -121,6 +122,60 @@ def cleanString(str):
     str = str.replace('\n', ' ')
     return str.strip()
 #--------------------------------------------------
+#从url读取页面内容
+def readFromUrl(url, formdata = None):
+    response = responseFromUrl(url, formdata)
+    if response:
+        m = response.read()
+        response.close()
+        return m
+    else:
+        return None
+#end def readFromUrl
+#--------------------------------------------------
+#从url读取response
+def responseFromUrl(url, formdata = None):
+    response = None
+    if formdata != None:
+        formdata = urllib.urlencode(formdata)
+
+    loopCount = 0
+    #proxyNumber = len(proxyList)
+    while True:
+        loopCount += 1
+        if loopCount > 5:
+            print('Failed when trying responseFromUrl().')
+            print('URL = '+url)
+            break
+        try:
+            req = urllib2.Request(url, formdata, headers=getRandomHeaders())
+            #proxyNo = randint(0, proxyNumber-1)
+            #req.set_proxy(proxyList[proxyNo], 'http')
+            response = urllib2.urlopen(req)
+            curUrl = response.geturl()
+            break
+        except (urllib2.URLError) as e:
+            if hasattr(e, 'code'):
+                print('ERROR:'+str(e.code)+' '+str(e.reason))
+                if(e.code == 404):
+                    print('url = '+url)
+                    return None
+            else:
+                print(str(e.reason))
+            print('url = '+url)
+        except httplib.IncompleteRead, e:
+            print('[ERROR]IncompleteRead! '+url)
+            continue
+            
+        if(response == None):
+            print('responseFromUrl get a None')
+            time.sleep(1)
+            login()
+            continue
+    #end while
+    
+    return response
+#--------------------------------------------------
 def analyzeData(webcontent, writers):
     soup = BeautifulSoup(webcontent)
     
@@ -152,6 +207,8 @@ def analyzeData(webcontent, writers):
     username = loanData['nickName']
     borrowerLevel = loanData['borrowerLevel']
     leftMonths = loanData['leftMonths'] #剩余期数（月）
+    finishedRatio = loanData['finishedRatio'] #完成额度
+    description = loanData['description']
     
     buffer1 = [currentDate, currentClock, loanId, loanType, title, amount, interest, months]
     #print(buffer1)
@@ -192,7 +249,7 @@ def analyzeData(webcontent, writers):
         amountToRepay = tag_amountToRepay.find_next_sibling('span').string.replace(',', '')
         amountToRepay = re.search(r'\d+', amountToRepay).group()
     #print amountToRepay
-    buffer1.extend([guaranteeType, prepaymentRate, repayType, repayEachMonth, ''])
+    buffer1.extend([guaranteeType, prepaymentRate, repayType, repayEachMonth, finishedRatio])
     
     ###用户个人信息###
     tag_userinfo = soup.find('div', class_='ui-tab-content-basic')
@@ -209,7 +266,11 @@ def analyzeData(webcontent, writers):
     houseLoan = list_userinfo[8].find(class_='icon-check-checked').next_sibling
     school = list_userinfo[9].find(id='university')['title']
     city = list_userinfo[10].find(class_='tab-list-value').string
-    car = list_userinfo[11].find(class_='icon-check-checked').next_sibling
+    tag_car = list_userinfo[11].find(class_='icon-check-checked')
+    if tag_car:
+        car = tag_car.next_sibling
+    else:
+        car = list_userinfo[11].find('em')['title']
     marriage =list_userinfo[12].find(class_='tab-list-value').string
     workTime = list_userinfo[13].find(class_='tab-list-value').string
     carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
@@ -248,104 +309,135 @@ def analyzeData(webcontent, writers):
     #信用报告，工作认证，收入认证，身份认证，婚姻认证
     list_passedTime = {'credit':'', 'identificationScanning':'', 'work':'', 'incomeDuty':'', 'house':'', 'car':'', 'marriage':'', 'graduation':'', 'fieldAudit':'', 'mobileReceipt':'', 'kaixin':'', 'residence':'', 'video':''}
     for item in creditPassedTime.keys():
-        list_passedTime[item] = creditPassedTime[item]
-
+        try:
+            passedTime = time.strptime(creditPassedTime[item],'%b %d, %Y %I:%M:%S %p')
+            list_passedTime[item] = time.strftime('%Y-%m-%d', passedTime)
+        except:
+            continue
+    data_renzheng = []
     for i in range(0, len(list_renzheng)):
-        print list_renzheng[i]+': '+list_creditInfo[list_renzheng[i]]+' '+list_passedTime[list_renzheng[i]]
-    #print list_creditInfo[0]
-    #for item in list_creditInfo:
-        #print item
+        itemName = list_renzheng[i]
+        data_renzheng.append(list_creditInfo[itemName])
+        data_renzheng.append(list_passedTime[itemName])
+        #print list_renzheng[i]+': '+list_creditInfo[list_renzheng[i]]+' '+list_passedTime[list_renzheng[i]]
+    buffer1.extend(data_renzheng)
+    buffer1.append(description)
     
     writers[0].writerow(buffer1)
-    #==================================================
-    ###js获得投标记录###
-    req_lenderRecords = urllib2.Request(urlLenderRecordsPrefix+str(loanId), headers=headers)
-    #while:
-    print('[LENDER RECORDS]')
-    try:
-        response_lenderRecords = urllib2.urlopen(req_lenderRecords)
-        lenderRecordsString = response_lenderRecords.read()
-        lenderRecords = json.loads(lenderRecordsString)
-        list_lenderRecords = lenderRecords['data']['lenderRecords']
-        #print list_lenderInfo
-        for item in list_lenderRecords:
-            buffer_lenderRecords = [item['loanId'], item['userId'], item['userNickName'], item['amount'], item['lendTime']]
-            print buffer_lenderRecords
-    except (urllib2.URLError) as e:
-        if hasattr(e, 'code'):
-            print(str(e.code)+': '+str(e.reason))
-        else:
-            print(e.reason)
-    except socket.error as e:
-        print('ERROR] Socket error: '+str(e.errno))    
     
-    #-----------------------------------------------------
-    ###js获得还款表现###
-    req_repayDetail = urllib2.Request(urlRepayDetailPrefix+str(loanId), headers=headers)
-    try:
-        response_repayDetail = urllib2.urlopen(req_repayDetail)
-        repayDetailString = response_repayDetail.read()
-        repayDetail = json.loads(repayDetailString)
-        
-        totalunRepaid = repayDetail['data']['unRepaid']
-        totalRepaid = repayDetail['data']['repaid']
-        list_repayDetail = repayDetail['data']['phases']
-        for item in list_repayDetail:
-            buffer_repayDetail = [item['repayTime'], item['status'], item['unRepaidAmount'], item['unRepaidFee'], item['actualRepayTime']]
-            print buffer_repayDetail
-        
-    except (urllib2.URLError) as e:
-        if hasattr(e, 'code'):
-            print(str(e.code)+': '+str(e.reason))
-        else:
-            print(e.reason)
-    except socket.error as e:
-        print('ERROR] Socket error: '+str(e.errno))
-        i = lastpage 
-    #-----------------------------------------------------
-    ###js获得债权信息###
-    req_lenderInfo = urllib2.Request(urlLenderInfoPrefix+str(loanId), headers=headers)
-    #while:
-    try:
-        response_lenderInfo = urllib2.urlopen(req_lenderInfo)
-        lenderInfoString = response_lenderInfo.read()
-        lenderInfo = json.loads(lenderInfoString)
-        list_lenderInfo = lenderInfo['data']['lenders']
-        #print list_lenderInfo
-        for item in list_lenderInfo:
-            buffer_lenderInfo = [loanId, item['userId'], item['nickName'], item['leftAmount'], item['lendTime'], item['share']]
-            print buffer_lenderInfo
-    except (urllib2.URLError) as e:
-        if hasattr(e, 'code'):
-            print(str(e.code)+': '+str(e.reason))
-        else:
-            print(e.reason)
-    except socket.error as e:
-        print('ERROR] Socket error: '+str(e.errno))
-    
-    #-----------------------------------------------------
-    ###js获得债券转让记录###
-    req_transferLog = urllib2.Request(urlTransferLogPrefix+str(loanId), headers=headers)
-    try:
-        response_transferLog = urllib2.urlopen(req_transferLog)
-        transferLogString = response_transferLog.read()
-        transferLog = json.loads(transferLogString)
-        
-        transferAccount = transferLog['data']['account']
-        transferNoAccount = transferLog['data']['noAccount']
-        list_transferLog = transferLog['data']['loanTransferLogList']
-        print('[TRANSFER LOG]')
-        for item in list_transferLog:
-            buffer_transferLog = [item['fromNickName'], item['fromUserId'], item['toNickName'], item['toUserId'], item['price'], item['share'], item['createTime']]
-            print buffer_transferLog
-    except (urllib2.URLError) as e:
-        if hasattr(e, 'code'):
-            print(str(e.code)+': '+str(e.reason))
-        else:
-            print(e.reason)
-    except socket.error as e:
-        print('ERROR] Socket error: '+str(e.errno))
-        i = lastpage 
+    basicInfo = [currentDate, currentClock]
+    #投标记录-----------------------------------------
+    analyzeLenderData(loanId, writers[1], basicInfo)
+    #还款表现-----------------------------------------
+    analyzeRepayData(loanId, writers[2], basicInfo)
+    #债权信息-----------------------------------------
+    analyzeLenderInfoData(loanId, writers[3], basicInfo)
+    #债券转让记录-------------------------------------
+    analyzeTransferData(loanId, writers[4], basicInfo)
+    #用户信息---------------------------------------
+    analyzeUserData(userId, writers[5], [loanTimes, loanSuccessTimes, payoffTimes, overdueTimes, overdueAmount, seriousOverdueTimes])
     
     return True
     
+#---------------------------------------------
+def analyzeLenderData(loanId, writer, attrs):
+    ###js获得投标记录###
+    print('Get Lender Records...')
+    lenderRecordsString = readFromUrl(urlLenderRecordsPrefix+str(loanId))
+    lenderRecords = json.loads(lenderRecordsString)
+    list_lenderRecords = lenderRecords['data']['lenderRecords']
+    #print list_lenderInfo
+    for item in list_lenderRecords:
+        m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['lendTime'])
+        lendDate = m.group(1)
+        lendClock = m.group(2)
+        isFinancePlan = '0' #理财计划
+        financePlanId = '' #理财计划期数
+        if(item['lenderType'] == 'FINANCEPLAN_BID'):
+            isFinancePlan = '1'
+            financePlanId = item['financePlanId']
+        
+        buffer_lenderRecords = []
+        buffer_lenderRecords.extend(attrs)
+        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], item['amount'], lendDate, lendClock, isFinancePlan, financePlanId])
+        #print buffer_lenderRecords
+        writer.writerow(buffer_lenderRecords)
+#end def analyzeLenderData
+#-------------------------------------------------
+def analyzeRepayData(loanId, writer, attrs):
+    print('Get Repay Log...')
+    repayDetailString = readFromUrl(urlRepayDetailPrefix+str(loanId))
+    repayDetail = json.loads(repayDetailString)
+    
+    totalunRepaid = repayDetail['data']['unRepaid']
+    totalRepaid = repayDetail['data']['repaid']
+    list_repayDetail = repayDetail['data']['phases']
+    for item in list_repayDetail:
+        buffer_repayDetail = []
+        buffer_repayDetail.extend(attrs)
+        buffer_repayDetail.extend([loanId, item['repayTime'], item['status'], item['unRepaidAmount'], item['unRepaidFee'], item['actualRepayTime']])
+        writer.writerow(buffer_repayDetail)
+#end def analyzeRepayData
+#---------------------------------------------------
+def analyzeLenderInfoData(loanId, writer, attrs):
+    ###js获得债权信息###
+    print('Get Lender Infomation...')
+    lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
+    lenderInfo = json.loads(lenderInfoString)
+    list_lenderInfo = lenderInfo['data']['lenders']
+    #print list_lenderInfo
+    for item in list_lenderInfo:
+        isFinancePlan = '0' #理财计划
+        financePlanId = '' #理财计划期数
+        if(item['financePlanId'] != 'null'):
+            isFinancePlan = '1'
+            financePlanId = item['financePlanId']
+        buffer_lenderInfo = []
+        buffer_lenderInfo.extend(attrs)
+        buffer_lenderInfo.extend([loanId, item['userId'], item['nickName'], item['leftAmount'], item['share'], isFinancePlan, financePlanId])
+        writer.writerow(buffer_lenderInfo)
+#end def analyzeLenderInfoData()
+
+#---------------------------------------------------
+def analyzeTransferData(loanId, writer, attrs):
+###js获得债券转让记录###
+    print('Get Transfer Log...')
+    transferLogString = readFromUrl(urlTransferLogPrefix+str(loanId))
+    transferLog = json.loads(transferLogString)
+    
+    transferAccount = transferLog['data']['account']
+    transferNoAccount = transferLog['data']['noAccount']
+    list_transferLog = transferLog['data']['loanTransferLogList']
+    for item in list_transferLog:
+        m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
+        transferDate = m.group(1)
+        transferClock = m.group(2)
+        buffer_transferLog = []
+        buffer_transferLog.extend(attrs)
+        buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'], item['fromUserId'], item['fromNickName'], item['price'], item['share'], transferDate, transferClock])
+        writer.writerow(buffer_transferLog)
+#end def analyzeTransferData()
+#-------------------------------------------------------
+def analyzeUserData(userId, writer, attrs):
+    print('Get User Info...')
+    content_user = readFromUrl(urlUserPrefix+str(userId))
+    soup = BeautifulSoup(content_user)
+    currentDate = getTime('%Y-%m-%d')
+    currentClock = getTime('%H:%M:%S')
+    #个人信息
+    nickName = soup.find('span', {'id':'nick-name'}).string
+    tag_registerDate = soup.find('div', class_='avatar-info')
+    if tag_registerDate:
+        registerDate = re.search('\d+-\d+-\d+', tag_registerDate.find('p').string).group(0)
+    #理财统计
+    ownInfo = soup.find('div', class_='avatar-invest')
+    tag_ownBondsCount = ownInfo.dl.find('dd')
+    ownBondsCount = tag_ownBondsCount.find('em').string
+    tag_ownFinancePlansCount = tag_ownBondsCount.find_next('dd')
+    ownFinancePlansCount = tag_ownFinancePlansCount.find('em').string
+    
+    
+    buffer_user = [currentDate, currentClock, userId, nickName, registerDate, ownBondsCount, ownFinancePlansCount]
+    buffer_user.extend(attrs)
+    writer.writerow(buffer_user)
+#end analyzeUserData()
