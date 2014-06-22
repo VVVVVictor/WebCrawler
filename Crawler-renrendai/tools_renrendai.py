@@ -150,8 +150,9 @@ def readFromUrl(url, formdata = None):
             print e.reason
             login()
             continue
-        except:
+        except Exception, e:
             print('i do not know what is wrong. When readFromUrl()!')
+            print e.reason
             continue
         
 #end def readFromUrl
