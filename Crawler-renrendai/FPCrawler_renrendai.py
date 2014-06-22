@@ -28,7 +28,7 @@ def createWriters(filedirectory, prefix=''):
     createFolder(filedirectory)
     writers = [] #csv writer list
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-    for i in range(1, 4):
+    for i in range(1, 3):
         name_sheet = filedirectory+prefix+'_'+strtime+'_'+sheetName[i-1]+'.csv'
         flag_newfile = True
         if os.path.isfile(name_sheet):
@@ -51,7 +51,7 @@ def getData(begin_phase, end_phase, filedirectory):
     
     writers = createWriters(filedirectory+fpFolder, 'FP_'+str(begin_phase)+'-'+str(end_phase))
 
-    for i in range(begin_phase, end_phase):
+    for i in range(begin_phase, end_phase+1):
         print('Getting No.'+str(i)+' Financial Plan...')
         req = urllib2.Request(urlFP+str(i), headers = getRandomHeaders())
         try:
@@ -76,11 +76,8 @@ def getData(begin_phase, end_phase, filedirectory):
         if analyzeFPData(m, i, writers):
             lostPageCount = 0
         else:
-            print('Page 404!')
-            lostPageCount += 1
-            if(lostPageCount > LOST_PAGE_LIMIT):
-                print('You have got the latest page!')
-                break
+            print('[ERROR] Financial plan No.'+str(i)+' has not established!')
+            break
     #end for
     
     endtime = time.clock()
@@ -88,7 +85,37 @@ def getData(begin_phase, end_phase, filedirectory):
     return
 #end def getData()
         
-    
+#----------------------------------------
+def getInput():
+    global startID, endID
+    while True:
+        try:
+            raw_startID = raw_input('Input start Financial Plan ID:')
+            startID = int(raw_startID)
+            if startID < 1:
+                print('Start ID illegal! Please input again!')
+                continue
+            break
+        except:
+            if(raw_startID == ''):
+                startID = 1
+                break
+            print('Not a number! Please input again!')
+            continue
+    while True:
+        try:
+            raw_endID = raw_input('Input last  Financial Plan ID:')
+            endID = int(raw_endID)
+            if endID < 1:
+                print('Last ID illegal! Please input again!')
+                continue
+            break
+        except:
+            if(raw_endID == ''):
+                endID = 1000
+                break
+            print('Not a number! Please input again!')
+            continue    
 #----------------------------
 #main
 reload(sys)
@@ -101,6 +128,14 @@ socket.setdefaulttimeout(timeout)
 httplib.HTTPConnection._http_vsn = 10
 httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
+startID = 1
+endID = 1000
+
 filedirectory = getConfig()
 if login():
-    getData(1, 64, filedirectory)
+    getInput()
+    print '------------INPUT INFORMATION---------------------'
+    print '- StartID = '+str(startID)
+    print '- EndID   = '+str(endID)
+    print '------------INPUT INFORMATION---------------------'
+    getData(startID, endID, filedirectory)

@@ -85,7 +85,37 @@ def getData(begin_page, end_page, filedirectory):
     return
 #end def getData()
         
-    
+#----------------------------------------
+def getInput():
+    global startID, endID
+    while True:
+        try:
+            raw_startID = raw_input('Input start order ID:')
+            startID = int(raw_startID)
+            if startID < 1:
+                print('Start ID illegal! Please input again!')
+                continue
+            break
+        except:
+            if(raw_startID == ''):
+                startID = 1
+                break
+            print('Not a number! Please input again!')
+            continue
+    while True:
+        try:
+            raw_endID = raw_input('Input end order ID:')
+            endID = int(raw_endID)
+            if endID < 1:
+                print('End ID illegal! Please input again!')
+                continue
+            break
+        except:
+            if(raw_endID == ''):
+                endID = 1000
+                break
+            print('Not a number! Please input again!')
+            continue
 #----------------------------
 #main
 reload(sys)
@@ -98,6 +128,14 @@ socket.setdefaulttimeout(timeout)
 httplib.HTTPConnection._http_vsn = 10
 httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
+startID = 1
+endID = 1000
+
 filedirectory = getConfig()
 if login():
-    getData(210500, 210800, filedirectory)
+    getInput()
+    print '------------INPUT INFORMATION---------------------'
+    print '- StartID = '+str(startID)
+    print '- EndID   = '+str(endID)
+    print '------------INPUT INFORMATION---------------------'
+    getData(startID, endID, filedirectory)
