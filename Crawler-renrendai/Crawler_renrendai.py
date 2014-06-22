@@ -46,7 +46,7 @@ def getData(begin_page, end_page, filedirectory):
     lostPageCount = 0 #记录连续404的页面个数
     lastpage = begin_page #记录抓取的最后一个有效页面
     
-    writers = createWriters(filedirectory, 'renrendai')
+    writers = createWriters(filedirectory, 'rrdai_'+str(begin_page)+'-'+str(end_page))
 
     for i in range(begin_page, end_page+1):
         print('Downloading '+str(i)+' web page...')
@@ -100,4 +100,4 @@ httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
 filedirectory = getConfig()
 if login():
-    getData(220363, 220600, filedirectory)
+    getData(210500, 210800, filedirectory)

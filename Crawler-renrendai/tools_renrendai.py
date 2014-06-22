@@ -21,6 +21,10 @@ urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.
 urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
 urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
 urlUserPrefix = 'https://www.renrendai.com/account/myInfo.action?userId='
+
+#for Financial Plan
+urlFPLenderPrefix = 'http://www.renrendai.com/financeplan/getFinancePlanLenders.action?financePlanStr='
+urlFPPerformancePrefix = 'http://www.renrendai.com/financeplan/listPlan!planResults.action?financePlanId='
 username = u'15120000823'
 password = u'wmf123456'
 
@@ -124,13 +128,14 @@ def cleanString(str):
 #--------------------------------------------------
 #从url读取页面内容
 def readFromUrl(url, formdata = None):
-    response = responseFromUrl(url, formdata)
+    
     loopCount = 0
     while True:
         loopCount += 1
         if loopCount > 5:
             break
         try:
+            response = responseFromUrl(url, formdata)
             if response:
                 m = response.read()
                 #response.close()
@@ -140,6 +145,9 @@ def readFromUrl(url, formdata = None):
                 return None
         except ssl.SSLError, e:
             print('[ERROR]ssl error in readFromUrl()!')
+            if hasattr(e, 'code'):
+                print e.code
+            print e.reason
             login()
             continue
         except:
@@ -220,6 +228,8 @@ def analyzeData(webcontent, writers):
         loanType = '实'
     elif tag_loanType == 'XYRZ':
         loanType = '信'
+    elif tag_loanType == 'JGDB':
+        loanType = '保'
     title = loanData['title']
     borrowType = loanData['borrowType']
     amount = loanData['amount']
@@ -472,3 +482,71 @@ def analyzeUserData(userId, writer, attrs):
     buffer_user.extend(attrs)
     writer.writerow(buffer_user)
 #end analyzeUserData()
+
+#------------------------------------------------------
+def analyzeFPData(webcontent, planId, writers):
+    soup = BeautifulSoup(webcontent)
+    tag_basic = soup.find('div', class_='basic-box')
+    list_basicInfo = tag_basic.ul.find_all('li', class_='fn-clear')
+    
+    planAmount = list_basicInfo[0].find('span', class_='num').em.get_text()
+    expectedRate = list_basicInfo[0].find('span', {'id':'expected-rate'})['data-value']
+    planProducts = list_basicInfo[1].find('span', {'id':'plan-basic-products'})['data-products']
+    guaranteeMode = list_basicInfo[1].find('span', class_='last').get_text()
+    status = list_basicInfo[2].find('span', class_='basic-value').get_text()
+    fullTime = list_basicInfo[2].find('span', class_='last').get_text()
+    lockPeriod = list_basicInfo[3].find('em', class_='value').get_text()
+    lockDate = list_basicInfo[3].find('span', class_='last').get_text()
+    #print list_basicInfo[4]
+    buyInRate = list_basicInfo[5].find('div', {'id':'buy-in-rate'})['data-br']
+    interestRate = list_basicInfo[5].find('div', {'id':'interest-rate'})['data-ir']
+    quitRate = list_basicInfo[5].find('div', {'id':'quit-rate'})['data-qr']
+    
+    leftAmount = soup.find('em', {'id':'max-amount-1'})['data-amount']
+    joinAmountLimit = soup.find('em', {'id':'max-amount-2'})['data-amount']
+    
+    buffer_FP = [planId, planAmount, expectedRate, planProducts, guaranteeMode, status, fullTime, lockPeriod, lockDate, buyInRate, interestRate, quitRate, leftAmount, joinAmountLimit]
+    #print buffer_FP
+    
+    #分析加入记录
+    joinLenderCount = analyzeFPLender(planId, writers[1])
+    
+    #分析理财计划表现
+    performance = analyzePlan(planId)
+    
+    buffer_FP.append(joinLenderCount)
+    buffer_FP.extend(performance)
+    writers[0].writerow(buffer_FP)
+    return True
+#end def analyzeFPData()
+#--------------------------------------------------------
+#加入记录, 返回总人数
+def analyzeFPLender(planId, writer):
+    print(' Get Financial Plan Lender Info...')
+    content_lender = readFromUrl(urlFPLenderPrefix+str(planId))
+    lenderInfo = json.loads(content_lender)
+    
+    list_lenders = lenderInfo['data']['jsonList']
+    #print len(list_lenders)
+    for item in list_lenders:
+        m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
+        aDate = m.group(1)
+        aClock = m.group(2)
+        buffer_lender = [planId]
+        buffer_lender.extend([item['nickName'], item['userId'], item['amount'], aDate, aClock])
+        writer.writerow(buffer_lender)
+    return len(list_lenders)
+#end def analyzeFPLender()
+#----------------------------------------------------
+#
+def analyzePlan(planId):
+    print(' Get Financial Plan Performace...')
+    content_plan = readFromUrl(urlFPPerformancePrefix+str(planId))
+    planInfo = json.loads(content_plan)
+    item = planInfo['data']['financePlanVos'][0]
+    #print item
+    buffer_performance = []
+    buffer_performance.extend([item['bidCount'], item['averageBidInterest'], item['amount'], item['fundsUseRate'], item['earnInterest'], item['borrowCount']])
+    #writer.writerow(buffer_performance)
+    return buffer_performance
+#end def analyzePlan()
