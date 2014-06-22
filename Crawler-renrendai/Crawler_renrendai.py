@@ -57,6 +57,10 @@ def getData(begin_page, end_page, filedirectory):
             #print(m)
             lastpage = i
             #response.close()
+            if(len(m) < 100):
+                print('webcontent too short!')
+                login()
+                continue
         except (urllib2.URLError) as e:
             if hasattr(e, 'code'):
                 print(str(e.code)+': '+str(e.reason))

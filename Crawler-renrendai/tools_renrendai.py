@@ -218,6 +218,10 @@ def analyzeData(webcontent, writers):
     
     ### 分析script ###
     jsonString = soup.find(id = 'credit-info-data').get_text()
+    if jsonString == None:
+        print('Cannot get json')
+        print jsonString
+        return True
     #jsonString = jsonString.replace('"[', '[').replace(']"', ']') #多余引号导致分析错误
     scriptData = json.loads(jsonString)
     
