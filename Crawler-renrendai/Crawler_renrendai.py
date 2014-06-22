@@ -49,7 +49,7 @@ def getData(begin_page, end_page, filedirectory):
     writers = createWriters(filedirectory, 'rrdai_'+str(begin_page)+'-'+str(end_page))
 
     for i in range(begin_page, end_page+1):
-        print('Downloading '+str(i)+' web page...')
+        print('Downloading Loan ID:'+str(i)+'...')
         req = urllib2.Request(urlLoan+str(i), headers = getRandomHeaders())
         try:
             response = urllib2.urlopen(req)

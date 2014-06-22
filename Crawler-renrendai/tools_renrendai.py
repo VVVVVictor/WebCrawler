@@ -430,7 +430,8 @@ def analyzeLenderInfoData(loanId, writer, attrs):
     for item in list_lenderInfo:
         isFinancePlan = '0' #理财计划
         financePlanId = '' #理财计划期数
-        if(item['financePlanId'] != 'null'):
+        #print item['financePlanId']
+        if(item['financePlanId'] != None):
             isFinancePlan = '1'
             financePlanId = item['financePlanId']
         buffer_lenderInfo = []
