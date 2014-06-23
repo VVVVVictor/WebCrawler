@@ -21,6 +21,7 @@ urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.
 urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
 urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
 urlUserPrefix = 'https://www.renrendai.com/account/myInfo.action?userId='
+urlCommentPrefix = 'http://www.renrendai.com/lend/loanCommentList.action?loanId=3&pageIndex='
 
 #for Financial Plan
 urlFPLenderPrefix = 'http://www.renrendai.com/financeplan/getFinancePlanLenders.action?financePlanStr='
@@ -147,12 +148,12 @@ def readFromUrl(url, formdata = None):
             print('[ERROR]ssl error in readFromUrl()!')
             if hasattr(e, 'code'):
                 print e.code
-            print e.reason
+            print e.errno
             login()
             continue
         except Exception, e:
             print('i do not know what is wrong. When readFromUrl()!')
-            print e.reason
+            print e.errno
             continue
         
 #end def readFromUrl
@@ -377,6 +378,50 @@ def analyzeData(webcontent, writers):
     analyzeTransferData(loanId, writers[4], basicInfo)
     #用户信息---------------------------------------
     analyzeUserData(userId, writers[5], [loanTimes, loanSuccessTimes, payoffTimes, overdueTimes, overdueAmount, seriousOverdueTimes])
+    
+    #评论信息---------------------------------
+    print('  Get Comments...')
+    commentPage = 0
+    while True:
+        commentPage += 1
+        if(commentPage > 1):
+            commentsString = readFromUrl(urlCommentPrefix+str(commentPage))
+            print commentsString
+            if(len(commentsString) == 0):
+                break
+        else:
+            commentsString = soup.find('script', {'id':'comments-data'}).get_text()
+        commentsJson = json.loads(commentsString)
+        list_comments = commentsJson['data']['loanComments']
+        for item in list_comments:
+            m1 = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['commentTime'])
+            if m1:
+                commentDate = m1.group(1)
+                commentClock = m1.group(2)
+            else:
+                commentFullTime = time.strptime(item['commentTime'],'%b %d, %Y %I:%M:%S %p')
+                commentDate = time.strftime('%Y-%m-%d', commentFullTime)
+                commentClock = time.strftime('%H:%M:%S', commentFullTime)
+            comment = [currentDate, currentClock]
+            comment.extend([item['toLoanId'], item['byUserId'], item['displayName'], commentDate,commentClock, item['content']])
+            if 'repliedComments' in item:
+                if item['repliedComments'] != None:
+                    reply = item['repliedComments'][0]
+                    m2 = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', reply['commentTime'])
+                    if m2:
+                        replyDate = m2.group(1)
+                        replyClock = m2.group(2)
+                    else:
+                        replyFullTime = time.strptime(reply['commentTime'],'%b %d, %Y %I:%M:%S %p')
+                        replyDate = time.strftime('%Y-%m-%d', replyFullTime)
+                        replyClock = time.strftime('%H:%M:%S', replyFullTime)
+                    replyUserId = reply['byUserId']
+                    replyContent = reply['content']
+                    comment.extend([reply['byUserId'], reply['displayName'], replyDate, replyClock, reply['content']])
+            
+            writers[6].writerow(comment)
+        if(len(list_comments) < 10):
+            break
     
     return True
     
