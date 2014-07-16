@@ -251,6 +251,8 @@ def analyzeData(webcontent, writers):
         guarantor = '友众信业'
     elif tag_guarantor == 'debx-zaxy':
         guarantor = '中安信业'
+    elif tag_guarantor == 'from-website':
+        guarantor = ''
     else:
         guarantor = tag_guarantor
     title = loanData['title']
@@ -265,6 +267,7 @@ def analyzeData(webcontent, writers):
     leftMonths = loanData['leftMonths'] #剩余期数（月）
     finishedRatio = loanData['finishedRatio'] #完成额度
     description = loanData['description']
+    jobType = loanData['jobType']
     
     status = ''
     if statusType == 'IN_PROGRESS':
@@ -353,7 +356,7 @@ def analyzeData(webcontent, writers):
     if workTime=='--': workTime = ''
     carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
     
-    userinfo = [userId, username, sex, age, education, school, marriage, company, companyScale, position, city, workTime, incomeRange, house, houseLoan, car, carLoan]
+    userinfo = [userId, username, sex, age, education, school, marriage, company, companyScale, position, city, workTime, incomeRange, house, houseLoan, car, carLoan, jobType]
     buffer1.extend(userinfo)
     
     ###信用档案###
