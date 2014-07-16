@@ -21,7 +21,8 @@ urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.
 urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
 urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
 urlUserPrefix = 'https://www.renrendai.com/account/myInfo.action?userId='
-urlCommentPrefix = 'http://www.renrendai.com/lend/loanCommentList.action?loanId=3&pageIndex='
+urlCommentPrefix = 'http://www.renrendai.com/lend/loanCommentList.action?loanId='
+urlCollectionPrefix = 'http://www.renrendai.com/lend/dunDetail.action?loanId='
 
 #for Financial Plan
 urlFPLenderPrefix = 'http://www.renrendai.com/financeplan/getFinancePlanLenders.action?financePlanStr='
@@ -86,9 +87,12 @@ def login():
         try:
             req = urllib2.Request(urlLogin, postdata, getRandomHeaders())
             result = urllib2.urlopen(req)
+            '''
             if urlIndex != result.geturl(): #通过返回url判断是否登录成功
+                print result.geturl()
                 print(u'[FAIL]Wrong USERNAME or PASSWORD. Please try again!')
                 return False
+            '''
             result.close()
             print('LOGIN SUCCESS')
             return True
@@ -153,6 +157,8 @@ def readFromUrl(url, formdata = None):
             continue
         except Exception, e:
             print('i do not know what is wrong. When readFromUrl()!')
+            if hasattr(e, 'code'):
+                print "Error Msg: "+e.code
             print e.errno
             continue
         
@@ -221,9 +227,9 @@ def analyzeData(webcontent, writers):
     jsonString = soup.find(id = 'credit-info-data').get_text()
     if jsonString == None:
         print('Cannot get json')
-        print jsonString
         return True
     #jsonString = jsonString.replace('"[', '[').replace(']"', ']') #多余引号导致分析错误
+    #print jsonString
     scriptData = json.loads(jsonString)
     
     ###本次借款基本信息###
@@ -236,11 +242,23 @@ def analyzeData(webcontent, writers):
         loanType = '信'
     elif tag_loanType == 'JGDB':
         loanType = '保'
+    else:
+        loanType = tag_loanType
+    tag_guarantor = loanData['utmSource']
+    if tag_guarantor == 'debx-zdsd':
+        guarantor = '证大速券'
+    elif tag_guarantor == 'debx-yx':
+        guarantor = '友众信业'
+    elif tag_guarantor == 'debx-zaxy':
+        guarantor = '中安信业'
+    else:
+        guarantor = tag_guarantor
     title = loanData['title']
     borrowType = loanData['borrowType']
     amount = loanData['amount']
     interest = loanData['interest']
     months = loanData['months']
+    statusType = loanData['status']
     userId = loanData['borrowerId']
     username = loanData['nickName']
     borrowerLevel = loanData['borrowerLevel']
@@ -248,7 +266,20 @@ def analyzeData(webcontent, writers):
     finishedRatio = loanData['finishedRatio'] #完成额度
     description = loanData['description']
     
-    buffer1 = [currentDate, currentClock, loanId, loanType, title, amount, interest, months]
+    status = ''
+    if statusType == 'IN_PROGRESS':
+        status = '还款中'
+    elif statusType == 'FIRST_READY':
+        status = '已满标'
+    elif statusType == 'FIRST_APPLY':
+        status = '申请中'
+    elif statusType == 'FAILED':
+        status = '已流标'
+    elif statusType == 'BAD_DEBT':
+        status = '已垫付'
+    else:
+        status = statusType
+    buffer1 = [currentDate, currentClock, loanId, loanType, guarantor, title, amount, interest, months, status]
     #print(buffer1)
 
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
@@ -284,7 +315,12 @@ def analyzeData(webcontent, writers):
         amountToRepay = tag_amountToRepay.find_next_sibling('span').string.replace(',', '')
         amountToRepay = re.search(r'\d+', amountToRepay).group()
     #print amountToRepay
-    buffer1.extend([guaranteeType, prepaymentRate, repayType, repayEachMonth, finishedRatio])
+    #满标用时
+    fullTime = ''
+    tag_fullTime = soup.find('span', {'id':'fullTime'})
+    if tag_fullTime:
+        fullTime = tag_fullTime['data-time']
+    buffer1.extend([guaranteeType, prepaymentRate, repayType, repayEachMonth, finishedRatio, fullTime])
     
     ###用户个人信息###
     tag_userinfo = soup.find('div', class_='ui-tab-content-basic')
@@ -306,7 +342,7 @@ def analyzeData(webcontent, writers):
     houseLoan = list_userinfo[8].find(class_='icon-check-checked').next_sibling
     school = list_userinfo[9].find(id='university')['title']
     city = list_userinfo[10].find(class_='tab-list-value').string
-    if city == u'请选择 请选择' or city == '--': city = ''
+    if city.find(u'请选择')>0 or city.find('--')>0: city = ''
     tag_car = list_userinfo[11].find(class_='icon-check-checked')
     if tag_car:
         car = tag_car.next_sibling
@@ -370,12 +406,19 @@ def analyzeData(webcontent, writers):
     basicInfo = [currentDate, currentClock]
     #投标记录-----------------------------------------
     analyzeLenderData(loanId, writers[1], basicInfo)
+    
     #还款表现-----------------------------------------
     analyzeRepayData(loanId, writers[2], basicInfo)
+    
+    #催收信息-----------------------------------------
+    analyzeCollectionData(loanId, writers[7], basicInfo)
+    
     #债权信息-----------------------------------------
     analyzeLenderInfoData(loanId, writers[3], basicInfo)
+    
     #债券转让记录-------------------------------------
     analyzeTransferData(loanId, writers[4], basicInfo)
+    
     #用户信息---------------------------------------
     analyzeUserData(userId, writers[5], [loanTimes, loanSuccessTimes, payoffTimes, overdueTimes, overdueAmount, seriousOverdueTimes])
     
@@ -385,8 +428,8 @@ def analyzeData(webcontent, writers):
     while True:
         commentPage += 1
         if(commentPage > 1):
-            commentsString = readFromUrl(urlCommentPrefix+str(commentPage))
-            print commentsString
+            commentsString = readFromUrl(urlCommentPrefix+str(loanId)+'&pageIndex='+str(commentPage))
+            #print commentsString
             if(len(commentsString) == 0):
                 break
         else:
@@ -466,9 +509,23 @@ def analyzeRepayData(loanId, writer, attrs):
             actualRepayTime = ''
         buffer_repayDetail = []
         buffer_repayDetail.extend(attrs)
-        buffer_repayDetail.extend([loanId, repayTime, item['status'], item['unRepaidAmount'], item['unRepaidFee'], actualRepayTime])
+        buffer_repayDetail.extend([loanId, repayTime, item['repayType'], item['unRepaidAmount'], item['unRepaidFee'], actualRepayTime])
         writer.writerow(buffer_repayDetail)
+    
 #end def analyzeRepayData
+#-------------------------------------------------
+def analyzeCollectionData(loanId, writer, attrs):
+    print('  Get Collection Log...')
+    collectionString = readFromUrl(urlCollectionPrefix+str(loanId));
+    collectionInfo = json.loads(collectionString)
+    list_collection = collectionInfo['data']['dunInfoList']
+    for item in list_collection:
+        time = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['dunTime']).group(1)
+        buffer_collection = []
+        buffer_collection.extend(attrs)
+        buffer_collection.extend([loanId, time, item['contact'], item['description']])
+        writer.writerow(buffer_collection)
+#end def analyzeCollectionData()
 #---------------------------------------------------
 def analyzeLenderInfoData(loanId, writer, attrs):
     ###js获得债权信息###
@@ -537,6 +594,8 @@ def analyzeUserData(userId, writer, attrs):
 #------------------------------------------------------
 def analyzeFPData(webcontent, planId, writers):
     soup = BeautifulSoup(webcontent)
+    currentDate = getTime('%Y-%m-%d')
+    currentClock = getTime('%H:%M:%S')
     tag_basic = soup.find('div', class_='basic-box')
     if tag_basic == None:
         return False
@@ -558,7 +617,7 @@ def analyzeFPData(webcontent, planId, writers):
     leftAmount = soup.find('em', {'id':'max-amount-1'})['data-amount']
     joinAmountLimit = soup.find('em', {'id':'max-amount-2'})['data-amount']
     
-    buffer_FP = [planId, planAmount, expectedRate, planProducts, guaranteeMode, status, fullTime, lockPeriod, lockDate, buyInRate, interestRate, quitRate, leftAmount, joinAmountLimit]
+    buffer_FP = [currentDate, currentClock, planId, planAmount, expectedRate, planProducts, guaranteeMode, status, fullTime, lockPeriod, lockDate, buyInRate, interestRate, quitRate, leftAmount, joinAmountLimit]
     #print buffer_FP
     
     #分析加入记录

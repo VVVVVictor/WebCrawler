@@ -21,7 +21,7 @@ fpFolder = 'FinancePlan/'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
 sheetName = [u'计划详情', u'加入记录', u'计划表现']
-titles = ([u'优选理财计划期数', u'计划金额', u'预期收益（%/年）', u'投标范围', u'保障方式', u'计划状态', u'满额用时', u'锁定期限（月）', u'锁定结束', u'加入费率', u'服务费率', u'退出费率', u'剩余金额', u'每人可加入金额上限', u'加入总人次',u'自动投标次数', u'平均年利率', u'优选理财计划总额', u'资金利用率', u'累积赚取（元）', u'借款者人数'],[u'优选理财计划期数', u'投资人昵称', u'投资人ID', u'加入金额', u'加入日期', u'加入时间'], [u'优选理财计划期数', u'自动投标次数', u'平均年利率', u'优选理财计划总额', u'资金利用率', u'累积赚取（元）', u'借款者人数'])
+titles = ([u'抓取日期', u'抓取时间', u'优选理财计划期数', u'计划金额', u'预期收益（%/年）', u'投标范围', u'保障方式', u'计划状态', u'满额用时', u'锁定期限（月）', u'锁定结束', u'加入费率', u'服务费率', u'退出费率', u'剩余金额', u'每人可加入金额上限', u'加入总人次',u'自动投标次数', u'平均年利率', u'优选理财计划总额', u'资金利用率', u'累积赚取（元）', u'借款者人数'],[u'优选理财计划期数', u'投资人昵称', u'投资人ID', u'加入金额', u'加入日期', u'加入时间'], [u'优选理财计划期数', u'自动投标次数', u'平均年利率', u'优选理财计划总额', u'资金利用率', u'累积赚取（元）', u'借款者人数'])
 
 #----------------------------------------------
 def createWriters(filedirectory, prefix=''):
@@ -29,7 +29,7 @@ def createWriters(filedirectory, prefix=''):
     writers = [] #csv writer list
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     for i in range(1, 3):
-        name_sheet = filedirectory+prefix+'_'+strtime+'_'+sheetName[i-1]+'.csv'
+        name_sheet = filedirectory+prefix+'_'+sheetName[i-1]+'.csv'
         flag_newfile = True
         if os.path.isfile(name_sheet):
             flag_newfile = False

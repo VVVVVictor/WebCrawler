@@ -33,7 +33,7 @@ userFolder = u'users/' #保存用户的文件夹名字
 
 #代理相关
 proxyfileName = 'proxylist'
-proxyList = ['111.206.81.248:80']
+proxyList = ['124.127.51.140:80']
 
 #登录相关
 urlAuth = u'http://www.ppdai.com/Json/SyncReply/Auth'
@@ -56,9 +56,9 @@ titles = (('抓取时间','抓取时刻','订单号','安','非','赔','保','�
 '''登录网页'''
 def login():
     cj = cookielib.CookieJar()
-    proxy_handler = urllib2.ProxyHandler({"http": '111.206.81.248:80'})
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
-    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    #proxy_handler = urllib2.ProxyHandler({"http": '124.207.82.166:8018'})
+    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     #opener.addheaders = headers
     urllib2.install_opener(opener)
     
@@ -79,6 +79,7 @@ def login():
         result2.close()
         return True
     except (urllib2.URLError) as e:
+        print("Login Failed!")
         if hasattr(e, 'code'):
             print('ERROR:'+str(e.code)+' '+str(e.reason))
         else:
