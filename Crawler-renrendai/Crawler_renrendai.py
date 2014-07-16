@@ -116,7 +116,7 @@ def getInput():
             break
         except:
             if(raw_endID == ''):
-                endID = 1000
+                endID = startID+3000
                 break
             print('Not a number! Please input again!')
             continue
