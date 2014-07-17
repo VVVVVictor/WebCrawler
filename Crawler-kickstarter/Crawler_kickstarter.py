@@ -3,8 +3,8 @@
 
 __author__ = "Wang Miaofei"
 
-import urllib, urllib2, cookielib
-import sys, string, time, os, re, json
+import urllib, urllib2, cookielib, threading
+import sys, string, time, os, re, json, Queue
 import csv
 from bs4 import BeautifulSoup
 import socket
@@ -12,6 +12,7 @@ from tools_kickstarter import *
 
 #constant
 SORT_TYPE = 'launch_date'
+threadCount = 10
 
 #for crawl
 urlHost = u'https://www.kickstarter.com'
@@ -23,14 +24,15 @@ titles = ([u"link",u"dataDate",u"dataClock",u"Category",u"Title",u"Updates", u"B
 
 orderCount = 0
 allCount = 0
-categoryIdList = [1, 3, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18]
-categoryNameList = ['','Art', '', 'Comics','','','Dance','Design','','Fashion','Food','Film&Video','Games','','Music','Photography','Technology','Theater', 'Publishing']
+categoryIdList = [1, 3, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 26]
+categoryNameList = ['Art','Comics','Dance','Design','Fashion','Food','Film&Video','Games','Journalism','Music','Photography','Technology','Theater', 'Publishing','Craft']
 sheetName = ['projects', 'backers', 'updates', 'comments', 'rewards', 'FAQs']
 
-def createWriters(filedirectory, prefix):
+def createWriters(filedirectory, prefix=""):
     writers = [] #csv writer list
-    for i in range(1, 7):
-        name_sheet = filedirectory+prefix+'_'+strtime+'_'+sheetName[i-1]+'.csv'
+    startTime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+    for i in range(1, len(titles)+1):
+        name_sheet = filedirectory+prefix+'_'+startTime+'_'+sheetName[i-1]+'.csv'
         flag_newfile = True
         if os.path.isfile(name_sheet):
             flag_newfile = False
@@ -42,7 +44,60 @@ def createWriters(filedirectory, prefix):
         if flag_newfile:
             writer.writerow(titles[i-1])
     return writers
-
+#----------------------------------------------
+class getDataThread(threading.Thread):
+    global writers
+    def __init__(self, tId, urlQueue):
+        threading.Thread.__init__(self)
+        self.tId = tId
+        self.q = urlQueue
+    def run(self):
+        while not exitFlag:
+            queueLock.acquire()
+            url = self.q.get()
+            queueLock.release()
+            print("thread "+ str(self.tId) + ": "+url)
+            analyzeData(url, writers)
+        #end while
+#----------------------------------------------
+def getUrlQueue(categoryNo):
+    global urlQueue
+    categoryId = categoryIdList[categoryNo-1]
+    categoryName = categoryNameList[categoryNo-1]
+    print("Start: get urlList in category "+categoryName+"...")
+    startTime = time.clock()
+    pageCount = 0
+    i = categoryId
+    while True:
+        pageCount += 1
+        if(pageCount > 20): break
+        req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(i)+'&sort='+SORT_TYPE, headers=headers)
+        try:
+            response = urllib2.urlopen(req)
+            m = response.read()
+            scriptData = json.loads(m)
+            projList = scriptData['projects']
+            if(len(projList) == 0):
+                break
+            queueLock.acquire()
+            for proj in projList:
+                url = proj['urls']['web']['project']
+                urlQueue.put(url)
+            queueLock.release()
+            response.close()
+        except (urllib2.URLError) as e:
+            if hasattr(e, 'code'):
+                print('[ERROR]'+str(e.code)+' '+str(e.reason))
+            print(str(e.reason))
+            print('url = ')
+        except socket.error as e:
+            print('[ERROR] Socket error: '+str(e.errno))
+            continue
+    endTime = time.clock()
+    print("Finish: get urlList in category "+categoryName)
+    print("URL count: "+str(urlQueue.qsize()))
+    print(u'time: '+str(endTime-startTime)+'s\n')
+    #end while
 #----------------------------------------------
 def getCategory(filedirectory, categoryNo, startPage, endPage):
     starttime = time.clock()
@@ -51,7 +106,7 @@ def getCategory(filedirectory, categoryNo, startPage, endPage):
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     
     categoryId = categoryIdList[categoryNo-1]
-    categoryName = categoryNameList[categoryId]
+    categoryName = categoryNameList[categoryNo-1]
     subFolder = filedirectory+categoryName+'/'
     createFolder(subFolder)
     writers = createWriters(subFolder, categoryName+'_'+str(startPage)+'-'+str(endPage))
@@ -69,6 +124,7 @@ def getCategory(filedirectory, categoryNo, startPage, endPage):
         try:
             response = urllib2.urlopen(req)
             m = response.read()
+            print m
             scriptData = json.loads(m)
             projList = scriptData['projects']
             if(len(projList) == 0):
@@ -137,11 +193,12 @@ def getAllCategory(filedirectory):
 #---------------------------
 def getInput():
     global categoryNo, startPage, endPage
+    length = len(categoryIdList)
     while True:
         try:
-            raw_categoryNo = raw_input(u'Input category number(1-13, default=1):\n')
+            raw_categoryNo = raw_input(u'Input category number(1-'+str(length)+', default=1):\n')
             categoryNo = int(raw_categoryNo)
-            if categoryNo < 1 or categoryNo > 13:
+            if categoryNo < 1 or categoryNo > length:
                 print('Category number illegal! Please input again!')
                 continue
             break
@@ -151,6 +208,7 @@ def getInput():
                 break
             print('Not a number. Please input again!')
             continue
+            '''
     while True:
         try:
             raw_startPage = raw_input('Input start page(default=1):\n')
@@ -180,32 +238,67 @@ def getInput():
                 break
             print('Not a number. Please input again!')
             continue
+            '''
 #----------------------------
 #main
 reload(sys)
 sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 sys.setrecursionlimit(1000000)#设置递归调用深度
 
-urlTest = 'https://www.kickstarter.com/projects/truelovehealth/strongest-hearts-documentary-series-on-vegan-athle'
+urlTest = 'https://www.kickstarter.com/projects/1852972219/a-moment-art-installation'
 filedirectory = getConfig()
 
 categoryNo = 1
 startPage = 1
 endPage = 100000
+urlQueue = Queue.Queue()
+writers = []
+exitFlag = 0
 
 if login():
+    #writers = createWriters(filedirectory)
+    #analyzeData(urlTest, writers)
+    
     getInput()
     print '------------INPUT INFORMATION---------------------'
     print '- CategoryNumber='+str(categoryNo)
     print '- StartPage='+str(startPage)
     print '- EndPage='+str(endPage)
+    print '- ThreadCount='+str(threadCount)
     print '------------INPUT INFORMATION---------------------'
+    queueLock = threading.Lock()
+    getUrlQueue(categoryNo)
+    
+    categoryId = categoryIdList[categoryNo-1]
+    categoryName = categoryNameList[categoryNo-1]
+    subFolder = filedirectory+categoryName+'/'
+    createFolder(subFolder)
+    writers = createWriters(subFolder, categoryName+'_'+str(startPage)+'-'+str(endPage))
+    
+    startTime = time.clock()
+    threads = []
+    for i in range(threadCount):
+        thread = getDataThread(i, urlQueue)
+        threads.append(thread)
+        
+    for t in threads:
+        t.start()
+    
+    while not urlQueue.empty():
+        pass
+    
+    exitFlag = 1
+    
+    for t in threads:
+        t.join()
+    print("Exiting Main Thread")
+    endTime = time.clock()
+    print(u'[Total execute time]:'+str(endTime-startTime)+'s')
+    #10 thread: 637s: 400 projects
+    
     #print('Login success!')
     #test()
-    strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     
-    #writers = createWriters(filedirectory)
-    #analyzeData(urlTest, writers)
     #getAllCategory(filedirectory)
-    getCategory(filedirectory, categoryNo, startPage, endPage)
+    #getCategory(filedirectory, categoryNo, startPage, endPage)
 

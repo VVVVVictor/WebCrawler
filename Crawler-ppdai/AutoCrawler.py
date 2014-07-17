@@ -174,7 +174,7 @@ createFolder(filedirectory+dataFolder)
 createFolder(filedirectory+userFolder)
 getProxyList()
 
-print('[Data Path] '+filedirectory)
+print('Data Path: '+filedirectory)
 if login():
     #setProxy()
     tempCount = 0

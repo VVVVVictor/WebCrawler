@@ -134,7 +134,7 @@ def getConfig():
     return filedirectory
 #--------------------------------------------------
 def getProxyList(proxy = None):
-    print('Get proxy...')
+    print('\nGet proxy...')
     global proxyList
     if proxy == None:
         proxy = proxyfileName

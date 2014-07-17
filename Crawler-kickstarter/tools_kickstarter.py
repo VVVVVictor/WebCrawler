@@ -32,13 +32,13 @@ userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Ge
 HEADERS_NUMBER = 3
 
 TRY_LOGIN_TIMES = 5 #尝试登录次数
-CATEGORY_COUNT = 13
+CATEGORY_COUNT = 15
 
 
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
-    global filedirectory, username, password
+    global filedirectory, username, password, threadCount
     try:
         configfile = open(os.getcwd()+'/'+configfileName, 'r')
         #line = configfile.readline()
@@ -53,6 +53,8 @@ def getConfig():
                     username = m.group(2)
                 elif m.group(1) == u'password':
                     password = m.group(2)
+                elif m.group(1) == u'threadCount':
+                    threadCount = m.group(2)
                 #print filedirectory
         configfile.close()
     except:
@@ -60,6 +62,7 @@ def getConfig():
         configfile.write('filedirectory = '+filedirectory+'\n')
         configfile.write('username = '+username+'\n')
         configfile.write('password = '+password+'\n')
+        configfile.write('threadCount = '+threadCount+'\n')
         configfile.close()
         print('Create new config file!')
     
@@ -69,6 +72,7 @@ def getConfig():
     print('filedirectory = '+filedirectory)
     print('username = '+username)
     print('password = '+password)
+    print('threadCount = '+threadCount)
     return filedirectory
 #end def getConfig()
     
@@ -146,7 +150,10 @@ def responseFromUrl(url, formdata = None):
         except (urllib2.URLError) as e:
             if hasattr(e, 'code'):
                 print('ERROR:'+str(e.code)+' '+str(e.reason))
-            print(str(e.reason))
+                if(e.code == 429):
+                    time.sleep(2)
+                    continue
+                
             print('url = '+url)
             
         if(response == None):
