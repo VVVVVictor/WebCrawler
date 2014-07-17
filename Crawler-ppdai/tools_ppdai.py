@@ -41,7 +41,7 @@ urlAccount = u'http://www.ppdai.com/account'
 username = 'victor1991@126.com'
 password = 'wmf123456'
 domain = 'ppdai.com'
-ipAddress = ['10.0.0.1', '191.234.5.2', '178.98.246.45, 231.67.9.23']
+ipAddress = ['166.5.31.177', '191.234.5.2', '178.98.246.45, 231.67.9.23']
 host = 'www.ppdai.com'
 userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36']
 
@@ -56,7 +56,8 @@ titles = (('抓取时间','抓取时刻','订单号','安','非','赔','保','�
 '''登录网页'''
 def login():
     cj = cookielib.CookieJar()
-    #proxy_handler = urllib2.ProxyHandler({"http": '124.207.82.166:8018'})
+    print("Current proxy: "+proxyList[0])
+    proxy_handler = urllib2.ProxyHandler({"http": proxyList[0]})
     #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     #opener.addheaders = headers
@@ -133,6 +134,7 @@ def getConfig():
     return filedirectory
 #--------------------------------------------------
 def getProxyList(proxy = None):
+    print('Get proxy...')
     global proxyList
     if proxy == None:
         proxy = proxyfileName
