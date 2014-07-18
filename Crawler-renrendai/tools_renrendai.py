@@ -280,6 +280,8 @@ def analyzeData(webcontent, writers):
         status = '已流标'
     elif statusType == 'BAD_DEBT':
         status = '已垫付'
+    elif statusType == 'CLOSED':
+        status = '已还清'
     else:
         status = statusType
     buffer1 = [currentDate, currentClock, loanId, loanType, guarantor, title, amount, interest, months, status]
@@ -523,7 +525,11 @@ def analyzeCollectionData(loanId, writer, attrs):
     collectionInfo = json.loads(collectionString)
     list_collection = collectionInfo['data']['dunInfoList']
     for item in list_collection:
-        time = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['dunTime']).group(1)
+        time = ''
+        if item['dunTime']:
+            time = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['dunTime']).group(1)
+        elif item['createTime']:
+            time = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime']).group(1)
         buffer_collection = []
         buffer_collection.extend(attrs)
         buffer_collection.extend([loanId, time, item['contact'], item['description']])

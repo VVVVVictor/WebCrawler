@@ -5,14 +5,13 @@ __author__ = "Wang Miaofei"
 
 import urllib, urllib2, cookielib, threading
 import sys, string, time, os, re, json, Queue
-import csv
+import csv, argparse
 from bs4 import BeautifulSoup
 import socket
 from tools_kickstarter import *
 
-#constant
+#global constant
 SORT_TYPE = 'launch_date'
-threadCount = 10
 
 #for crawl
 urlHost = u'https://www.kickstarter.com'
@@ -28,6 +27,7 @@ categoryIdList = [1, 3, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 26]
 categoryNameList = ['Art','Comics','Dance','Design','Fashion','Food','Film&Video','Games','Journalism','Music','Photography','Technology','Theater', 'Publishing','Craft']
 sheetName = ['projects', 'backers', 'updates', 'comments', 'rewards', 'FAQs']
 
+#----------------------------------------------
 def createWriters(filedirectory, prefix=""):
     writers = [] #csv writer list
     startTime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
@@ -59,45 +59,69 @@ class getDataThread(threading.Thread):
             print("thread "+ str(self.tId) + ": "+url)
             analyzeData(url, writers)
         #end while
+#end class getDataThread
+#----------------------------------------------
+class getUrlQueueThread(threading.Thread):
+    def __init__(self, tId, urlQueue, categoryId):
+        threading.Thread.__init__(self)
+        self.tId = tId
+        self.q = urlQueue
+        self.categoryId = categoryId
+    def run(self):
+        global pageCount
+        while True:
+            pageLock.acquire()
+            pageCount += 1
+            if pageCount%20 == 0:
+                print('  get page '+str(pageCount)+'...')
+            #print('thread '+str(self.tId)+': page '+str(pageCount))
+            req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(self.categoryId)+'&sort='+SORT_TYPE, headers=headers)
+            pageLock.release()
+            try:
+                response = urllib2.urlopen(req)
+                m = response.read()
+                scriptData = json.loads(m)
+                projList = scriptData['projects']
+                if(len(projList) == 0):
+                    break
+                queueLock.acquire()
+                for proj in projList:
+                    url = proj['urls']['web']['project']
+                    urlQueue.put(url)
+                queueLock.release()
+                response.close()
+            except (urllib2.URLError) as e:
+                if hasattr(e, 'code'):
+                    print('[ERROR]'+str(e.code)+' '+str(e.reason))
+                print(str(e.reason))
+                print('url = ')
+            except socket.error as e:
+                print('[ERROR] Socket error: '+str(e.errno))
+                continue    
+#end class getUrlQueueThread(threading.Thread):            
 #----------------------------------------------
 def getUrlQueue(categoryNo):
     global urlQueue
     categoryId = categoryIdList[categoryNo-1]
     categoryName = categoryNameList[categoryNo-1]
-    print("Start: get urlList in category "+categoryName+"...")
+    print("Start: get projects list in category "+categoryName+"...")
     startTime = time.clock()
-    pageCount = 0
-    i = categoryId
-    while True:
-        pageCount += 1
-        if(pageCount > 20): break
-        req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(i)+'&sort='+SORT_TYPE, headers=headers)
-        try:
-            response = urllib2.urlopen(req)
-            m = response.read()
-            scriptData = json.loads(m)
-            projList = scriptData['projects']
-            if(len(projList) == 0):
-                break
-            queueLock.acquire()
-            for proj in projList:
-                url = proj['urls']['web']['project']
-                urlQueue.put(url)
-            queueLock.release()
-            response.close()
-        except (urllib2.URLError) as e:
-            if hasattr(e, 'code'):
-                print('[ERROR]'+str(e.code)+' '+str(e.reason))
-            print(str(e.reason))
-            print('url = ')
-        except socket.error as e:
-            print('[ERROR] Socket error: '+str(e.errno))
-            continue
+    threads = []
+    for i in xrange(threadCount):
+        thread = getUrlQueueThread(i, urlQueue, categoryId)
+        threads.append(thread)
+        
+    for t in threads:
+        t.start()
+    
+    for t in threads:
+        t.join()
     endTime = time.clock()
-    print("Finish: get urlList in category "+categoryName)
-    print("URL count: "+str(urlQueue.qsize()))
+    print("Finish: get projects list in category "+categoryName)
+    print("Projects count: "+str(urlQueue.qsize()))
     print(u'time: '+str(endTime-startTime)+'s\n')
     #end while
+#end getUrlQueue()
 #----------------------------------------------
 def getCategory(filedirectory, categoryNo, startPage, endPage):
     starttime = time.clock()
@@ -240,65 +264,78 @@ def getInput():
             continue
             '''
 #----------------------------
-#main
-reload(sys)
-sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
-sys.setrecursionlimit(1000000)#设置递归调用深度
-
-urlTest = 'https://www.kickstarter.com/projects/1852972219/a-moment-art-installation'
-filedirectory = getConfig()
-
+#global variable
 categoryNo = 1
 startPage = 1
 endPage = 100000
 urlQueue = Queue.Queue()
 writers = []
 exitFlag = 0
+pageCount = 0 #翻页计数器
+threadCount = 8 #并发线程数
+#----------------------------
+#main
+if __name__=='__main__':
 
-if login():
-    #writers = createWriters(filedirectory)
-    #analyzeData(urlTest, writers)
+    reload(sys)
+    sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
+    sys.setrecursionlimit(1000000)#设置递归调用深度
     
-    getInput()
-    print '------------INPUT INFORMATION---------------------'
-    print '- CategoryNumber='+str(categoryNo)
-    print '- StartPage='+str(startPage)
-    print '- EndPage='+str(endPage)
-    print '- ThreadCount='+str(threadCount)
-    print '------------INPUT INFORMATION---------------------'
-    queueLock = threading.Lock()
-    getUrlQueue(categoryNo)
+    #参数解析器
+    parser = argparse.ArgumentParser(conflict_handler='resolve')
+    parser.add_argument('-c', '--categoryno', action='store', dest='categoryNo', help='Set category NO.(1-15)')
+    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=8)
+
+    args = parser.parse_args()
+    if(args.categoryNo == None):
+        getInput()
+    else:
+        categoryNo = int(args.categoryNo)
+    threadCount = int(args.threadCount)
     
-    categoryId = categoryIdList[categoryNo-1]
-    categoryName = categoryNameList[categoryNo-1]
-    subFolder = filedirectory+categoryName+'/'
-    createFolder(subFolder)
-    writers = createWriters(subFolder, categoryName+'_'+str(startPage)+'-'+str(endPage))
-    
-    startTime = time.clock()
-    threads = []
-    for i in range(threadCount):
-        thread = getDataThread(i, urlQueue)
-        threads.append(thread)
+    filedirectory = getConfig()
+    if login():
+        print '------------INPUT INFORMATION---------------------'
+        print '- CategoryNumber='+str(categoryNo)
+        print '- StartPage='+str(startPage)
+        print '- EndPage='+str(endPage)
+        print '- ThreadCount='+str(threadCount)
+        print '------------INPUT INFORMATION---------------------'
+        queueLock = threading.Lock()
+        pageLock = threading.Lock()
+        pageCount = 0
+        getUrlQueue(categoryNo)
         
-    for t in threads:
-        t.start()
-    
-    while not urlQueue.empty():
-        pass
-    
-    exitFlag = 1
-    
-    for t in threads:
-        t.join()
-    print("Exiting Main Thread")
-    endTime = time.clock()
-    print(u'[Total execute time]:'+str(endTime-startTime)+'s')
-    #10 thread: 637s: 400 projects
-    
-    #print('Login success!')
-    #test()
-    
-    #getAllCategory(filedirectory)
-    #getCategory(filedirectory, categoryNo, startPage, endPage)
+        categoryId = categoryIdList[categoryNo-1]
+        categoryName = categoryNameList[categoryNo-1]
+        subFolder = filedirectory+categoryName+'/'
+        createFolder(subFolder)
+        writers = createWriters(subFolder, categoryName+'_'+str(startPage)+'-'+str(endPage))
+        
+        startTime = time.clock()
+        threads = []
+        for i in range(threadCount):
+            thread = getDataThread(i, urlQueue)
+            threads.append(thread)
+            
+        for t in threads:
+            t.start()
+        
+        while not urlQueue.empty():
+            pass
+        
+        exitFlag = 1
+        
+        for t in threads:
+            t.join()
+        print("Exiting Main Thread")
+        endTime = time.clock()
+        print(u'[Total execute time]:'+str(endTime-startTime)+'s')
+        #10 thread: 637s: 400 projects
+        
+        #writers = createWriters(filedirectory)
+        #analyzeData(urlTest, writers)
+        
+        #getAllCategory(filedirectory)
+        #getCategory(filedirectory, categoryNo, startPage, endPage)
 

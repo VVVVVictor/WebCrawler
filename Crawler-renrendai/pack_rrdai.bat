@@ -1,0 +1,1 @@
+cxfreeze --include-modules=bs4 --target-dir=..\build\rrdai Crawler_renrendai.py

@@ -34,7 +34,6 @@ HEADERS_NUMBER = 3
 TRY_LOGIN_TIMES = 5 #尝试登录次数
 CATEGORY_COUNT = 15
 
-
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
@@ -72,7 +71,6 @@ def getConfig():
     print('filedirectory = '+filedirectory)
     print('username = '+username)
     print('password = '+password)
-    print('threadCount = '+threadCount)
     return filedirectory
 #end def getConfig()
     
