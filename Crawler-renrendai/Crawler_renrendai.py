@@ -40,12 +40,30 @@ def createWriters(filedirectory, prefix=''):
     return writers
 #------------------------------------------------
 class DataFetcher(threading.Thread):
-    def __init__(self, tId):
+    def __init__(self, tId, writers):
         threading.Thread.__init__(self)
         self.tId = tId
+        self.writers = writers
     def run(self):
         global pageNo
-        
+        while True:
+
+#------------------------------------------------
+def getData(filedirectory):
+    global pageNo = startID
+    threads = []
+    startTime = time.clock()
+    writers = createWriters(filedirectory, 'rrdai_'+str(startID)+'-'+str(endID))
+    for i in xrange(threadCount):
+        thread = DataFetcher(i, writers)
+        threads.append(thread)
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    print 'Exiting Main Thread'
+    endTime = time.clock()
+    print(u'[Total execute time]:'+str(endTime-startTime)+'s')
 #------------------------------------------------
 def getData(begin_page, end_page, filedirectory):
     
@@ -128,25 +146,40 @@ def getInput():
             print('Not a number! Please input again!')
             continue
 #----------------------------
-#main
-reload(sys)
-sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
-
-#reset timeout
-timeout = 100
-socket.setdefaulttimeout(timeout)
-
-httplib.HTTPConnection._http_vsn = 10
-httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
-
+#global variable
 startID = 1
 endID = 1000
+pageNo = 0
+threadCount = 5 #并发线程数
+#----------------------------
+#main
+if __name__=='__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
+    #reset timeout
+    timeout = 100
+    socket.setdefaulttimeout(timeout)
 
-filedirectory = getConfig()
-if login():
-    getInput()
-    print '------------INPUT INFORMATION---------------------'
-    print '- StartID = '+str(startID)
-    print '- EndID   = '+str(endID)
-    print '------------INPUT INFORMATION---------------------'
-    getData(startID, endID, filedirectory)
+    httplib.HTTPConnection._http_vsn = 10
+    httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+
+    parser = argparse.ArgumentParser(conflict_handler='resolve')
+    parser.add_argument('-s', '--start', action='store', dest='startid', help='Set start order ID')
+    parser.add_argument('-e', '--end', action='store', dest='endid', help='Set last order ID')
+    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=5)
+    args = parser.parse_args()
+    
+    if(args.startid != None && args.endid != None):
+        startID = int(args.startid)
+        endID = int(args.endid)
+    else:
+        getInput()
+    threadCount = int(args.threadCount)
+    
+    filedirectory = getConfig()
+    if login():
+        print '------------INPUT INFORMATION---------------------'
+        print '- StartID = '+str(startID)
+        print '- EndID   = '+str(endID)
+        print '------------INPUT INFORMATION---------------------'
+        getData(startID, endID, filedirectory)
