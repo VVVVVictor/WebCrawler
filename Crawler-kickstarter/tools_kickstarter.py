@@ -121,7 +121,7 @@ def createFolder(filedirectory):
 
 #--------------------------------------------------
 #从url读取response
-def responseFromUrl(url, formdata = None):
+def responseFromUrl(url, formdata = None, headers = None):
     response = None
     #here in kickstarter are all HTTPS
     '''
@@ -132,16 +132,17 @@ def responseFromUrl(url, formdata = None):
     '''
     if formdata != None:
         formdata = urllib.urlencode(formdata)
-
+    if headers == None:
+        headers = getRandomHeaders()
     loopCount = 0
     while True:
         loopCount += 1
         if loopCount > 5:
-            print('Failed when trying responseFromUrl().')
-            print('URL = '+url)
+            print('\nFailed when trying responseFromUrl():')
+            print('  URL = '+url+'\n')
             break
         try:
-            req = urllib2.Request(url, formdata, headers=getRandomHeaders())
+            req = urllib2.Request(url, formdata, headers)
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
             break
@@ -151,8 +152,6 @@ def responseFromUrl(url, formdata = None):
                 if(e.code == 429):
                     time.sleep(2)
                     continue
-                
-            print('url = '+url)
             
         if(response == None):
             print('responseFromUrl get a None')
@@ -173,8 +172,8 @@ def getRandomHeaders():
     
 #--------------------------------------------------
 #从url读取页面内容
-def readFromUrl(url, formdata = None):
-    response = responseFromUrl(url, formdata)
+def readFromUrl(url, formdata = None, headers = None):
+    response = responseFromUrl(url, formdata, headers)
     if response:
         m = response.read()
         response.close()

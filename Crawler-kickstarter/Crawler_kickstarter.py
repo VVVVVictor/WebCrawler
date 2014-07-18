@@ -74,12 +74,11 @@ class getUrlQueueThread(threading.Thread):
             pageCount += 1
             if pageCount%20 == 0:
                 print('  get page '+str(pageCount)+'...')
-            #print('thread '+str(self.tId)+': page '+str(pageCount))
-            req = urllib2.Request(urlCategory+'page='+str(pageCount)+'&category_id='+str(self.categoryId)+'&sort='+SORT_TYPE, headers=headers)
+            pageUrl = urlCategory+'page='+str(pageCount)+'&category_id='+str(self.categoryId)+'&sort='+SORT_TYPE
             pageLock.release()
+            m = readFromUrl(pageUrl, headers = headers)#需要特定的headers
             try:
-                response = urllib2.urlopen(req)
-                m = response.read()
+                #response = urllib2.urlopen(req)
                 scriptData = json.loads(m)
                 projList = scriptData['projects']
                 if(len(projList) == 0):
@@ -89,15 +88,10 @@ class getUrlQueueThread(threading.Thread):
                     url = proj['urls']['web']['project']
                     urlQueue.put(url)
                 queueLock.release()
-                response.close()
-            except (urllib2.URLError) as e:
-                if hasattr(e, 'code'):
-                    print('[ERROR]'+str(e.code)+' '+str(e.reason))
-                print(str(e.reason))
-                print('url = ')
             except socket.error as e:
                 print('[ERROR] Socket error: '+str(e.errno))
-                continue    
+                continue   
+        #end while
 #end class getUrlQueueThread(threading.Thread):            
 #----------------------------------------------
 def getUrlQueue(categoryNo):
