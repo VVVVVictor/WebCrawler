@@ -3,8 +3,8 @@
 
 __author__ = "Wang Miaofei"
 
-import urllib, urllib2, cookielib, httplib
-import sys, string, time, os, re
+import urllib, urllib2, cookielib, httplib, threading
+import sys, string, time, os, re, argparse
 import csv
 from bs4 import BeautifulSoup
 import socket
@@ -38,7 +38,14 @@ def createWriters(filedirectory, prefix=''):
         if flag_newfile:
             writer.writerow(titles[i-1])
     return writers
-
+#------------------------------------------------
+class DataFetcher(threading.Thread):
+    def __init__(self, tId):
+        threading.Thread.__init__(self)
+        self.tId = tId
+    def run(self):
+        global pageNo
+        
 #------------------------------------------------
 def getData(begin_page, end_page, filedirectory):
     
