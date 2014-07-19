@@ -188,7 +188,7 @@ def responseFromUrl(url, formdata = None):
                 log.write('current  url: '+curUrl+'\n')
                 if(curUrl == 'http://www.renrendai.com/exceptions/refresh-too-fast.jsp'):
                     print('Refresh too fast! Wait, login and retry...')
-                    time.sleep(2)
+                    time.sleep(30)
                     login()
                     continue
             break

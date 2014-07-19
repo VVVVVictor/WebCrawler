@@ -77,6 +77,7 @@ class DataFetcher(threading.Thread):
                 if(lostPageCount > LOST_PAGE_LIMIT):
                     exitFlag = True
                     print('You have got the latest page!')
+            time.sleep(2)
         #end while
 #end class DataFetcher
 #------------------------------------------------
@@ -167,6 +168,7 @@ pageNo = 0
 threadCount = 5 #并发线程数
 exitFlag = False
 lostPageCount = 0
+sleepTime = 2
 #----------------------------
 #main
 if __name__=='__main__':
@@ -182,7 +184,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(conflict_handler='resolve')
     parser.add_argument('-s', '--start', action='store', dest='startid', help='Set start order ID')
     parser.add_argument('-e', '--end', action='store', dest='endid', help='Set last order ID')
-    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=5)
+    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=2)
     args = parser.parse_args()
     
     if(args.startid != None and args.endid != None):
