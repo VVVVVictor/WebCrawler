@@ -40,11 +40,10 @@ def createWriters(filedirectory, prefix=''):
     return writers
 #------------------------------------------------
 class DataFetcher(threading.Thread):
-    def __init__(self, tId, writers, log):
+    def __init__(self, tId, writers):
         threading.Thread.__init__(self)
         self.tId = tId
         self.writers = writers
-        self.log = log
     def run(self):
         global pageNo, lostPageCount, exitFlag
         while not exitFlag:
@@ -70,7 +69,7 @@ class DataFetcher(threading.Thread):
                 print('ERROR] Socket error: '+str(e.errno))
                 continue
             #end try&except
-            if analyzeData(m, writers, log):
+            if analyzeData(m, writers):
                 lostPageCount = 0
             else:
                 print('Page 404!')
@@ -206,9 +205,8 @@ if __name__=='__main__':
         #getData(startID, endID, filedirectory)
         threads = []
         writers = createWriters(filedirectory, 'rrdai_'+str(startID)+'-'+str(endID))
-        log = open('log', 'wb')
         for i in xrange(threadCount):
-            thread = DataFetcher(i+1, writers, log)
+            thread = DataFetcher(i+1, writers)
             threads.append(thread)
         for t in threads:
             t.start()

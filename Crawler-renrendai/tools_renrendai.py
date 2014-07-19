@@ -36,6 +36,7 @@ userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Ge
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
 TRY_LOGIN_TIMES = 5 
+log = open('log.log', 'wb')
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
@@ -158,7 +159,6 @@ def readFromUrl(url, formdata = None):
             print('i do not know what is wrong. When readFromUrl()!')
             if hasattr(e, 'code'):
                 print "Error Msg: "+e.code
-            print e.errno
             continue
         
 #end def readFromUrl
@@ -183,6 +183,9 @@ def responseFromUrl(url, formdata = None):
             #req.set_proxy(proxyList[proxyNo], 'http')
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
+            if(url != curUrl):
+                log.write('original url: '+url+'\n')
+                log.write('current  url: '+curUrl+'\n')
             break
         except (urllib2.URLError) as e:
             if hasattr(e, 'code'):
@@ -213,7 +216,7 @@ def responseFromUrl(url, formdata = None):
     
     return response
 #--------------------------------------------------
-def analyzeData(webcontent, writers, log):
+def analyzeData(webcontent, writers):
     soup = BeautifulSoup(webcontent)
     
     if soup.find('img', {'src':'/exceptions/network-busy/img/404.png'}):
@@ -418,7 +421,7 @@ def analyzeData(webcontent, writers, log):
     analyzeCollectionData(loanId, writers[7], basicInfo)
     
     #债权信息-----------------------------------------
-    analyzeLenderInfoData(loanId, writers[3], basicInfo, log)
+    analyzeLenderInfoData(loanId, writers[3], basicInfo)
     
     #债券转让记录-------------------------------------
     analyzeTransferData(loanId, writers[4], basicInfo)
@@ -535,7 +538,7 @@ def analyzeCollectionData(loanId, writer, attrs):
         writer.writerow(buffer_collection)
 #end def analyzeCollectionData()
 #---------------------------------------------------
-def analyzeLenderInfoData(loanId, writer, attrs, log):
+def analyzeLenderInfoData(loanId, writer, attrs):
     ###js获得债权信息###
     #print('  Get Lender Infomation...')
     lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
