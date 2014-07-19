@@ -186,6 +186,11 @@ def responseFromUrl(url, formdata = None):
             if(url != curUrl):
                 log.write('original url: '+url+'\n')
                 log.write('current  url: '+curUrl+'\n')
+                if(curUrl == 'http://www.renrendai.com/exceptions/refresh-too-fast.jsp'):
+                    print('Refresh too fast! Wait, login and retry...')
+                    time.sleep(2)
+                    login()
+                    continue
             break
         except (urllib2.URLError) as e:
             if hasattr(e, 'code'):
@@ -542,7 +547,7 @@ def analyzeLenderInfoData(loanId, writer, attrs):
     ###js获得债权信息###
     #print('  Get Lender Infomation...')
     lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
-    log.write('[lender Info String] '+str(loanId)+'\n'+lenderInfoString+'\n\n')
+    #log.write('[lender Info String] '+str(loanId)+'\n'+lenderInfoString+'\n\n')
     lenderInfo = json.loads(lenderInfoString)
     list_lenderInfo = lenderInfo['data']['lenders']
     #print list_lenderInfo
