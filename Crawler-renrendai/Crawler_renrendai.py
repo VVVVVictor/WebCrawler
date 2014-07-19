@@ -45,28 +45,41 @@ class DataFetcher(threading.Thread):
         self.tId = tId
         self.writers = writers
     def run(self):
-        global pageNo
-        while True:
-
-#------------------------------------------------
-def getData(filedirectory):
-    global pageNo = startID
-    threads = []
-    startTime = time.clock()
-    writers = createWriters(filedirectory, 'rrdai_'+str(startID)+'-'+str(endID))
-    for i in xrange(threadCount):
-        thread = DataFetcher(i, writers)
-        threads.append(thread)
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    print 'Exiting Main Thread'
-    endTime = time.clock()
-    print(u'[Total execute time]:'+str(endTime-startTime)+'s')
+        global pageNo, lostPageCount
+        while not exitFlag:
+            pageLock.acquire()
+            pageNo += 1
+            print('Thread '+str(self.tId)+': downloading Loan: '+str(pageNo)+'...')
+            req = urllib2.Request(urlLoan+str(pageNo), headers = getRandomHeaders())
+            pageLock.release()
+            if(pageNo > endID):
+                break
+            try:
+                response = urllib2.urlopen(req)
+                m = response.read()
+                #response.close()
+            except (urllib2.URLError) as e:
+                if hasattr(e, 'code'):
+                    print(str(e.code)+': '+str(e.reason))
+                else:
+                    print(e.reason)
+                continue
+            except socket.error as e:
+                print('ERROR] Socket error: '+str(e.errno))
+                continue
+            #end try&except
+            if analyzeData(m, writers):
+                lostPageCount = 0
+            else:
+                print('Page 404!')
+                lostPageCount += 1
+                if(lostPageCount > LOST_PAGE_LIMIT):
+                    print('You have got the latest page!')
+                    break
+        #end while
+#end class DataFetcher
 #------------------------------------------------
 def getData(begin_page, end_page, filedirectory):
-    
     starttime = time.clock()
     lostPageCount = 0 #记录连续404的页面个数
     lastpage = begin_page #记录抓取的最后一个有效页面
@@ -151,6 +164,8 @@ startID = 1
 endID = 1000
 pageNo = 0
 threadCount = 5 #并发线程数
+exitFlag = False
+lostPageCount = 0
 #----------------------------
 #main
 if __name__=='__main__':
@@ -169,7 +184,7 @@ if __name__=='__main__':
     parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=5)
     args = parser.parse_args()
     
-    if(args.startid != None && args.endid != None):
+    if(args.startid != None and args.endid != None):
         startID = int(args.startid)
         endID = int(args.endid)
     else:
@@ -182,4 +197,26 @@ if __name__=='__main__':
         print '- StartID = '+str(startID)
         print '- EndID   = '+str(endID)
         print '------------INPUT INFORMATION---------------------'
-        getData(startID, endID, filedirectory)
+        
+        startTime = time.clock()
+        pageNo = startID
+        pageLock = threading.Lock()
+        #getData(startID, endID, filedirectory)
+        threads = []
+        writers = createWriters(filedirectory, 'rrdai_'+str(startID)+'-'+str(endID))
+        for i in xrange(threadCount):
+            thread = DataFetcher(i, writers)
+            threads.append(thread)
+        for t in threads:
+            t.start()
+            
+        while(pageNo <= endID):
+            pass
+        exitFlag = True
+        
+        for t in threads:
+            t.join()
+        print 'Exiting Main Thread'
+        endTime = time.clock()
+        print('[Total order number]:'+str(pageNo-startID))
+        print(u'[Total execute time]:'+str(endTime-startTime)+'s')

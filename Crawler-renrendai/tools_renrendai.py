@@ -217,7 +217,7 @@ def responseFromUrl(url, formdata = None):
 def analyzeData(webcontent, writers):
     soup = BeautifulSoup(webcontent)
     
-    if soup.find('src', {'alt':'/exceptions/network-busy/img/404.png'}):
+    if soup.find('img', {'src':'/exceptions/network-busy/img/404.png'}):
         return False #页面404
     
     currentDate = getTime('%Y-%m-%d')
@@ -428,7 +428,7 @@ def analyzeData(webcontent, writers):
     analyzeUserData(userId, writers[5], [loanTimes, loanSuccessTimes, payoffTimes, overdueTimes, overdueAmount, seriousOverdueTimes])
     
     #评论信息---------------------------------
-    print('  Get Comments...')
+    #print('  Get Comments...')
     commentPage = 0
     while True:
         commentPage += 1
@@ -476,7 +476,7 @@ def analyzeData(webcontent, writers):
 #---------------------------------------------
 def analyzeLenderData(loanId, writer, attrs):
     ###js获得投标记录###
-    print('  Get Lender Records...')
+    #print('  Get Lender Records...')
     lenderRecordsString = readFromUrl(urlLenderRecordsPrefix+str(loanId))
     lenderRecords = json.loads(lenderRecordsString)
     list_lenderRecords = lenderRecords['data']['lenderRecords']
@@ -499,7 +499,7 @@ def analyzeLenderData(loanId, writer, attrs):
 #end def analyzeLenderData
 #-------------------------------------------------
 def analyzeRepayData(loanId, writer, attrs):
-    print('  Get Repay Log...')
+    #print('  Get Repay Log...')
     repayDetailString = readFromUrl(urlRepayDetailPrefix+str(loanId))
     repayDetail = json.loads(repayDetailString)
     
@@ -520,7 +520,7 @@ def analyzeRepayData(loanId, writer, attrs):
 #end def analyzeRepayData
 #-------------------------------------------------
 def analyzeCollectionData(loanId, writer, attrs):
-    print('  Get Collection Log...')
+    #print('  Get Collection Log...')
     collectionString = readFromUrl(urlCollectionPrefix+str(loanId));
     collectionInfo = json.loads(collectionString)
     list_collection = collectionInfo['data']['dunInfoList']
@@ -538,7 +538,7 @@ def analyzeCollectionData(loanId, writer, attrs):
 #---------------------------------------------------
 def analyzeLenderInfoData(loanId, writer, attrs):
     ###js获得债权信息###
-    print('  Get Lender Infomation...')
+    #print('  Get Lender Infomation...')
     lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
     lenderInfo = json.loads(lenderInfoString)
     list_lenderInfo = lenderInfo['data']['lenders']
@@ -559,7 +559,7 @@ def analyzeLenderInfoData(loanId, writer, attrs):
 #---------------------------------------------------
 def analyzeTransferData(loanId, writer, attrs):
 ###js获得债券转让记录###
-    print('  Get Transfer Log...')
+    #print('  Get Transfer Log...')
     transferLogString = readFromUrl(urlTransferLogPrefix+str(loanId))
     transferLog = json.loads(transferLogString)
     
@@ -577,7 +577,7 @@ def analyzeTransferData(loanId, writer, attrs):
 #end def analyzeTransferData()
 #-------------------------------------------------------
 def analyzeUserData(userId, writer, attrs):
-    print('  Get User Info...')
+    #print('  Get User Info...')
     content_user = readFromUrl(urlUserPrefix+str(userId))
     soup = BeautifulSoup(content_user)
     currentDate = getTime('%Y-%m-%d')
@@ -643,7 +643,7 @@ def analyzeFPData(webcontent, planId, writers):
 #--------------------------------------------------------
 #加入记录, 返回总人数
 def analyzeFPLender(planId, writer):
-    print('  Get Lender Info...')
+    #print('  Get Lender Info...')
     content_lender = readFromUrl(urlFPLenderPrefix+str(planId))
     lenderInfo = json.loads(content_lender)
     
@@ -661,7 +661,7 @@ def analyzeFPLender(planId, writer):
 #----------------------------------------------------
 #
 def analyzePlan(planId):
-    print('  Get Performace...')
+    #print('  Get Performace...')
     content_plan = readFromUrl(urlFPPerformancePrefix+str(planId))
     planInfo = json.loads(content_plan)
     item = planInfo['data']['financePlanVos'][0]
