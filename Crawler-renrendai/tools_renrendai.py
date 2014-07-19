@@ -539,7 +539,7 @@ def analyzeLenderInfoData(loanId, writer, attrs):
     ###js获得债权信息###
     #print('  Get Lender Infomation...')
     lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
-    print('[lender Info String]\n'+lenderInfoString)
+    print('[lender Info String] '+str(loanId)+'\n'+lenderInfoString)
     lenderInfo = json.loads(lenderInfoString)
     list_lenderInfo = lenderInfo['data']['lenders']
     #print list_lenderInfo
