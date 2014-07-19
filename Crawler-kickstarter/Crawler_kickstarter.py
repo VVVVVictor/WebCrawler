@@ -308,8 +308,8 @@ if __name__=='__main__':
         
         startTime = time.clock()
         threads = []
-        for i in range(threadCount):
-            thread = getDataThread(i, urlQueue)
+        for i in xrange(threadCount):
+            thread = getDataThread(i+1, urlQueue)
             threads.append(thread)
             
         for t in threads:

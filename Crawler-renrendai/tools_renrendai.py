@@ -213,7 +213,7 @@ def responseFromUrl(url, formdata = None):
     
     return response
 #--------------------------------------------------
-def analyzeData(webcontent, writers):
+def analyzeData(webcontent, writers, log):
     soup = BeautifulSoup(webcontent)
     
     if soup.find('img', {'src':'/exceptions/network-busy/img/404.png'}):
@@ -418,7 +418,7 @@ def analyzeData(webcontent, writers):
     analyzeCollectionData(loanId, writers[7], basicInfo)
     
     #债权信息-----------------------------------------
-    analyzeLenderInfoData(loanId, writers[3], basicInfo)
+    analyzeLenderInfoData(loanId, writers[3], basicInfo, log)
     
     #债券转让记录-------------------------------------
     analyzeTransferData(loanId, writers[4], basicInfo)
@@ -535,11 +535,11 @@ def analyzeCollectionData(loanId, writer, attrs):
         writer.writerow(buffer_collection)
 #end def analyzeCollectionData()
 #---------------------------------------------------
-def analyzeLenderInfoData(loanId, writer, attrs):
+def analyzeLenderInfoData(loanId, writer, attrs, log):
     ###js获得债权信息###
     #print('  Get Lender Infomation...')
     lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
-    print('[lender Info String] '+str(loanId)+'\n'+lenderInfoString)
+    log.write('[lender Info String] '+str(loanId)+'\n'+lenderInfoString+'\n\n')
     lenderInfo = json.loads(lenderInfoString)
     list_lenderInfo = lenderInfo['data']['lenders']
     #print list_lenderInfo
