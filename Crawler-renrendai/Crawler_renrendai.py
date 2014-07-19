@@ -45,7 +45,7 @@ class DataFetcher(threading.Thread):
         self.tId = tId
         self.writers = writers
     def run(self):
-        global pageNo, lostPageCount
+        global pageNo, lostPageCount, exitFlag
         while not exitFlag:
             pageLock.acquire()
             pageNo += 1
@@ -53,6 +53,7 @@ class DataFetcher(threading.Thread):
             req = urllib2.Request(urlLoan+str(pageNo), headers = getRandomHeaders())
             pageLock.release()
             if(pageNo > endID):
+                exitFlag = True
                 break
             try:
                 response = urllib2.urlopen(req)
@@ -74,6 +75,7 @@ class DataFetcher(threading.Thread):
                 print('Page 404!')
                 lostPageCount += 1
                 if(lostPageCount > LOST_PAGE_LIMIT):
+                    exitFlag = True
                     print('You have got the latest page!')
                     break
         #end while
