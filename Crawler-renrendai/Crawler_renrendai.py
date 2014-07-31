@@ -166,7 +166,7 @@ def getInput():
 startID = 1
 endID = 1000
 pageNo = 0
-threadCount = 3 #并发线程数
+threadCount = 2 #并发线程数
 exitFlag = False
 lostPageCount = 0
 sleepTime = 2
@@ -185,7 +185,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(conflict_handler='resolve')
     parser.add_argument('-s', '--start', action='store', dest='startid', help='Set start order ID')
     parser.add_argument('-e', '--end', action='store', dest='endid', help='Set last order ID')
-    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=3)
+    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=2)
     args = parser.parse_args()
     
     if(args.startid != None and args.endid != None):
