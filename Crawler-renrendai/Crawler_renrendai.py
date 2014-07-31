@@ -49,12 +49,13 @@ class DataFetcher(threading.Thread):
         while not exitFlag:
             pageLock.acquire()
             pageNo += 1
-            print('Thread '+str(self.tId)+': downloading Loan: '+str(pageNo)+'...')
-            req = urllib2.Request(urlLoan+str(pageNo), headers = getRandomHeaders())
-            pageLock.release()
             if(pageNo > endID):
                 exitFlag = True
                 break
+            curPage = pageNo
+            print('Thread '+str(self.tId)+': downloading Loan: '+str(pageNo)+'...')
+            req = urllib2.Request(urlLoan+str(pageNo), headers = getRandomHeaders())
+            pageLock.release()
             try:
                 response = urllib2.urlopen(req)
                 m = response.read()
@@ -72,7 +73,7 @@ class DataFetcher(threading.Thread):
             if analyzeData(m, writers):
                 lostPageCount = 0
             else:
-                print('Page 404!')
+                print('Loan '+str(curPage)+' is LOST!')
                 lostPageCount += 1
                 if(lostPageCount > LOST_PAGE_LIMIT):
                     exitFlag = True
@@ -165,7 +166,7 @@ def getInput():
 startID = 1
 endID = 1000
 pageNo = 0
-threadCount = 5 #并发线程数
+threadCount = 3 #并发线程数
 exitFlag = False
 lostPageCount = 0
 sleepTime = 2
@@ -184,7 +185,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(conflict_handler='resolve')
     parser.add_argument('-s', '--start', action='store', dest='startid', help='Set start order ID')
     parser.add_argument('-e', '--end', action='store', dest='endid', help='Set last order ID')
-    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=2)
+    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=3)
     args = parser.parse_args()
     
     if(args.startid != None and args.endid != None):
