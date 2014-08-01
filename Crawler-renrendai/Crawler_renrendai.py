@@ -181,11 +181,18 @@ if __name__=='__main__':
 
     httplib.HTTPConnection._http_vsn = 10
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+    
+    print '*******************************'
+    print '* Renrendai Loan Spider v0801 *'
+    print '*******************************'
+    config = getConfig()
+    filedirectory = config[0]
+    threadnumber = config[1]
 
     parser = argparse.ArgumentParser(conflict_handler='resolve')
     parser.add_argument('-s', '--start', action='store', dest='startid', help='Set start order ID')
     parser.add_argument('-e', '--end', action='store', dest='endid', help='Set last order ID')
-    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=1)
+    parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=threadnumber)
     args = parser.parse_args()
     
     if(args.startid != None and args.endid != None):
@@ -194,8 +201,7 @@ if __name__=='__main__':
     else:
         getInput()
     threadCount = int(args.threadCount)
-    
-    filedirectory = getConfig()
+
     if login():
         print '------------INPUT INFORMATION---------------------'
         print '- StartID = '+str(startID)

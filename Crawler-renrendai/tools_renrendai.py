@@ -40,7 +40,9 @@ log = open('log.log', 'wb')
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
-    global filedirectory, username, password
+    global username, password
+    filedirectory = ""
+    threadnumber = 1
     try:
         configfile = open(os.getcwd()+'/'+configfileName, 'r')
         #line = configfile.readline()
@@ -55,6 +57,8 @@ def getConfig():
                     username = m.group(2)
                 elif m.group(1) == u'password':
                     password = m.group(2)
+                elif m.group(1) == u'threadnumber':
+                    threadnumber = m.group(2)
                 #print filedirectory
         configfile.close()
     except:
@@ -62,6 +66,7 @@ def getConfig():
         configfile.write('filedirectory = '+filedirectory+'\n')
         configfile.write('username = '+username+'\n')
         configfile.write('password = '+password+'\n')
+        configfile.write('threadnumber = '+str(threadnumber)+'\n')
         configfile.close()
         print('Create new config file!')
     
@@ -71,7 +76,8 @@ def getConfig():
     print('filedirectory = '+filedirectory)
     print('username = '+username)
     print('password = '+password)
-    return filedirectory
+    #print('threadnumber = '+str(threadnumber))
+    return [filedirectory, threadnumber]
 #end def getConfig()
     
 #--------------------------------------------------

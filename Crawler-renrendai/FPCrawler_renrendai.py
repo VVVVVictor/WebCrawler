@@ -131,7 +131,11 @@ httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 startID = 1
 endID = 1000
 
-filedirectory = getConfig()
+print '***************************************'
+print '* Renrendai Finance Plan Spider v0801 *'
+print '***************************************'
+
+filedirectory = getConfig()[0]
 if login():
     getInput()
     print '------------INPUT INFORMATION---------------------'
