@@ -100,6 +100,7 @@ def login():
                 print(u'[FAIL]Wrong USERNAME or PASSWORD. Please try again!')
                 return False
             '''
+            #print result.read()
             result.close()
             print('LOGIN SUCCESS')
             return True
@@ -150,6 +151,8 @@ def readFromUrl(url, formdata = None):
             if response:
                 m = response.read()
                 #response.close()
+                if(m == None):
+                    continue
                 return m
             else:
                 print('response is None')
@@ -163,8 +166,10 @@ def readFromUrl(url, formdata = None):
             continue
         except Exception, e:
             print('i do not know what is wrong. When readFromUrl()!')
+            print("url = "+url)
             if hasattr(e, 'code'):
                 print "Error Msg: "+e.code
+            login()
             continue
         
 #end def readFromUrl
@@ -490,8 +495,19 @@ def analyzeData(webcontent, writers):
 def analyzeLenderData(loanId, writer, attrs):
     ###js获得投标记录###
     #print('  Get Lender Records...')
-    lenderRecordsString = readFromUrl(urlLenderRecordsPrefix+str(loanId))
+    tryCount = 0;
+    while(tryCount < 5):
+        tryCount += 1
+        lenderRecordsString = readFromUrl(urlLenderRecordsPrefix+str(loanId))
+        if(lenderRecordsString != "null"):break
+    #end while
+    if(lenderRecordsString == "null"):
+        print(str(loanId)+" lenderRecord Error!")
+        return
+    #lenderRecordsString = readFromUrl(urlLenderRecordsPrefix+str(loanId))
     lenderRecords = json.loads(lenderRecordsString)
+    #print str(loanId)+" lenderRecord:"
+    #print lenderRecordsString
     list_lenderRecords = lenderRecords['data']['lenderRecords']
     #print list_lenderInfo
     for item in list_lenderRecords:
@@ -513,9 +529,18 @@ def analyzeLenderData(loanId, writer, attrs):
 #-------------------------------------------------
 def analyzeRepayData(loanId, writer, attrs):
     #print('  Get Repay Log...')
-    repayDetailString = readFromUrl(urlRepayDetailPrefix+str(loanId))
+    tryCount = 0;
+    while(tryCount < 5):
+        tryCount += 1
+        repayDetailString = readFromUrl(urlRepayDetailPrefix+str(loanId))
+        if(repayDetailString != "null"):break
+    #end while
+    if(repayDetailString == "null"):
+        print(str(loanId)+" repayDetail Error!")
+        return
     repayDetail = json.loads(repayDetailString)
-    
+    #print str(loanId)+" repayDetail:"
+    #print repayDetailString
     totalunRepaid = repayDetail['data']['unRepaid']
     totalRepaid = repayDetail['data']['repaid']
     list_repayDetail = repayDetail['data']['phases']
@@ -534,7 +559,16 @@ def analyzeRepayData(loanId, writer, attrs):
 #-------------------------------------------------
 def analyzeCollectionData(loanId, writer, attrs):
     #print('  Get Collection Log...')
-    collectionString = readFromUrl(urlCollectionPrefix+str(loanId));
+    tryCount = 0;
+    while(tryCount < 5):
+        tryCount += 1
+        collectionString = readFromUrl(urlCollectionPrefix+str(loanId));
+        if(collectionString != "null"):break
+    #end while
+    if(collectionString== "null"):
+        print(str(loanId)+" collectionString Error!")
+        return
+    #collectionString = readFromUrl(urlCollectionPrefix+str(loanId));
     collectionInfo = json.loads(collectionString)
     list_collection = collectionInfo['data']['dunInfoList']
     for item in list_collection:
@@ -552,7 +586,16 @@ def analyzeCollectionData(loanId, writer, attrs):
 def analyzeLenderInfoData(loanId, writer, attrs):
     ###js获得债权信息###
     #print('  Get Lender Infomation...')
-    lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
+    tryCount = 0;
+    while(tryCount < 5):
+        tryCount += 1
+        lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
+        if(lenderInfoString != "null"):break
+    #end while
+    if(lenderInfoString == "null"):
+        print(str(loanId)+" lenderInfo Error!")
+        return
+    #lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
     #log.write('[lender Info String] '+str(loanId)+'\n'+lenderInfoString+'\n\n')
     lenderInfo = json.loads(lenderInfoString)
     list_lenderInfo = lenderInfo['data']['lenders']
@@ -574,7 +617,17 @@ def analyzeLenderInfoData(loanId, writer, attrs):
 def analyzeTransferData(loanId, writer, attrs):
 ###js获得债券转让记录###
     #print('  Get Transfer Log...')
-    transferLogString = readFromUrl(urlTransferLogPrefix+str(loanId))
+    tryCount = 0;
+    while(tryCount < 5):
+        tryCount += 1
+        transferLogString = readFromUrl(urlTransferLogPrefix+str(loanId))
+        if(transferLogString != "null"):break
+    #end while
+    if(transferLogString == "null"):
+        print(str(loanId)+" transferLog Error!")
+        return
+        
+    #transferLogString = readFromUrl(urlTransferLogPrefix+str(loanId))
     transferLog = json.loads(transferLogString)
     
     transferAccount = transferLog['data']['account']
@@ -658,7 +711,17 @@ def analyzeFPData(webcontent, planId, writers):
 #加入记录, 返回总人数
 def analyzeFPLender(planId, writer):
     #print('  Get Lender Info...')
-    content_lender = readFromUrl(urlFPLenderPrefix+str(planId))
+    tryCount = 0;
+    while(tryCount < 5):
+        tryCount += 1
+        content_lender = readFromUrl(urlFPLenderPrefix+str(planId))
+        if(content_lender != "null"):break
+    #end while
+    if(content_lender == "null"):
+        print(str(loanId)+" content_lender Error!")
+        return
+        
+    #content_lender = readFromUrl(urlFPLenderPrefix+str(planId))
     lenderInfo = json.loads(content_lender)
     
     list_lenders = lenderInfo['data']['jsonList']
@@ -676,7 +739,17 @@ def analyzeFPLender(planId, writer):
 #
 def analyzePlan(planId):
     #print('  Get Performace...')
-    content_plan = readFromUrl(urlFPPerformancePrefix+str(planId))
+    tryCount = 0;
+    while(tryCount < 5):
+        tryCount += 1
+        content_plan = readFromUrl(urlFPPerformancePrefix+str(planId))
+        if(content_plan != "null"):break
+    #end while
+    if(content_plan == "null"):
+        print(str(loanId)+" content_plan Error!")
+        return
+        
+    #content_plan = readFromUrl(urlFPPerformancePrefix+str(planId))
     planInfo = json.loads(content_plan)
     item = planInfo['data']['financePlanVos'][0]
     #print item
