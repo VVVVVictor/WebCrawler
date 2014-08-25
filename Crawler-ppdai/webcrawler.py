@@ -146,6 +146,10 @@ while True:
 
 filedirectory = getConfig()
 
+print '*******************************'
+print '* Paipaidai Loan Spider v0825 *'
+print '*******************************'
+    
 createFolder(filedirectory)
 createFolder(filedirectory+dataFolder)
 createFolder(filedirectory+userFolder)

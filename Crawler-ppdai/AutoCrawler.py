@@ -169,6 +169,10 @@ sys.setdefaultencoding('utf-8') #系统输出编码置为utf8，解决输出时�
 
 filedirectory = getConfig()
 
+print '************************************'
+print '* Paipaidai Auto Loan Spider v0825 *'
+print '************************************'
+
 createFolder(filedirectory)
 createFolder(filedirectory+dataFolder)
 createFolder(filedirectory+userFolder)
