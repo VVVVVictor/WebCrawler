@@ -75,8 +75,9 @@ def getConfig():
     print('[CONFIG]')
     print('filedirectory = '+filedirectory)
     print('username = '+username)
-    print('password = '+password)
+    print('password = '+password+'\n')
     #print('threadnumber = '+str(threadnumber))
+    
     return [filedirectory, threadnumber]
 #end def getConfig()
     
@@ -639,7 +640,7 @@ def analyzeTransferData(loanId, writer, attrs):
         transferClock = m.group(2)
         buffer_transferLog = []
         buffer_transferLog.extend(attrs)
-        buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'], item['fromUserId'], item['fromNickName'], item['price'], item['share'], transferDate, transferClock])
+        buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'], item['fromUserId'], item['fromNickName'], item['fromFinancePlanId'], item['price'], item['share'], transferDate, transferClock])
         writer.writerow(buffer_transferLog)
 #end def analyzeTransferData()
 #-------------------------------------------------------
