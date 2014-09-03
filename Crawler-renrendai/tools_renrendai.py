@@ -520,10 +520,12 @@ def analyzeLenderData(loanId, writer, attrs):
         if(item['lenderType'] == 'FINANCEPLAN_BID'):
             isFinancePlan = '1'
             financePlanId = item['financePlanId']
-        
+        mobileTrade = '0'
+        if(item['tradeMethod'] == 'MOBILE'):
+            mobileTrade = '1'
         buffer_lenderRecords = []
         buffer_lenderRecords.extend(attrs)
-        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], item['amount'], lendDate, lendClock, isFinancePlan, financePlanId])
+        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], mobileTrade, item['amount'], lendDate, lendClock, isFinancePlan, financePlanId])
         #print buffer_lenderRecords
         writer.writerow(buffer_lenderRecords)
 #end def analyzeLenderData
