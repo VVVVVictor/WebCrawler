@@ -36,7 +36,6 @@ userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Ge
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
 TRY_LOGIN_TIMES = 5 
-log = open('log.log', 'wb')
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def getConfig():
@@ -196,8 +195,8 @@ def responseFromUrl(url, formdata = None):
             response = urllib2.urlopen(req)
             curUrl = response.geturl()
             if(url != curUrl):
-                log.write('original url: '+url+'\n')
-                log.write('current  url: '+curUrl+'\n')
+                #log.write('original url: '+url+'\n')
+                #log.write('current  url: '+curUrl+'\n')
                 if(curUrl == 'http://www.renrendai.com/exceptions/refresh-too-fast.jsp'):
                     print('Refresh too fast! Wait, login and retry...')
                     time.sleep(30)
