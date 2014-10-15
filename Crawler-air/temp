@@ -1,0 +1,1750 @@
+*******************************
+*    Air dairy Spider v1015   *
+*******************************
+start date:end date:[Start Date] 2010-01-01
+[End   Date] 2010-01-01
+[Data  Path] datas/
+Thread 1: download page 2...
+
+Thread 2: download page 3...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html>
+	<head>
+		<script language="javascript">
+		var lang = '';
+	function jump(maxp){
+		var err1 ="页码必须是整数！";
+		var err2 ="页码超出范围！";
+		var url = "air_dairy_aqi.jsp?city=&startdate=2010-01-01&enddate=2010-01-01";
+		var page = document.getElementById("pageNum").value;
+		if(checkIsInteger(page))
+			alert(err1);
+		else if(parseInt(page)>parseInt(maxp) || parseInt(page)<=0)
+			alert(err2);
+		else{
+			url += "&page="+page;
+			window.location.href = url;
+		}
+	}
+	
+
+	function jumpTo(p){
+		var url = "air_dairy_aqi.jsp?city=&startdate=2010-01-01&enddate=2010-01-01";
+		url += "&page="+p;
+		window.location.href = url;
+	}
+	function forwardToMain(){
+		//document.location.href = "http://datacenter.mep.gov.cn:80/report/";
+		document.location.href = "http://datacenter.mep.gov.cn:80/";
+		
+	}
+    function checkForm1(){
+    	var date = document.getElementById('startdate').value;
+    	var stopDate = document.getElementById('enddate').value;
+    	if(date!=""&&stopDate!=""){
+    		date = date.replace(/-/g,'/');
+    		stopDate = stopDate.replace(/-/g,'/'); 
+    	 	var d1=new Date(date);   
+  			var d2=new Date(stopDate);
+			if(Date.parse(d1) - Date.parse(d2)>0){	
+			    return false;
+			}
+  		}
+  		if(date!=""&&stopDate==""){
+  			alert('您没有输入结束时间，请重新输入！');
+  			return false;
+  		}
+  		if(date==""&&stopDate!=""){
+  			alert('您没有输入开始时间，请重新输入！');
+  			return false;
+  		}
+    	return true;
+    }
+    
+</script>
+		<title>中华人民共和国环境保护部--政府网站数据中心</title>
+		<link href="/report/css/pagination.css" rel="stylesheet"
+			type="text/css" />
+		<style type="text/css">
+<!--
+body {
+	background-image: url(/report/main/images/bk.jpg);
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+}
+
+#conter {
+	float: left;
+	height: auto;
+	width: 982px;
+}
+
+body {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.STYLE1 {
+	color: #b24910;
+	background-color: #FFFFEF;
+	text-align: right;
+	height: 30px
+}
+
+.STYLE2 {
+	color: #FFFFEF;
+}
+
+.STYLE3 {
+	color: #333333;
+}
+
+.STYLE4 {
+	color: #b24910;
+	background-color: #f3ecd4;
+	text-align: center;
+	width: 12%;
+	height: 30px
+}
+
+.webjx {
+	width: 0;
+	height: 98%;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.con_div {
+	height: 28px;
+	text-align: left;
+	display: table-cell;
+	vertical-align: middle;
+	background-image: url(/report/main/images/di.jpg);
+	width: 98%;
+}
+
+A:link {
+	COLOR: #004e98
+}
+-->
+</style>
+		<script type="text/javascript">
+	function submitForm(){
+		document.citydayform.submit();
+	}
+</script>
+		<script language=JavaScript src="/report/script/indexdatejs.js"></script>
+		<script language="javascript" type="text/javascript"
+			src="/report/script/My97DatePicker/WdatePicker.js"></script>
+		<script language=JavaScript src="/report/script/commJS.js"></script>
+		<link href="/report/main/style/style.css" rel="stylesheet"
+			type="text/css" />
+	</head>
+	<body bgcolor="#FEFFF1">
+		<table width="1002" align="center" cellpadding="0" cellspacing="0">
+			<tr>
+				<td width="10" background="/report/main/images/left_bk.jpg">
+					&nbsp;
+				</td>
+				<td>
+					<div id="conter" style="background-color: #FFFFFF;">
+						<div id="top">
+
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+
+		<title>中华人民共和国环境保护部--政府网站数据中心</title>
+	</head>
+	<script type="text/javascript">
+<!--
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+var timerID=null; 
+var timerRunning=false; 
+file://启动 
+function startclock() 
+{ 
+stopclock(); 
+time(); 
+} 
+
+file://停止 
+function stopclock() 
+{ 
+if(timerRunning) 
+clearTimeout(timerID); 
+timerRunning=false; 
+} 
+
+file://实现模块 
+function time() 
+{ 
+file://使用new操作符创建时间对象 
+var now=new Date(); 
+var yr=now.getYear(); 
+var mName=now.getMonth()+1; 
+var dayNr=((now.getDate()<10)?"0":"")+now.getDate(); 
+var dName=now.getDay(); 
+var ampm=(now.getHours()>=12)?"下午":"上午" 
+var hours=now.getHours(); 
+var minutes=((now.getMinutes()<10)?":0":":")+now.getMinutes(); 
+var seconds=((now.getSeconds()<10)?":0":":")+now.getSeconds(); 
+
+file://判断月份 
+if(mName==1)Month="01"; 
+if(mName==2)Month="02"; 
+if(mName==3)Month="03"; 
+if(mName==4)Month="04"; 
+if(mName==5)Month="05"; 
+if(mName==6)Month="06"; 
+if(mName==7)Month="07"; 
+if(mName==8)Month="08"; 
+if(mName==9)Month="09"; 
+if(mName==10)Month="10"; 
+if(mName==11)Month="11"; 
+if(mName==12)Month="12"; 
+if(dName==1)dName="一"; 
+if(dName==2)dName="二"; 
+if(dName==3)dName="三"; 
+if(dName==4)dName="四"; 
+if(dName==5)dName="五"; 
+if(dName==6)dName="六"; 
+if(dName==0)dName="日"; 
+if(yr<1000) yr=yr+1900;
+
+var MonthDayYear=(""+yr+"年"+Month+"月"+dayNr+"日  星期"+dName); 
+var TimeValue=(""+hours+minutes); 
+document.getElementById("dateTime").innerHTML = MonthDayYear+" "+TimeValue;
+//document.all.dateTimeValue.innerHTML=MonthDayYear+" "+TimeValue;
+timerID=setTimeout("time()",1000); 
+timerRunning=true; 
+} 
+//-->
+</script>
+	<link href="style/style.css" rel="stylesheet" type="text/css" />
+	<body id="top" >
+		<div id="top">
+			<div>
+				<img src="/report/main/images/banner.jpg" width="982" height="90" />
+			</div>
+			<div
+				style="background-image: url(/report/main/images/nav.jpg); height: 28px; margin: 0px auto 0px auto;">
+				<div
+					style="margin: 6px auto 0px 15px; float: left; font-size: 12px; color: #FFFFFF; width: 500px; vertical-align: bottom;"
+					align="left" class="font">
+				</div>
+				<div id="dateTime"
+					style="float: right; margin: 4px 13px 0px auto; width: auto"
+					align="right" class="font"></div>
+			</div>
+		</div>
+	</body>
+<script type="text/javascript">
+	time();
+</script>
+</html>
+</div>
+						<div style="margin: 5px auto 0px auto;" align="center">
+							<div style="height: 40px;" align="center">
+								<div class="listtitle" style="width: 98%; text-indent: 48px;"
+									align="left">
+									<table width="98%">
+										<tr class="text_middle"
+											style="font-size: 12px; color: #FFFFFF;">
+											<td width="60%" align="left" style="text-indent: 48px;">
+												您的位置：
+												<a href="http://www.mep.gov.cn" style="color: #FFFFFF">首页</a>
+												<img src="/report/images/icon/jiantou.gif" />
+												<a href="/" style="color: #FFFFFF">数据中心</a>
+												<img src="/report/images/icon/jiantou.gif" />
+												<a href="/report/air_daily/air_dairy_aqi.jsp"
+													style="color: #FFFFFF"> 全国城市空气质量日报(API)</a>
+											</td>
+											<td width="40%" align="right">
+												<a href="/"
+													style="color: #FFFFFF; margin: auto auto auto auto">返回数据中心</a>
+											</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+							<div class="font">
+								<form name="citydayform"
+									action="http://datacenter.mep.gov.cn:80/report/air_daily/air_dairy_aqi.jsp"
+									method="post" style="margin: 0px auto 0px auto;"
+									onsubmit="return checkForm1();">
+									<table width="95%" border="1" align="center" cellpadding="0"
+										cellspacing="0" bordercolorlight="#d9d7b2"
+										bordercolordark="#ffffff" class="font">
+										<tr>
+											<td width="5%" height="30" bgcolor="#FFFFEF" align="right"
+												class="STYLE1">
+												城市:
+											</td>
+											<td width="8%" bgcolor="#FFFFFF">
+												&nbsp;
+												<input type="text" name='city' value="" />
+											</td>
+											<td width="5%" height="30" bgcolor="#FFFFEF" align="right"
+												class="STYLE1 STYLE1">
+												日期:
+											</td>
+											<td width="30%" bgcolor="#FFFFFF">
+												&nbsp; 从:
+												<input type="text" id="startdate" name="startdate"
+													readonly="true"
+													onfocus="WdatePicker({ el: this.id, dateFmt: 'yyyy-MM-dd', skin: 'whyGreen',maxDate:'#F{$dp.$D(\'enddate\')}' })"
+													style="text-align: center;cursor: pointer;width: 130px;height: 21px;margin-top:0px;" class="Wdate"  value="2010-01-01" />
+												到:
+												<input type="text" id="enddate" name="enddate"
+													readonly="true"
+													onfocus="WdatePicker({ el: this.id, dateFmt: 'yyyy-MM-dd', skin: 'whyGreen',minDate:'#F{$dp.$D(\'startdate\')}' })"
+													style="text-align: center;cursor: pointer;width: 130px;height: 21px;margin-top:0px;"  class="Wdate" value="2010-01-01" />
+											</td>
+											<td width="8%" bgcolor="#FFFFFF">
+												<div align="center">
+													<input type="image" src="/report/main/images/search.gif"
+														width="83" height="19" />
+												</div>
+											</td>
+										</tr>
+									</table>
+								</form>
+							</div>
+						</div>
+						<br>
+						<center>
+							<div class="font12">
+								<script language=javascript src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=10&file=%2Fcom%2Frunqian%2Freport4%2Fview%2Fhtml%2Frqdialog.js" charset="UTF-8">
+</script>
+<form name="report1_turnPageForm" method=post action="http://datacenter.mep.gov.cn:80/report/air_daily/air_dairy_aqi.jsp?t_i_m_e=1413379930139" style="display:none">
+<input type=hidden name="page" value="1">
+<input type=hidden name="enddate" value="2010-01-01">
+<input type=hidden name="city" value="">
+<input type=hidden name="startdate" value="2010-01-01">
+<input type=hidden name=reportParamsId value=633037>
+<input type=hidden name=report1_currPage value="1">
+<input type=hidden name=report1_cachedId value=1231390>
+</form><script language=javascript>
+	function report1_toPage( pageNo ) {
+	if( pageNo < 1 || pageNo > report1_getTotalPage() ) return;
+		document.report1_turnPageForm.report1_currPage.value = pageNo;
+		document.report1_turnPageForm.submit();
+	}
+</script>
+<script language=javascript>
+	function report1_getCurrPage() {
+		return 1;
+	}
+	function report1_getTotalPage() {
+		return 1;
+	}
+	var report1_cachedId = "1231390";
+</script>
+<script language=javascript>
+	function report1_saveAsExcel() {
+		var address = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=4&isDialog=1";
+		rq_showPopWin( address, 300, 210, null );
+	}
+	function _saveAsExcel2( returnVal) {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=3&file=air_daily%2FAirDairyReport_aqi.raq&columns=0&srcType=file&width=-1&height=-1&reportParamsId=633037&cachedId=1231390&t_i_m_e=1413379930140" + returnVal;
+	}
+</script>
+<script language=javascript>
+	function report1_saveAsPdf() {
+		var address = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=25&isDialog=1";
+		rq_showPopWin( address, 300, 200, null );
+	}
+	function _saveAsPdf2( returnVal ) {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=6&file=air_daily%2FAirDairyReport_aqi.raq&columns=0&srcType=file&reportParamsId=633037&cachedId=1231390&t_i_m_e=1413379930140" + returnVal;
+	}
+</script>
+
+<script language=javascript>
+	function report1_saveAsWord() {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=7&file=air_daily%2FAirDairyReport_aqi.raq&columns=0&srcType=file&reportParamsId=633037&cachedId=1231390&t_i_m_e=1413379930140";
+	}
+</script>
+
+<iframe name="report1_saveAs_frame" id="report1_saveAs_frame" src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=0" style="display:none"></iframe>
+<script language=javascript>
+	function report1_saveAsText() {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=18&file=air_daily%2FAirDairyReport_aqi.raq&srcType=file&separator=%09&lineBreak=%0A&reportParamsId=633037&cachedId=1231390&t_i_m_e=1413379930140";
+	}
+</script>
+
+<script language=javascript>
+	function report1_print() {
+		document.getElementById( "report1_printIFrame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=2&name=report1&reportFileName=air_daily%2FAirDairyReport_aqi.raq&srcType=file&savePrintSetup=no&appletJarName=runqianReport4Applet.jar&serverPagedPrint=no&mirror=no&reportParamsId=633037&cachedId=1231390&t_i_m_e=1413379930140";
+	}
+</script>
+<iframe name="report1_printIFrame" id="report1_printIFrame" src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=0" style="position:absolute;left:-100px;top:-100px" width=50 height=50></iframe>
+<script language=javascript>
+	var report1oldstatus = "";
+	function report11131408over(){
+		report1oldstatus = window.status;
+		window.status = "环境保护部政府网站数据中心";
+	}
+	function report11131408out(){
+		window.status = report1oldstatus;
+	}
+</script>
+<style id="report1_style">
+	.report1_1 { text-align:center;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_2 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#B34910;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F3ECD4;word-break:keep-all;}
+	.report1_3 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+	.report1_4 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#B24910;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F3ECD4;word-break:keep-all;}
+	.report1_5 { text-align:left;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_6 { text-align:left;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_7 { text-align:right;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_8 { text-align:right;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_9 { text-align:left;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#EEEEEE;word-break:keep-all;}
+	.report1_10 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_11 { text-align:left;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_12 { text-align:left;vertical-align:middle;font-family:黑体;font-size:16px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:transparent;word-break:keep-all;}
+	.report1_13 { text-align:center;vertical-align:middle;font-family:黑体;font-size:16px;color:#333333;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+	.report1_14 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+	.report1_15 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+</style>
+<table id="report1" cellSpacing=0 cellPadding=0 onmouseout="report11131408out()" style="width:935px;table-layout:fixed;border-collapse:collapse">
+	<colgroup>
+		<col style="width:1px;"></col>
+		<col style="width:96px;"></col>
+		<col style="width:130px;"></col>
+		<col style="width:152px;"></col>
+		<col style="width:148px;"></col>
+		<col style="width:148px;"></col>
+		<col style="width:135px;"></col>
+		<col style="width:125px;"></col>
+	</colgroup>
+	<tr height=30 style="height:30px;">
+		<td class="report1_14"></td>
+		<td onmouseover="report11131408over()" class="report1_15"></td>
+		<td colSpan=5 onmouseover="report11131408over()" class="report1_13">重&nbsp;点&nbsp;城&nbsp;市&nbsp;空&nbsp;气&nbsp;质&nbsp;量&nbsp;日&nbsp;报</td>
+		<td class="report1_3"></td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_4">序号</td>
+		<td class="report1_4">城市</td>
+		<td onmouseover="report11131408over()" class="report1_4">日期</td>
+		<td class="report1_4">污染指数</td>
+		<td onmouseover="report11131408over()" class="report1_2">首要污染物</td>
+		<td onmouseover="report11131408over()" class="report1_4">空气质量级别</td>
+		<td onmouseover="report11131408over()" class="report1_4">空气质量状况</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">1</td>
+		<td class="report1_10" style="color:#00A7D1;">北京</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">91</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">2</td>
+		<td class="report1_10" style="color:#00A7D1;">天津</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">78</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">3</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">石家庄</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">61</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">4</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">秦皇岛</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">60</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#ADAD04;">5</td>
+		<td class="report1_10" style="color:#ADAD04;">太原</td>
+		<td class="report1_10" style="color:#ADAD04;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">138</td>
+		<td class="report1_10" style="color:#ADAD04;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">Ⅲ1</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">轻微污染</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">6</td>
+		<td class="report1_10" style="color:#00A7D1;">大同</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">95</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">7</td>
+		<td class="report1_10" style="color:#00A7D1;">阳泉</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">52</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">8</td>
+		<td class="report1_10" style="color:#00A7D1;">长治</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">54</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">9</td>
+		<td class="report1_10" style="color:#00A7D1;">呼和浩特</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">100</td>
+		<td class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">10</td>
+		<td class="report1_10" style="color:#00A7D1;">赤峰</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">65</td>
+		<td class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">11</td>
+		<td class="report1_10" style="color:#00A7D1;">沈阳</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">98</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">12</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">大连</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">80</td>
+		<td class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">13</td>
+		<td class="report1_10" style="color:#00A7D1;">鞍山</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">78</td>
+		<td class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">14</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">抚顺</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">95</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">15</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">长春</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">67</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#ADAD04;">16</td>
+		<td class="report1_10" style="color:#ADAD04;">哈尔滨</td>
+		<td class="report1_10" style="color:#ADAD04;">2010-01-01</td>
+		<td class="report1_10" style="color:#ADAD04;">125</td>
+		<td class="report1_10" style="color:#ADAD04;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">Ⅲ1</td>
+		<td class="report1_10" style="color:#ADAD04;">轻微污染</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">17</td>
+		<td class="report1_10" style="color:#00A7D1;">齐齐哈尔</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">87</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">18</td>
+		<td class="report1_10" style="color:#00A7D1;">牡丹江</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">61</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">19</td>
+		<td class="report1_10" style="color:#00A7D1;">上海</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">68</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">20</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">南京</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">98</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">21</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">苏州</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">77</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">22</td>
+		<td class="report1_10" style="color:#00A7D1;">南通</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">66</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">23</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">连云港</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">62</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">24</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">扬州</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">82</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">25</td>
+		<td class="report1_10" style="color:#00A7D1;">镇江</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">83</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">26</td>
+		<td class="report1_10" style="color:#ADAD04;">杭州</td>
+		<td class="report1_10" style="color:#ADAD04;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">107</td>
+		<td class="report1_10" style="color:#ADAD04;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#ADAD04;">Ⅲ1</td>
+		<td class="report1_10" style="color:#ADAD04;">轻微污染</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">27</td>
+		<td class="report1_10" style="color:#ADAD04;">宁波</td>
+		<td class="report1_10" style="color:#ADAD04;">2010-01-01</td>
+		<td class="report1_10" style="color:#ADAD04;">115</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#ADAD04;">Ⅲ1</td>
+		<td class="report1_10" style="color:#ADAD04;">轻微污染</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">28</td>
+		<td class="report1_10" style="color:#00A7D1;">温州</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">90</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">29</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">湖州</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">96</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">30</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">绍兴</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">87</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131408over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=25 style="height:25px;">
+		<td colSpan=3 onmouseover="report11131408over()" class="report1_11">记录总数：<b><font color="#004e98">86</font></b>　　总页数：<b><font color="#004e98">3</font></b></td>
+		<td class="report1_1">每页记录数：<b><font color="#004e98">30</font></b></td>
+		<td onmouseover="report11131408over()" class="report1_7" style="padding-right:4px;">首页 上一页</td>
+		<td onmouseover="report11131408over()" class="report1_1"></td>
+		<td class="report1_5" style="padding-left:4px;"><a href="javascript: jumpTo(2)">下一页</a> <a href="javascript: jumpTo(3)">末页</a></td>
+		<td class="report1_7"><input type="text" name="pageNum" value="1" size="5"> <input type="button" value="跳转" onclick="jump('3');"></td>
+	</tr>
+	<tr height=25 style="height:25px;">
+		<td onmouseover="report11131408over()" class="report1_5"></td>
+		<td onmouseover="report11131408over()" class="report1_5"></td>
+		<td class="report1_5"></td>
+		<td class="report1_5"></td>
+		<td class="report1_5"></td>
+		<td class="report1_5"></td>
+		<td onmouseover="report11131408over()" class="report1_5"></td>
+		<td onmouseover="report11131408over()" class="report1_7"><a href="#" onclick="forwardToMain();"><img src="../images/button/forwardIndex.gif" border="no"></a></td>
+	</tr>
+	<tr height=300 style="height:300px;">
+		<td onmouseover="report11131408over()" class="report1_5"></td>
+		<td colSpan=7 class="report1_12"><img src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=9&graphId=346880&time=1413379930152" width=934 height=300 border=no usemap="#346880" ismap><map name="346880"><area shape="rect" coords="76,111,86,222" title="北京 污染指数 91">
+<area shape="rect" coords="104,127,114,222" title="天津 污染指数 78">
+<area shape="rect" coords="132,148,142,222" title="石家庄 污染指数 61">
+<area shape="rect" coords="160,149,170,222" title="秦皇岛 污染指数 60">
+<area shape="rect" coords="188,54,198,222" title="太原 污染指数 138">
+<area shape="rect" coords="215,106,225,222" title="大同 污染指数 95">
+<area shape="rect" coords="243,159,253,222" title="阳泉 污染指数 52">
+<area shape="rect" coords="271,157,281,222" title="长治 污染指数 54">
+<area shape="rect" coords="299,100,309,222" title="呼和浩特 污染指数 100">
+<area shape="rect" coords="327,143,337,222" title="赤峰 污染指数 65">
+<area shape="rect" coords="355,103,365,222" title="沈阳 污染指数 98">
+<area shape="rect" coords="383,125,393,222" title="大连 污染指数 80">
+<area shape="rect" coords="411,127,421,222" title="鞍山 污染指数 78">
+<area shape="rect" coords="439,106,449,222" title="抚顺 污染指数 95">
+<area shape="rect" coords="467,141,477,222" title="长春 污染指数 67">
+<area shape="rect" coords="495,70,505,222" title="哈尔滨 污染指数 125">
+<area shape="rect" coords="523,116,533,222" title="齐齐哈尔 污染指数 87">
+<area shape="rect" coords="551,148,561,222" title="牡丹江 污染指数 61">
+<area shape="rect" coords="579,139,589,222" title="上海 污染指数 68">
+<area shape="rect" coords="606,103,616,222" title="南京 污染指数 98">
+<area shape="rect" coords="634,128,644,222" title="苏州 污染指数 77">
+<area shape="rect" coords="662,142,672,222" title="南通 污染指数 66">
+<area shape="rect" coords="690,147,700,222" title="连云港 污染指数 62">
+<area shape="rect" coords="718,122,728,222" title="扬州 污染指数 82">
+<area shape="rect" coords="746,121,756,222" title="镇江 污染指数 83">
+<area shape="rect" coords="774,92,784,222" title="杭州 污染指数 107">
+<area shape="rect" coords="802,82,812,222" title="宁波 污染指数 115">
+<area shape="rect" coords="830,113,840,222" title="温州 污染指数 90">
+<area shape="rect" coords="858,105,868,222" title="湖州 污染指数 96">
+<area shape="rect" coords="886,116,896,222" title="绍兴 污染指数 87">
+</map></td>
+	</tr>
+</table>
+							</div> 
+						</center>
+						<div style="margin: 10px auto auto auto;"><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+
+<HTML>
+	<HEAD>
+		<META http-equiv=Content-Type content="text/html; charset=UTF-8">
+		<LINK href="http://datacenter.mep.gov.cn:80/report//main/buttomcss/css_2public.css"
+			type=text/css rel=stylesheet>
+		<LINK href="http://datacenter.mep.gov.cn:80/report//main/buttomcss/css_zwxx.css" type=text/css
+			rel=stylesheet>
+		<META content="MSHTML 6.00.2900.3354" name=GENERATOR>
+	</HEAD>
+	<BODY>
+		<TABLE height=8 cellSpacing=0 cellPadding=0 width=100% align=center
+			border=0>
+			<TBODY>
+				<TR>
+					<TD height="8" bgColor=#9DC0E0></TD>
+				</TR>
+			</TBODY>
+		</TABLE>
+		<TABLE height=63 cellSpacing=0 cellPadding=0 width=100% align=center
+			border=0>
+			<TBODY>
+				<TR>
+					<TD align=right bgColor=#ffffff height=20>
+						<TABLE class=t12l18 height=40 cellSpacing=0 cellPadding=0
+							width=948 border=0>
+							<TBODY>
+								<TR>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;主 办：中华人民共和国环境保护部
+									</TD>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;通讯地址：北京市西城区西直门南小街115号
+									</TD>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;备案编号：
+										<A class=txt12l20 href="http://www.miibeian.gov.cn/"
+											target=_blank><U>京ICP备05009132号</U>
+										</A>
+										<A class=txt12l20
+											href="http://check.sepa.gov.cn/sd/zhb/mainframe.jsp"
+											target=_blank></A>
+									</TD>
+								</TR>
+								<TR>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;技术支持：
+										<A class=txt12l20 href="http://www.chinaeic.net/"
+											target=_blank>中华人民共和国环境保护部信息中心</A>
+									</TD>
+									<td vAlign=center align="left" width=632
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif"
+										colspan="2">
+										&nbsp;&nbsp;邮 编：100035
+									</td>
+								</TR>
+							</TBODY>
+						</TABLE>
+					</TD>
+				</TR>
+			</TBODY>
+		</TABLE>
+	</BODY>
+</HTML>
+</div>
+					</div>
+				</td>
+				<td width="10" background="/report/main/images/right_bk.jpg">
+					&nbsp;
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html>
+	<head>
+		<script language="javascript">
+		var lang = '';
+	function jump(maxp){
+		var err1 ="页码必须是整数！";
+		var err2 ="页码超出范围！";
+		var url = "air_dairy_aqi.jsp?city=&startdate=2010-01-01&enddate=2010-01-01";
+		var page = document.getElementById("pageNum").value;
+		if(checkIsInteger(page))
+			alert(err1);
+		else if(parseInt(page)>parseInt(maxp) || parseInt(page)<=0)
+			alert(err2);
+		else{
+			url += "&page="+page;
+			window.location.href = url;
+		}
+	}
+	
+
+	function jumpTo(p){
+		var url = "air_dairy_aqi.jsp?city=&startdate=2010-01-01&enddate=2010-01-01";
+		url += "&page="+p;
+		window.location.href = url;
+	}
+	function forwardToMain(){
+		//document.location.href = "http://datacenter.mep.gov.cn:80/report/";
+		document.location.href = "http://datacenter.mep.gov.cn:80/";
+		
+	}
+    function checkForm1(){
+    	var date = document.getElementById('startdate').value;
+    	var stopDate = document.getElementById('enddate').value;
+    	if(date!=""&&stopDate!=""){
+    		date = date.replace(/-/g,'/');
+    		stopDate = stopDate.replace(/-/g,'/'); 
+    	 	var d1=new Date(date);   
+  			var d2=new Date(stopDate);
+			if(Date.parse(d1) - Date.parse(d2)>0){	
+			    return false;
+			}
+  		}
+  		if(date!=""&&stopDate==""){
+  			alert('您没有输入结束时间，请重新输入！');
+  			return false;
+  		}
+  		if(date==""&&stopDate!=""){
+  			alert('您没有输入开始时间，请重新输入！');
+  			return false;
+  		}
+    	return true;
+    }
+    
+</script>
+		<title>中华人民共和国环境保护部--政府网站数据中心</title>
+		<link href="/report/css/pagination.css" rel="stylesheet"
+			type="text/css" />
+		<style type="text/css">
+<!--
+body {
+	background-image: url(/report/main/images/bk.jpg);
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+}
+
+#conter {
+	float: left;
+	height: auto;
+	width: 982px;
+}
+
+body {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.STYLE1 {
+	color: #b24910;
+	background-color: #FFFFEF;
+	text-align: right;
+	height: 30px
+}
+
+.STYLE2 {
+	color: #FFFFEF;
+}
+
+.STYLE3 {
+	color: #333333;
+}
+
+.STYLE4 {
+	color: #b24910;
+	background-color: #f3ecd4;
+	text-align: center;
+	width: 12%;
+	height: 30px
+}
+
+.webjx {
+	width: 0;
+	height: 98%;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.con_div {
+	height: 28px;
+	text-align: left;
+	display: table-cell;
+	vertical-align: middle;
+	background-image: url(/report/main/images/di.jpg);
+	width: 98%;
+}
+
+A:link {
+	COLOR: #004e98
+}
+-->
+</style>
+		<script type="text/javascript">
+	function submitForm(){
+		document.citydayform.submit();
+	}
+</script>
+		<script language=JavaScript src="/report/script/indexdatejs.js"></script>
+		<script language="javascript" type="text/javascript"
+			src="/report/script/My97DatePicker/WdatePicker.js"></script>
+		<script language=JavaScript src="/report/script/commJS.js"></script>
+		<link href="/report/main/style/style.css" rel="stylesheet"
+			type="text/css" />
+	</head>
+	<body bgcolor="#FEFFF1">
+		<table width="1002" align="center" cellpadding="0" cellspacing="0">
+			<tr>
+				<td width="10" background="/report/main/images/left_bk.jpg">
+					&nbsp;
+				</td>
+				<td>
+					<div id="conter" style="background-color: #FFFFFF;">
+						<div id="top">
+
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+
+		<title>中华人民共和国环境保护部--政府网站数据中心</title>
+	</head>
+	<script type="text/javascript">
+<!--
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+var timerID=null; 
+var timerRunning=false; 
+file://启动 
+function startclock() 
+{ 
+stopclock(); 
+time(); 
+} 
+
+file://停止 
+function stopclock() 
+{ 
+if(timerRunning) 
+clearTimeout(timerID); 
+timerRunning=false; 
+} 
+
+file://实现模块 
+function time() 
+{ 
+file://使用new操作符创建时间对象 
+var now=new Date(); 
+var yr=now.getYear(); 
+var mName=now.getMonth()+1; 
+var dayNr=((now.getDate()<10)?"0":"")+now.getDate(); 
+var dName=now.getDay(); 
+var ampm=(now.getHours()>=12)?"下午":"上午" 
+var hours=now.getHours(); 
+var minutes=((now.getMinutes()<10)?":0":":")+now.getMinutes(); 
+var seconds=((now.getSeconds()<10)?":0":":")+now.getSeconds(); 
+
+file://判断月份 
+if(mName==1)Month="01"; 
+if(mName==2)Month="02"; 
+if(mName==3)Month="03"; 
+if(mName==4)Month="04"; 
+if(mName==5)Month="05"; 
+if(mName==6)Month="06"; 
+if(mName==7)Month="07"; 
+if(mName==8)Month="08"; 
+if(mName==9)Month="09"; 
+if(mName==10)Month="10"; 
+if(mName==11)Month="11"; 
+if(mName==12)Month="12"; 
+if(dName==1)dName="一"; 
+if(dName==2)dName="二"; 
+if(dName==3)dName="三"; 
+if(dName==4)dName="四"; 
+if(dName==5)dName="五"; 
+if(dName==6)dName="六"; 
+if(dName==0)dName="日"; 
+if(yr<1000) yr=yr+1900;
+
+var MonthDayYear=(""+yr+"年"+Month+"月"+dayNr+"日  星期"+dName); 
+var TimeValue=(""+hours+minutes); 
+document.getElementById("dateTime").innerHTML = MonthDayYear+" "+TimeValue;
+//document.all.dateTimeValue.innerHTML=MonthDayYear+" "+TimeValue;
+timerID=setTimeout("time()",1000); 
+timerRunning=true; 
+} 
+//-->
+</script>
+	<link href="style/style.css" rel="stylesheet" type="text/css" />
+	<body id="top" >
+		<div id="top">
+			<div>
+				<img src="/report/main/images/banner.jpg" width="982" height="90" />
+			</div>
+			<div
+				style="background-image: url(/report/main/images/nav.jpg); height: 28px; margin: 0px auto 0px auto;">
+				<div
+					style="margin: 6px auto 0px 15px; float: left; font-size: 12px; color: #FFFFFF; width: 500px; vertical-align: bottom;"
+					align="left" class="font">
+				</div>
+				<div id="dateTime"
+					style="float: right; margin: 4px 13px 0px auto; width: auto"
+					align="right" class="font"></div>
+			</div>
+		</div>
+	</body>
+<script type="text/javascript">
+	time();
+</script>
+</html>
+</div>
+						<div style="margin: 5px auto 0px auto;" align="center">
+							<div style="height: 40px;" align="center">
+								<div class="listtitle" style="width: 98%; text-indent: 48px;"
+									align="left">
+									<table width="98%">
+										<tr class="text_middle"
+											style="font-size: 12px; color: #FFFFFF;">
+											<td width="60%" align="left" style="text-indent: 48px;">
+												您的位置：
+												<a href="http://www.mep.gov.cn" style="color: #FFFFFF">首页</a>
+												<img src="/report/images/icon/jiantou.gif" />
+												<a href="/" style="color: #FFFFFF">数据中心</a>
+												<img src="/report/images/icon/jiantou.gif" />
+												<a href="/report/air_daily/air_dairy_aqi.jsp"
+													style="color: #FFFFFF"> 全国城市空气质量日报(API)</a>
+											</td>
+											<td width="40%" align="right">
+												<a href="/"
+													style="color: #FFFFFF; margin: auto auto auto auto">返回数据中心</a>
+											</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+							<div class="font">
+								<form name="citydayform"
+									action="http://datacenter.mep.gov.cn:80/report/air_daily/air_dairy_aqi.jsp"
+									method="post" style="margin: 0px auto 0px auto;"
+									onsubmit="return checkForm1();">
+									<table width="95%" border="1" align="center" cellpadding="0"
+										cellspacing="0" bordercolorlight="#d9d7b2"
+										bordercolordark="#ffffff" class="font">
+										<tr>
+											<td width="5%" height="30" bgcolor="#FFFFEF" align="right"
+												class="STYLE1">
+												城市:
+											</td>
+											<td width="8%" bgcolor="#FFFFFF">
+												&nbsp;
+												<input type="text" name='city' value="" />
+											</td>
+											<td width="5%" height="30" bgcolor="#FFFFEF" align="right"
+												class="STYLE1 STYLE1">
+												日期:
+											</td>
+											<td width="30%" bgcolor="#FFFFFF">
+												&nbsp; 从:
+												<input type="text" id="startdate" name="startdate"
+													readonly="true"
+													onfocus="WdatePicker({ el: this.id, dateFmt: 'yyyy-MM-dd', skin: 'whyGreen',maxDate:'#F{$dp.$D(\'enddate\')}' })"
+													style="text-align: center;cursor: pointer;width: 130px;height: 21px;margin-top:0px;" class="Wdate"  value="2010-01-01" />
+												到:
+												<input type="text" id="enddate" name="enddate"
+													readonly="true"
+													onfocus="WdatePicker({ el: this.id, dateFmt: 'yyyy-MM-dd', skin: 'whyGreen',minDate:'#F{$dp.$D(\'startdate\')}' })"
+													style="text-align: center;cursor: pointer;width: 130px;height: 21px;margin-top:0px;"  class="Wdate" value="2010-01-01" />
+											</td>
+											<td width="8%" bgcolor="#FFFFFF">
+												<div align="center">
+													<input type="image" src="/report/main/images/search.gif"
+														width="83" height="19" />
+												</div>
+											</td>
+										</tr>
+									</table>
+								</form>
+							</div>
+						</div>
+						<br>
+						<center>
+							<div class="font12">
+								<script language=javascript src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=10&file=%2Fcom%2Frunqian%2Freport4%2Fview%2Fhtml%2Frqdialog.js" charset="UTF-8">
+</script>
+<form name="report1_turnPageForm" method=post action="http://datacenter.mep.gov.cn:80/report/air_daily/air_dairy_aqi.jsp?t_i_m_e=1413379940243" style="display:none">
+<input type=hidden name="page" value="2">
+<input type=hidden name="enddate" value="2010-01-01">
+<input type=hidden name="city" value="">
+<input type=hidden name="startdate" value="2010-01-01">
+<input type=hidden name=reportParamsId value=633043>
+<input type=hidden name=report1_currPage value="1">
+<input type=hidden name=report1_cachedId value=1231401>
+</form><script language=javascript>
+	function report1_toPage( pageNo ) {
+	if( pageNo < 1 || pageNo > report1_getTotalPage() ) return;
+		document.report1_turnPageForm.report1_currPage.value = pageNo;
+		document.report1_turnPageForm.submit();
+	}
+</script>
+<script language=javascript>
+	function report1_getCurrPage() {
+		return 1;
+	}
+	function report1_getTotalPage() {
+		return 1;
+	}
+	var report1_cachedId = "1231401";
+</script>
+<script language=javascript>
+	function report1_saveAsExcel() {
+		var address = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=4&isDialog=1";
+		rq_showPopWin( address, 300, 210, null );
+	}
+	function _saveAsExcel2( returnVal) {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=3&file=air_daily%2FAirDairyReport_aqi.raq&columns=0&srcType=file&width=-1&height=-1&reportParamsId=633043&cachedId=1231401&t_i_m_e=1413379940243" + returnVal;
+	}
+</script>
+<script language=javascript>
+	function report1_saveAsPdf() {
+		var address = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=25&isDialog=1";
+		rq_showPopWin( address, 300, 200, null );
+	}
+	function _saveAsPdf2( returnVal ) {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=6&file=air_daily%2FAirDairyReport_aqi.raq&columns=0&srcType=file&reportParamsId=633043&cachedId=1231401&t_i_m_e=1413379940243" + returnVal;
+	}
+</script>
+
+<script language=javascript>
+	function report1_saveAsWord() {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=7&file=air_daily%2FAirDairyReport_aqi.raq&columns=0&srcType=file&reportParamsId=633043&cachedId=1231401&t_i_m_e=1413379940244";
+	}
+</script>
+
+<iframe name="report1_saveAs_frame" id="report1_saveAs_frame" src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=0" style="display:none"></iframe>
+<script language=javascript>
+	function report1_saveAsText() {
+		document.getElementById( "report1_saveAs_frame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=18&file=air_daily%2FAirDairyReport_aqi.raq&srcType=file&separator=%09&lineBreak=%0A&reportParamsId=633043&cachedId=1231401&t_i_m_e=1413379940244";
+	}
+</script>
+
+<script language=javascript>
+	function report1_print() {
+		document.getElementById( "report1_printIFrame" ).src = "http://datacenter.mep.gov.cn:80/report/reportServlet?action=2&name=report1&reportFileName=air_daily%2FAirDairyReport_aqi.raq&srcType=file&savePrintSetup=no&appletJarName=runqianReport4Applet.jar&serverPagedPrint=no&mirror=no&reportParamsId=633043&cachedId=1231401&t_i_m_e=1413379940244";
+	}
+</script>
+<iframe name="report1_printIFrame" id="report1_printIFrame" src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=0" style="position:absolute;left:-100px;top:-100px" width=50 height=50></iframe>
+<script language=javascript>
+	var report1oldstatus = "";
+	function report11131413over(){
+		report1oldstatus = window.status;
+		window.status = "环境保护部政府网站数据中心";
+	}
+	function report11131413out(){
+		window.status = report1oldstatus;
+	}
+</script>
+<style id="report1_style">
+	.report1_1 { text-align:center;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_2 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#B34910;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F3ECD4;word-break:keep-all;}
+	.report1_3 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+	.report1_4 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#B24910;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F3ECD4;word-break:keep-all;}
+	.report1_5 { text-align:left;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_6 { text-align:left;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_7 { text-align:right;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_8 { text-align:right;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_9 { text-align:left;vertical-align:middle;font-family:Dialog;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#EEEEEE;word-break:keep-all;}
+	.report1_10 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:solid;border-right-width:1px;border-right-color:#D9D7B2;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_11 { text-align:left;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:#FFFFFF;word-break:keep-all;}
+	.report1_12 { text-align:left;vertical-align:middle;font-family:黑体;font-size:16px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:none;border-top-width:1px;border-top-color:#000000;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:none;border-bottom-width:1px;border-bottom-color:#000000;background-color:transparent;word-break:keep-all;}
+	.report1_13 { text-align:center;vertical-align:middle;font-family:黑体;font-size:16px;color:#333333;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+	.report1_14 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:solid;border-left-width:1px;border-left-color:#D9D7B2;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+	.report1_15 { text-align:center;vertical-align:middle;font-family:宋体;font-size:12px;color:#000000;font-weight:normal;font-style:normal;text-decoration:none;border-left-style:none;border-left-width:1px;border-left-color:#000000;border-top-style:solid;border-top-width:1px;border-top-color:#D9D7B2;border-right-style:none;border-right-width:1px;border-right-color:#000000;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D9D7B2;background-color:#F5F1DF;word-break:keep-all;}
+</style>
+<table id="report1" cellSpacing=0 cellPadding=0 onmouseout="report11131413out()" style="width:935px;table-layout:fixed;border-collapse:collapse">
+	<colgroup>
+		<col style="width:1px;"></col>
+		<col style="width:96px;"></col>
+		<col style="width:130px;"></col>
+		<col style="width:152px;"></col>
+		<col style="width:148px;"></col>
+		<col style="width:148px;"></col>
+		<col style="width:135px;"></col>
+		<col style="width:125px;"></col>
+	</colgroup>
+	<tr height=30 style="height:30px;">
+		<td class="report1_14"></td>
+		<td class="report1_15"></td>
+		<td colSpan=5 onmouseover="report11131413over()" class="report1_13">重&nbsp;点&nbsp;城&nbsp;市&nbsp;空&nbsp;气&nbsp;质&nbsp;量&nbsp;日&nbsp;报</td>
+		<td onmouseover="report11131413over()" class="report1_3"></td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_4">序号</td>
+		<td class="report1_4">城市</td>
+		<td onmouseover="report11131413over()" class="report1_4">日期</td>
+		<td onmouseover="report11131413over()" class="report1_4">污染指数</td>
+		<td onmouseover="report11131413over()" class="report1_2">首要污染物</td>
+		<td class="report1_4">空气质量级别</td>
+		<td onmouseover="report11131413over()" class="report1_4">空气质量状况</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">31</td>
+		<td class="report1_10" style="color:#00A7D1;">合肥</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">93</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">32</td>
+		<td class="report1_10" style="color:#00A7D1;">芜湖</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">68</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">33</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">福州</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">92</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">34</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">厦门</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">89</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">35</td>
+		<td class="report1_10" style="color:#00A7D1;">泉州</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">73</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">36</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">南昌</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">95</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">37</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">九江</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">77</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">38</td>
+		<td class="report1_10" style="color:#00A7D1;">济南</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">95</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">39</td>
+		<td class="report1_10" style="color:#00A7D1;">青岛</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">78</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">40</td>
+		<td class="report1_10" style="color:#00A7D1;">淄博</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">74</td>
+		<td class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">41</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">枣庄</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">88</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">42</td>
+		<td class="report1_10" style="color:#00A7D1;">烟台</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">67</td>
+		<td class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">43</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">潍坊</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">72</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">44</td>
+		<td class="report1_10" style="color:#00A7D1;">济宁</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">81</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">45</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">泰安</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">87</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">46</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">日照</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">72</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">47</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">郑州</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">86</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">48</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">开封</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">90</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">49</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">平顶山</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">95</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">二氧化硫</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#ADAD04;">50</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#ADAD04;">武汉</td>
+		<td class="report1_10" style="color:#ADAD04;">2010-01-01</td>
+		<td class="report1_10" style="color:#ADAD04;">124</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#ADAD04;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#ADAD04;">Ⅲ1</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#ADAD04;">轻微污染</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">51</td>
+		<td class="report1_10" style="color:#00A7D1;">荆州</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">84</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">52</td>
+		<td class="report1_10" style="color:#00A7D1;">长沙</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">85</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">53</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">常德</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">90</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">54</td>
+		<td class="report1_10" style="color:#00A7D1;">张家界</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">63</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">55</td>
+		<td class="report1_10" style="color:#00A7D1;">广州</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">69</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">56</td>
+		<td class="report1_10" style="color:#00A7D1;">韶关</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">68</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">57</td>
+		<td class="report1_10" style="color:#00A7D1;">深圳</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td class="report1_10" style="color:#00A7D1;">68</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 class="report1_10" style="color:#00A7D1;">58</td>
+		<td class="report1_10" style="color:#00A7D1;">珠海</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">59</td>
+		<td class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">59</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">汕头</td>
+		<td class="report1_10" style="color:#00A7D1;">2010-01-01</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">81</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">可吸入颗粒物</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">Ⅱ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00A7D1;">良</td>
+	</tr>
+	<tr height=30 style="height:30px;">
+		<td colSpan=2 onmouseover="report11131413over()" class="report1_10" style="color:#00FF00;">60</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00FF00;">湛江</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00FF00;">2010-01-01</td>
+		<td class="report1_10" style="color:#00FF00;">46</td>
+		<td class="report1_10" style="color:#00FF00;">--</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00FF00;">Ⅰ</td>
+		<td onmouseover="report11131413over()" class="report1_10" style="color:#00FF00;">优</td>
+	</tr>
+	<tr height=25 style="height:25px;">
+		<td colSpan=3 onmouseover="report11131413over()" class="report1_11">记录总数：<b><font color="#004e98">86</font></b>　　总页数：<b><font color="#004e98">3</font></b></td>
+		<td class="report1_1">每页记录数：<b><font color="#004e98">30</font></b></td>
+		<td class="report1_7" style="padding-right:4px;"><a href="javascript: jumpTo(1)">首页</a> <a href="javascript: jumpTo(1)">上一页</a></td>
+		<td class="report1_1"></td>
+		<td class="report1_5" style="padding-left:4px;"><a href="javascript: jumpTo(3)">下一页</a> <a href="javascript: jumpTo(3)">末页</a></td>
+		<td onmouseover="report11131413over()" class="report1_7"><input type="text" name="pageNum" value="2" size="5"> <input type="button" value="跳转" onclick="jump('3');"></td>
+	</tr>
+	<tr height=25 style="height:25px;">
+		<td class="report1_5"></td>
+		<td class="report1_5"></td>
+		<td class="report1_5"></td>
+		<td onmouseover="report11131413over()" class="report1_5"></td>
+		<td onmouseover="report11131413over()" class="report1_5"></td>
+		<td onmouseover="report11131413over()" class="report1_5"></td>
+		<td onmouseover="report11131413over()" class="report1_5"></td>
+		<td class="report1_7"><a href="#" onclick="forwardToMain();"><img src="../images/button/forwardIndex.gif" border="no"></a></td>
+	</tr>
+	<tr height=300 style="height:300px;">
+		<td class="report1_5"></td>
+		<td colSpan=7 class="report1_12"><img src="http://datacenter.mep.gov.cn:80/report/reportServlet?action=9&graphId=346885&time=1413379940254" width=934 height=300 border=no usemap="#346885" ismap><map name="346885"><area shape="rect" coords="76,112,86,229" title="合肥 污染指数 93">
+<area shape="rect" coords="104,143,114,229" title="芜湖 污染指数 68">
+<area shape="rect" coords="132,113,142,229" title="福州 污染指数 92">
+<area shape="rect" coords="160,117,170,229" title="厦门 污染指数 89">
+<area shape="rect" coords="188,137,198,229" title="泉州 污染指数 73">
+<area shape="rect" coords="215,109,225,229" title="南昌 污染指数 95">
+<area shape="rect" coords="243,132,253,229" title="九江 污染指数 77">
+<area shape="rect" coords="271,109,281,229" title="济南 污染指数 95">
+<area shape="rect" coords="299,131,309,229" title="青岛 污染指数 78">
+<area shape="rect" coords="327,136,337,229" title="淄博 污染指数 74">
+<area shape="rect" coords="355,118,365,229" title="枣庄 污染指数 88">
+<area shape="rect" coords="383,145,393,229" title="烟台 污染指数 67">
+<area shape="rect" coords="411,138,421,229" title="潍坊 污染指数 72">
+<area shape="rect" coords="439,127,449,229" title="济宁 污染指数 81">
+<area shape="rect" coords="467,119,477,229" title="泰安 污染指数 87">
+<area shape="rect" coords="495,138,505,229" title="日照 污染指数 72">
+<area shape="rect" coords="523,120,533,229" title="郑州 污染指数 86">
+<area shape="rect" coords="551,115,561,229" title="开封 污染指数 90">
+<area shape="rect" coords="579,109,589,229" title="平顶山 污染指数 95">
+<area shape="rect" coords="606,72,616,229" title="武汉 污染指数 124">
+<area shape="rect" coords="634,123,644,229" title="荆州 污染指数 84">
+<area shape="rect" coords="662,122,672,229" title="长沙 污染指数 85">
+<area shape="rect" coords="690,115,700,229" title="常德 污染指数 90">
+<area shape="rect" coords="718,150,728,229" title="张家界 污染指数 63">
+<area shape="rect" coords="746,142,756,229" title="广州 污染指数 69">
+<area shape="rect" coords="774,143,784,229" title="韶关 污染指数 68">
+<area shape="rect" coords="802,143,812,229" title="深圳 污染指数 68">
+<area shape="rect" coords="830,155,840,229" title="珠海 污染指数 59">
+<area shape="rect" coords="858,127,868,229" title="汕头 污染指数 81">
+<area shape="rect" coords="886,171,896,229" title="湛江 污染指数 46">
+</map></td>
+	</tr>
+</table>
+							</div> 
+						</center>
+						<div style="margin: 10px auto auto auto;"><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+
+<HTML>
+	<HEAD>
+		<META http-equiv=Content-Type content="text/html; charset=UTF-8">
+		<LINK href="http://datacenter.mep.gov.cn:80/report//main/buttomcss/css_2public.css"
+			type=text/css rel=stylesheet>
+		<LINK href="http://datacenter.mep.gov.cn:80/report//main/buttomcss/css_zwxx.css" type=text/css
+			rel=stylesheet>
+		<META content="MSHTML 6.00.2900.3354" name=GENERATOR>
+	</HEAD>
+	<BODY>
+		<TABLE height=8 cellSpacing=0 cellPadding=0 width=100% align=center
+			border=0>
+			<TBODY>
+				<TR>
+					<TD height="8" bgColor=#9DC0E0></TD>
+				</TR>
+			</TBODY>
+		</TABLE>
+		<TABLE height=63 cellSpacing=0 cellPadding=0 width=100% align=center
+			border=0>
+			<TBODY>
+				<TR>
+					<TD align=right bgColor=#ffffff height=20>
+						<TABLE class=t12l18 height=40 cellSpacing=0 cellPadding=0
+							width=948 border=0>
+							<TBODY>
+								<TR>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;主 办：中华人民共和国环境保护部
+									</TD>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;通讯地址：北京市西城区西直门南小街115号
+									</TD>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;备案编号：
+										<A class=txt12l20 href="http://www.miibeian.gov.cn/"
+											target=_blank><U>京ICP备05009132号</U>
+										</A>
+										<A class=txt12l20
+											href="http://check.sepa.gov.cn/sd/zhb/mainframe.jsp"
+											target=_blank></A>
+									</TD>
+								</TR>
+								<TR>
+									<TD vAlign=center align="left" width=316
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif">
+										&nbsp;&nbsp;技术支持：
+										<A class=txt12l20 href="http://www.chinaeic.net/"
+											target=_blank>中华人民共和国环境保护部信息中心</A>
+									</TD>
+									<td vAlign=center align="left" width=632
+										background="http://datacenter.mep.gov.cn:80/report//main/buttomcss/readmelin.gif"
+										colspan="2">
+										&nbsp;&nbsp;邮 编：100035
+									</td>
+								</TR>
+							</TBODY>
+						</TABLE>
+					</TD>
+				</TR>
+			</TBODY>
+		</TABLE>
+	</BODY>
+</HTML>
+</div>
+					</div>
+				</td>
+				<td width="10" background="/report/main/images/right_bk.jpg">
+					&nbsp;
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
