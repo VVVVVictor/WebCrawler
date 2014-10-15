@@ -59,8 +59,8 @@ def login():
     cj = cookielib.CookieJar()
     print("Current proxy: "+proxyList[0])
     proxy_handler = urllib2.ProxyHandler({"http": proxyList[0]})
-    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     #opener.addheaders = headers
     urllib2.install_opener(opener)
     

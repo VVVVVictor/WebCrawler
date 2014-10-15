@@ -35,6 +35,10 @@ host = 'www.renrendai.com'
 userAgent = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36']
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
+#代理相关
+proxyfileName = 'proxylist'
+proxyList = []
+
 TRY_LOGIN_TIMES = 5 
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
@@ -79,13 +83,31 @@ def getConfig():
     
     return [filedirectory, threadnumber]
 #end def getConfig()
-    
+#--------------------------------------------------
+#获取代理信息
+def getProxyList(proxy = None):
+    print('Get proxy...')
+    global proxyList
+    if proxy == None:
+        proxy = proxyfileName
+    try:
+        proxyfile = open(os.getcwd()+'/'+proxy, 'r')
+        proxyList = proxyfile.readlines()
+        #print proxyList
+    except:
+        print('No proxy file!')
+    return proxyList
+#end def getProxyList    
 #--------------------------------------------------
 #登录函数
 def login():
-    print('Logging in...')
+    print('Logging...')
     cj = cookielib.CookieJar()
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    getProxyList()
+    print("Current proxy: "+proxyList[0])
+    proxy_handler = urllib2.ProxyHandler({"http": proxyList[0]})
+    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
     urllib2.install_opener(opener)
 
     data = {'j_username':username, 'j_password':password, 'rememberme':'on', 'targetUrl':'http://www.renrendai.com', 'returnUrl':''}
@@ -237,6 +259,8 @@ def analyzeData(webcontent, writers):
     
     if soup.find('img', {'src':'/exceptions/network-busy/img/404.png'}):
         return False #页面404
+    if soup.find('img', {'src':'/exceptions/network-busy/img/500.png'}):
+        return False #服务器发生错误
     
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
@@ -287,6 +311,10 @@ def analyzeData(webcontent, writers):
     description = loanData['description']
     jobType = loanData['jobType']
     
+    openTimeStr = loanData['openTime'] #开放时间
+    openTimeFormat = time.strptime(openTimeStr,'%b %d, %Y %I:%M:%S %p')
+    openTime = time.strftime('%Y-%m-%d', openTimeFormat)
+    
     status = ''
     if statusType == 'IN_PROGRESS':
         status = '还款中'
@@ -302,7 +330,7 @@ def analyzeData(webcontent, writers):
         status = '已还清'
     else:
         status = statusType
-    buffer1 = [currentDate, currentClock, loanId, loanType, guarantor, title, amount, interest, months, status]
+    buffer1 = [currentDate, currentClock, loanId, loanType, guarantor, title, amount, interest, months, openTime, status]
     #print(buffer1)
 
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
@@ -347,6 +375,7 @@ def analyzeData(webcontent, writers):
     
     ###用户个人信息###
     tag_userinfo = soup.find('div', class_='ui-tab-content-basic')
+    #print(tag_userinfo)
     list_userinfo = tag_userinfo.find('ul').find_all('li')
     #print list_userinfo
     sex = list_userinfo[0].find('em', class_='mt5')['title']
@@ -365,13 +394,16 @@ def analyzeData(webcontent, writers):
     houseLoan = list_userinfo[8].find(class_='icon-check-checked').next_sibling
     school = list_userinfo[9].find(id='university')['title']
     city = list_userinfo[10].find(class_='tab-list-value').string
-    if city.find(u'请选择')>0 or city.find('--')>0: city = ''
+    #print(city.find(u'请选择'))
+    if city.find(u'请选择')>=0 or city.find('--')>=0: 
+        city = ''
     tag_car = list_userinfo[11].find(class_='icon-check-checked')
     if tag_car:
         car = tag_car.next_sibling
     else:
         car = list_userinfo[11].find('em')['title']
     marriage =list_userinfo[12].find(class_='tab-list-value').string
+    if marriage.find('--')>=0: marriage = ''
     workTime = list_userinfo[13].find(class_='tab-list-value').string
     if workTime=='--': workTime = ''
     carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
@@ -514,17 +546,23 @@ def analyzeLenderData(loanId, writer, attrs):
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['lendTime'])
         lendDate = m.group(1)
         lendClock = m.group(2)
-        isFinancePlan = '0' #理财计划
-        financePlanId = '' #理财计划期数
-        if(item['lenderType'] == 'FINANCEPLAN_BID'):
-            isFinancePlan = '1'
-            financePlanId = item['financePlanId']
+        lenderType = '无' #投标类型：理、自、U、无
+        financePlanId = '' #理财计划期数或U计划类型
+        if(item['lenderType'] == 'FINANCEPLAN_BID'):#FINANCEPLAN_BID or NORMAL_BID or AUTO_BID
+            financePlanId = item['financeCategory']
+            lenderType = 'U'
+            if financePlanId == 'OLD':
+                financePlanId = item['financePlanId']
+                lenderType = '理'
+        elif(item['lenderType'] == 'AUTO_BID'):
+            lenderType = '自'
+            
         mobileTrade = '0'
         if(item['tradeMethod'] == 'MOBILE'):
             mobileTrade = '1'
         buffer_lenderRecords = []
         buffer_lenderRecords.extend(attrs)
-        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], mobileTrade, item['amount'], lendDate, lendClock, isFinancePlan, financePlanId])
+        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], mobileTrade, item['amount'], lendDate, lendClock, lenderType, financePlanId])
         #print buffer_lenderRecords
         writer.writerow(buffer_lenderRecords)
 #end def analyzeLenderData
@@ -603,15 +641,18 @@ def analyzeLenderInfoData(loanId, writer, attrs):
     list_lenderInfo = lenderInfo['data']['lenders']
     #print list_lenderInfo
     for item in list_lenderInfo:
-        isFinancePlan = '0' #理财计划
-        financePlanId = '' #理财计划期数
-        #print item['financePlanId']
+        lenderType = '无' #投标类型：理、U、无
+        financePlanId = '' #理财计划期数或U计划类型
         if(item['financePlanId'] != None):
-            isFinancePlan = '1'
-            financePlanId = item['financePlanId']
+            financePlanId = item['financePlanCategory']
+            lenderType = 'U'
+            if financePlanId == 'OLD':
+                financePlanId = item['financePlanId']
+                lenderType = '理'
+                
         buffer_lenderInfo = []
         buffer_lenderInfo.extend(attrs)
-        buffer_lenderInfo.extend([loanId, item['userId'], item['nickName'], item['leftAmount'], item['share'], isFinancePlan, financePlanId])
+        buffer_lenderInfo.extend([loanId, item['userId'], item['nickName'], item['leftAmount'], item['share'], lenderType, financePlanId])
         writer.writerow(buffer_lenderInfo)
 #end def analyzeLenderInfoData()
 
