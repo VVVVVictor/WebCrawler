@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import socket
 from random import randint
 
-airUrlpre = 'http://datacenter.mep.gov.cn/report/air_daily/air_dairy_aqi.jsp?'
+airUrlpre_2014 = 'http://datacenter.mep.gov.cn/report/air_daily/air_dairy.jsp?'
 
 #for headers
 ipAddress = ['191.124.5.2', '178.98.24.45, 231.67.9.28']
@@ -18,7 +18,7 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 #全局变量
 gWriter = ''
 
-title = [u'序号', u'城市', u'日期', u'污染指数', u'首要污染物', u'空气质量级别', u'空气质量状况']
+title_2014 = [u'序号', u'城市', u'日期', u'AQI指数', u'空气质量级别', u'首要污染物']
 
 #-------------------------------------------------
 class DataFetcher(threading.Thread):
@@ -42,7 +42,7 @@ class DataFetcher(threading.Thread):
             print('Thread '+str(self.tId)+': download page '+str(curPage)+'...')
             data = {'city':'', 'startdate':startDate, 'enddate':endDate, 'page':curPage}
             postData = urllib.urlencode(data)
-            req = urllib2.Request(airUrlpre, postData, getRandomHeaders())
+            req = urllib2.Request(airUrlpre_2014, postData, getRandomHeaders())
             try:
                 response = urllib2.urlopen(req)
                 m = response.read()
@@ -84,10 +84,10 @@ def getPageMax(startDate, endDate):
     global pageMax
     data = {'city':'', 'startdate':startDate, 'enddate':endDate, 'page':'1'}
     postData = urllib.urlencode(data)
-    req = urllib2.Request(airUrlpre, postData, getRandomHeaders())
+    req = urllib2.Request(airUrlpre_2014, postData, getRandomHeaders())
     m = urllib2.urlopen(req).read()
-    pageMax = BeautifulSoup(m).find('td', class_='report1_11').find('font').find_next('font').get_text()
-    pageMax = int(pageMax)
+    pageMaxStr = BeautifulSoup(m).find('a', text=re.compile(u'末页'))['href']
+    pageMax = int(re.search('\d+', pageMaxStr).group())
     print('\nTotal Page Number:'+str(pageMax))
 #edn def getPageMax
 #--------------------------------------------------
@@ -103,7 +103,7 @@ def createFolder(filedirectory):
 def createWriter(filedirectory, i_startDate, i_endDate, prefix=''):
     writers = [] #csv writer list
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
-    name_sheet = filedirectory+i_startDate+'-'+i_endDate+'.csv';
+    name_sheet = filedirectory+'air_'+i_startDate+'-'+i_endDate+'.csv';
     flag_newfile = True
     if(os.path.isfile(name_sheet)):
         flag_newfile = False
@@ -112,7 +112,7 @@ def createWriter(filedirectory, i_startDate, i_endDate, prefix=''):
     
     writer = csv.writer(file_sheet)
     if(flag_newfile):
-        writer.writerow(title)
+        writer.writerow(title_2014)
         
     return writer
 #end def createWriters
@@ -136,16 +136,16 @@ if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8') #系统输出编码置为utf8，解决输出时的乱码问题
     
-    print '*******************************'
-    print '*    Air dairy Spider v1015   *'
-    print '*******************************'
+    print '*******************************************'
+    print '* Air dairy Spider After 2014/01/01 v1015 *'
+    print '*******************************************'
     
     while True:
         try:
-            raw_start = raw_input(u'start date:')
+            raw_start = raw_input(u'start date(20140101~):')
             i_startDate = int(raw_start)
-            if i_startDate < 20100101:
-                print('Start date must be after 20100101.')
+            if i_startDate < 20140101:
+                print('Start date must be after 20140101.')
                 continue;
             break
         except:
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         
     while True:
         try:
-            raw_end = raw_input(u'end date:')
+            raw_end = raw_input(u'end date(20140101~):')
             i_endDate = int(raw_end);
             if i_endDate < i_startDate:
                 print('End date must be after start date.');

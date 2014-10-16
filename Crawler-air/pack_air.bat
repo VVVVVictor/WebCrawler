@@ -1,0 +1,1 @@
+cxfreeze --include-modules=bs4 --target-dir=..\build\air Crawler_Air_before2013.py & cxfreeze --include-modules=bs4 --target-dir=..\build\air Crawler_Air_after2014.py
