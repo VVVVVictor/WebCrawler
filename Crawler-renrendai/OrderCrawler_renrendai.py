@@ -45,17 +45,24 @@ class DataFetcher(threading.Thread):
         self.tId = tId
         self.writers = writers
     def run(self):
-        global pageNo, lostPageCount, exitFlag
+        global orderNo, exitFlag, lostPageCount
         while not exitFlag:
-            pageLock.acquire()
-            if(pageNo > endID):
+            orderLock.acquire()
+            if(orderNo > orderLen):
                 exitFlag = True
                 break
-            curPage = pageNo
-            pageNo += 1
-            pageLock.release()
-            print('Thread '+str(self.tId)+': downloading Loan: '+str(pageNo)+'...')
-            req = urllib2.Request(urlLoan+str(pageNo), headers = getRandomHeaders())
+            try:
+                curOrder = (int)(orderList[orderNo-1])
+            except: #order序号解析错误
+                print("   [ERROR] Line "+str(orderNo)+': '+orderList[orderNo-1].strip()+' is not a valid number!')
+                orderNo += 1
+                lostPageCount += 1
+                orderLock.release()
+                continue
+            orderNo += 1
+            print('Thread '+str(self.tId)+': downloading Loan: '+str(curOrder))
+            orderLock.release()
+            req = urllib2.Request(urlLoan+str(curOrder), headers = getRandomHeaders())
             try:
                 response = urllib2.urlopen(req)
                 m = response.read()
@@ -67,69 +74,17 @@ class DataFetcher(threading.Thread):
                     print(e.reason)
                 continue
             except socket.error as e:
-                print('ERROR] Socket error: '+str(e.errno))
+                print('   ERROR] Socket error: '+str(e.errno))
                 continue
             #end try&except
             if analyzeData(m, writers):
-                lostPageCount = 0
+                continue
             else:
-                print('Loan '+str(curPage)+' is LOST!')
                 lostPageCount += 1
-                if(lostPageCount > LOST_PAGE_LIMIT):
-                    exitFlag = True
-                    print('You have got the latest page!')
+                print('   [ERROR] Loan '+str(curOrder)+' is LOST!')
             time.sleep(2)
         #end while
 #end class DataFetcher
-#------------------------------------------------
-def getData(begin_page, end_page, filedirectory):
-    starttime = time.clock()
-    lostPageCount = 0 #记录连续404的页面个数
-    lastpage = begin_page #记录抓取的最后一个有效页面
-    
-    writers = createWriters(filedirectory, 'rrdai_'+str(begin_page)+'-'+str(end_page))
-
-    for i in range(begin_page, end_page+1):
-        print('Downloading Loan ID:'+str(i)+'...')
-        req = urllib2.Request(urlLoan+str(i), headers = getRandomHeaders())
-        try:
-            response = urllib2.urlopen(req)
-            m = response.read()
-            #print(m)
-            lastpage = i
-            #response.close()
-            if(len(m) < 100):
-                print('webcontent too short!')
-                login()
-                continue
-        except (urllib2.URLError) as e:
-            if hasattr(e, 'code'):
-                print(str(e.code)+': '+str(e.reason))
-            else:
-                print(e.reason)
-            i = lastpage
-            continue
-        except socket.error as e:
-            print('ERROR] Socket error: '+str(e.errno))
-            i = lastpage 
-            continue
-        #end try&except
-        
-        if analyzeData(m, writers):
-            lostPageCount = 0
-        else:
-            print('Page 404!')
-            lostPageCount += 1
-            if(lostPageCount > LOST_PAGE_LIMIT):
-                print('You have got the latest page!')
-                break
-    #end for
-    
-    endtime = time.clock()
-    print(u'[execute time]:'+str(endtime-starttime)+'s')
-    return
-#end def getData()
-        
 #----------------------------------------
 def getInput():
     global startID, endID
@@ -163,13 +118,14 @@ def getInput():
             continue
 #----------------------------
 #global variable
-startID = 1
-endID = 1000
-pageNo = 0
 threadCount = 1 #并发线程数
 exitFlag = False
 lostPageCount = 0
 sleepTime = 2
+orderFilename = 'orderlist'
+orderList = []
+orderNo = 1
+orderLen = 0
 #----------------------------
 #main
 if __name__=='__main__':
@@ -182,45 +138,40 @@ if __name__=='__main__':
     httplib.HTTPConnection._http_vsn = 10
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
-    print '*******************************'
-    print '* Renrendai Loan Spider v1015 *'
-    print '*******************************'
+    print '*****************************************************'
+    print '* Renrendai Loan Spider for Individual Orders v1020 *'
+    print '*****************************************************'
     config = getConfig()
     filedirectory = config[0]
     threadnumber = config[1]
 
     parser = argparse.ArgumentParser(conflict_handler='resolve')
-    parser.add_argument('-s', '--start', action='store', dest='startid', help='Set start order ID')
-    parser.add_argument('-e', '--end', action='store', dest='endid', help='Set last order ID')
     parser.add_argument('-t', '--threadcount', action='store', dest='threadCount', help='Set thread number', default=threadnumber)
     args = parser.parse_args()
-    
-    if(args.startid != None and args.endid != None):
-        startID = int(args.startid)
-        endID = int(args.endid)
-    else:
-        getInput()
+
     threadCount = int(args.threadCount)
+    
+    try:
+        orderFile = open(os.getcwd()+'/'+orderFilename, 'r')
+        orderList = orderFile.readlines()
+        orderLen = len(orderList)
+        #print proxyList
+    except:
+        print('No orderList file!')
 
     if login():
-        print '------------INPUT INFORMATION---------------------'
-        print '- StartID = '+str(startID)
-        print '- EndID   = '+str(endID)
-        print '------------INPUT INFORMATION---------------------'
-        
+        print("\nTotal line number: "+str(orderLen)+".")
         startTime = time.clock()
-        pageNo = startID
-        pageLock = threading.Lock()
-        #getData(startID, endID, filedirectory)
+        orderLock = threading.Lock()
         threads = []
-        writers = createWriters(filedirectory, 'rrdai_'+str(startID)+'-'+str(endID))
+        writers = createWriters(filedirectory, 'rrdai_orders')
         for i in xrange(threadCount):
             thread = DataFetcher(i+1, writers)
             threads.append(thread)
         for t in threads:
             t.start()
             
-        while(pageNo <= endID):
+        while(orderNo <= orderLen):
             pass
         exitFlag = True
         
@@ -228,5 +179,5 @@ if __name__=='__main__':
             t.join()
         print 'Exiting Main Thread'
         endTime = time.clock()
-        print('[Total order number]:'+str(pageNo-startID))
+        print('[Valid order number]:'+str(orderLen-lostPageCount))
         print(u'[Total execute time]:'+str(endTime-startTime)+'s')
