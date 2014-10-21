@@ -162,14 +162,14 @@ def cleanString(str):
     return str.strip()
 #--------------------------------------------------
 #从url读取页面内容
-def readFromUrl(url, formdata = None):
+def readFromUrl(url, formdata = None, headers = None):
     loopCount = 0
     while True:
         loopCount += 1
         if loopCount > 5:
             break
         try:
-            response = responseFromUrl(url, formdata)
+            response = responseFromUrl(url, formdata, headers)
             if response:
                 m = response.read()
                 #response.close()
@@ -197,11 +197,12 @@ def readFromUrl(url, formdata = None):
 #end def readFromUrl
 #--------------------------------------------------
 #从url读取response
-def responseFromUrl(url, formdata = None):
+def responseFromUrl(url, formdata = None, headers = None):
     response = None
     if formdata != None:
         formdata = urllib.urlencode(formdata)
-
+    if headers == None:
+        headers = getRandomHeaders()
     loopCount = 0
     #proxyNumber = len(proxyList)
     while True:
@@ -211,7 +212,7 @@ def responseFromUrl(url, formdata = None):
             print('URL = '+url)
             break
         try:
-            req = urllib2.Request(url, formdata, headers=getRandomHeaders())
+            req = urllib2.Request(url, formdata, headers)
             #proxyNo = randint(0, proxyNumber-1)
             #req.set_proxy(proxyList[proxyNo], 'http')
             response = urllib2.urlopen(req)
