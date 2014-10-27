@@ -189,6 +189,7 @@ def readFromUrl(url, formdata = None, headers = None):
         except Exception, e:
             print('i do not know what is wrong. When readFromUrl()!')
             print("url = "+url)
+            print(e.errno)
             if hasattr(e, 'code'):
                 print "Error Msg: "+e.code
             login()
@@ -712,22 +713,61 @@ def analyzeUserData(userId, writer, attrs):
 #end analyzeUserData()
 
 #------------------------------------------------------
-def analyzeFPData(webcontent, planId, writers):
+def analyzeUPData(webcontent, planId, writers):
+    print('planID='+str(planId))
     soup = BeautifulSoup(webcontent)
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
-    tag_basic = soup.find('div', class_='basic-box')
+    tag_basic = soup.find('div', {'id':'plan-basic-panel'})
     if tag_basic == None:
         return False
+    planInfo = tag_basic.find('div', class_='planinfo')
+    
+    list_basic1 = planInfo.find('div').find_all('dl', class_='fn-left')
+    planAmount = list_basic1[0].em.get_text() #计划金额
+    expectedRate = list_basic1[1].em.get_text().strip() #预期年化收益
+    #lockPeriod = list_basic1[2].em.get_text() #锁定期限
+    
+    list_basic2 = planInfo.ul.find_all('li', class_='fn-clear')
+    list_span1 = list_basic2[0].find_all('span')
+    #planProducts = list_span1[1]['data-products'] #投标范围
+    guaranteeMode = list_span1[3].get_text() #保障方式
+    #list_span2 = list_basic2[1].find_all('span')
+    #lockDate = list_span2[1].get_text() #退出日期/锁定日期
+    #addLimit = list_span2[3].em.get_text() #加入上限
+    
+    statusTag = soup.find('div', class_='stamp').em
+    statusCode = ''
+    if statusTag:
+        statusCode = statusTag['class'][0]
+    status = statusCode
+    if(statusCode == 'INCOME'): status = '收益中'
+    elif(statusCode == 'RESERVE'): status = '预定满额'
+    elif(statusCode == 'OPEN'): status = '开放期'
+    
+    planTab = soup.find('div', {'id':'plan-tab-content'})
+    list_tr = planTab.find('tbody').find_all('tr')
+    planName = list_tr[0].td.get_text() #名称
+    planProducts = list_tr[2].td.get_text() #投标范围
+    lockPeriod = list_tr[4].td.get_text() #锁定期
+    quitDate = list_tr[5].td.get_text() #退出日期
+    joinCondition = list_tr[6].td.get_text() #加入条件
+    joinLimit = list_tr[7].td.get_text() #加入上限
+    earnest = list_tr[8].td.get_text() #定金
+    reserveStart = list_tr[9].td.get_text() #预定开始时间
+    payDeadline = list_tr[10].td.get_text() #支付截止时间
+    joinStart = list_tr[11].td.get_text() #开放加入时间
+    
+    '''
     list_basicInfo = tag_basic.ul.find_all('li', class_='fn-clear')
     
-    planAmount = list_basicInfo[0].find('span', class_='num').em.get_text()
-    expectedRate = list_basicInfo[0].find('span', {'id':'expected-rate'})['data-value']
-    planProducts = list_basicInfo[1].find('span', {'id':'plan-basic-products'})['data-products']
-    guaranteeMode = list_basicInfo[1].find('span', class_='last').get_text()
+    #planAmount = list_basicInfo[0].find('span', class_='num').em.get_text()
+    #expectedRate = list_basicInfo[0].find('span', {'id':'expected-rate'})['data-value']
+    #planProducts = list_basicInfo[1].find('span', {'id':'plan-basic-products'})['data-products']
+    #guaranteeMode = list_basicInfo[1].find('span', class_='last').get_text()
     status = list_basicInfo[2].find('span', class_='basic-value').get_text()
     fullTime = list_basicInfo[2].find('span', class_='last').get_text()
-    lockPeriod = list_basicInfo[3].find('em', class_='value').get_text()
+    #lockPeriod = list_basicInfo[3].find('em', class_='value').get_text()
     lockDate = list_basicInfo[3].find('span', class_='last').get_text()
     #print list_basicInfo[4]
     buyInRate = list_basicInfo[5].find('div', {'id':'buy-in-rate'})['data-br']
@@ -736,19 +776,23 @@ def analyzeFPData(webcontent, planId, writers):
     
     leftAmount = soup.find('em', {'id':'max-amount-1'})['data-amount']
     joinAmountLimit = soup.find('em', {'id':'max-amount-2'})['data-amount']
-    
-    buffer_FP = [currentDate, currentClock, planId, planAmount, expectedRate, planProducts, guaranteeMode, status, fullTime, lockPeriod, lockDate, buyInRate, interestRate, quitRate, leftAmount, joinAmountLimit]
+    '''
+    buffer_UP = [currentDate, currentClock, planId, planName, planAmount, expectedRate, planProducts, guaranteeMode, status, lockPeriod, quitDate, joinCondition, joinLimit, earnest, reserveStart, payDeadline, joinStart]
     #print buffer_FP
     
+    
+    
+    #分析预定记录
+    
     #分析加入记录
-    joinLenderCount = analyzeFPLender(planId, writers[1])
+    #joinLenderCount = analyzeFPLender(planId, writers[1])
     
     #分析理财计划表现
-    performance = analyzePlan(planId)
+    #performance = analyzePlan(planId)
     
-    buffer_FP.append(joinLenderCount)
-    buffer_FP.extend(performance)
-    writers[0].writerow(buffer_FP)
+    #buffer_FP.append(joinLenderCount)
+    #buffer_FP.extend(performance)
+    writers[1].writerow(buffer_UP)
     return True
 #end def analyzeFPData()
 #--------------------------------------------------------
