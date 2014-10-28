@@ -27,6 +27,7 @@ urlCollectionPrefix = 'http://www.renrendai.com/lend/dunDetail.action?loanId='
 #for Financial Plan
 urlFPLenderPrefix = 'http://www.renrendai.com/financeplan/getFinancePlanLenders.action?financePlanStr='
 urlFPPerformancePrefix = 'http://www.renrendai.com/financeplan/listPlan!planResults.action?financePlanId='
+urlFPReservePrefix = 'http://www.renrendai.com/financeplan/getFinancePlanLenders!reserveRecord.action?financePlanStr='
 username = u'15120000823'
 password = u'wmf123456'
 
@@ -783,21 +784,40 @@ def analyzeUPData(webcontent, planId, writers):
     
     
     #分析预定记录
-    
+    analyzeReserve(planId, writers[2])
     #分析加入记录
-    #joinLenderCount = analyzeFPLender(planId, writers[1])
+    joinLenderCount = analyzeUPLender(planId, writers[3])
     
     #分析理财计划表现
-    #performance = analyzePlan(planId)
+    performance = analyzePlan(planId)
     
-    #buffer_FP.append(joinLenderCount)
-    #buffer_FP.extend(performance)
+    buffer_UP.append(joinLenderCount)
+    buffer_UP.extend(performance)
     writers[1].writerow(buffer_UP)
     return True
-#end def analyzeFPData()
+#end def analyzeUPData()
+#--------------------------------------------------------
+#预定记录
+def analyzeReserve(planId, writer):
+    content_reserve = readFromUlr(urlFPReservePrefix+str(planId))
+    reserveInfo = json.loads(content_reserve)
+    list_reserve = reserveInfo['data']['rsvlist']
+    for item in list_reserve:
+        m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
+        aDate = m.group(1)
+        aClock = m.group(2)
+        buffer_reserve = [planId]
+        tradeMethod = ''
+        if(item['tradeMethod'] == 'MOBILE'): tradeMethod = '手机预定'
+        elif(item[ucodeId] not None): tradeMethod = 'U-code预定'
+        
+        buffer_reserve.extend([item['nickName'], item['userId'], item['planAmount'], aDate, aClock, tradeMethod, item['reserveType']])
+        writer.writerow(buffer_reserve)
+    return True
+#end def analyzeReserve
 #--------------------------------------------------------
 #加入记录, 返回总人数
-def analyzeFPLender(planId, writer):
+def analyzeUPLender(planId, writer):
     #print('  Get Lender Info...')
     tryCount = 0;
     while(tryCount < 5):
@@ -822,7 +842,7 @@ def analyzeFPLender(planId, writer):
         buffer_lender.extend([item['nickName'], item['userId'], item['amount'], aDate, aClock])
         writer.writerow(buffer_lender)
     return len(list_lenders)
-#end def analyzeFPLender()
+#end def analyzeUPLender()
 #----------------------------------------------------
 #
 def analyzePlan(planId):
