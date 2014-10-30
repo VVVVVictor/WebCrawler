@@ -23,7 +23,7 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 jsonheaders={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36', 'Host':'www.renrendai.com', 'X-Requested-With':'XMLHttpRequest'}
 
 sheetName = [u'计划概况', u'计划详情', u'预定记录', u'加入记录', u'计划表现']
-titles = ([u'抓取日期', u'抓取时间', u'计划名称', u'计划id', u'计划金额（元）', u'加入人次', u'预期年化收益', u'累计收益（元）', u'状态'], [u'抓取日期', u'抓取时间', u'计划ID', u'计划名称', u'计划金额', u'预期收益（%/年）', u'投标范围', u'保障方式', u'计划状态', u'锁定期限（月）', u'退出日期', u'加入条件', u'加入上限',u'定金', u'预定开始时间', u'支付截止时间', u'开放加入时间', u'服务费率', u'退出费率', u'剩余金额', u'加入总人次',u'自动投标次数', u'平均年利率', u'优选理财计划总额', u'资金利用率', u'累积赚取（元）', u'借款者人数'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人id', u'加入金额', u'预定时间', u'来源', u'状态'], [u'U计划id', u'理财人昵称', u'理财人ID', u'加入金额', u'加入日期', u'加入时间'], [u'优选理财计划期数', u'自动投标次数', u'平均年利率', u'优选理财计划总额', u'资金利用率', u'累积赚取（元）', u'借款者人数'])
+titles = ([u'抓取日期', u'抓取时间', u'计划名称', u'计划id', u'计划金额（元）', u'加入人次', u'预期年化收益', u'累计收益（元）', u'状态'], [u'抓取日期', u'抓取时间', u'计划名称',u'计划ID', u'计划金额', u'预期收益（%/年）', u'投标范围', u'保障方式', u'计划状态', u'预定开始时间', u'预定结束时间', u'支付截止时间', u'开放加入时间', u'进入锁定时间', u'退出时间', u'加入条件（元）', u'加入上限（元）',u'定金', u'加入费率', u'退出费率', u'提前退出费率', u'加入总人次', u'满额用时', u'自动投标次数', u'帮助借款用户', u'为用户赚取（元）'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人id', u'加入金额', u'预定日期', u'预定时间', u'来源', u'状态'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人ID', u'加入金额', u'加入日期', u'加入时间'], [u'优选理财计划期数', u'自动投标次数', u'平均年利率', u'优选理财计划总额', u'资金利用率', u'累积赚取（元）', u'借款者人数'])
 
 #----------------------------------------------
 def createWriters(filedirectory, prefix=''):
@@ -45,7 +45,7 @@ def createWriters(filedirectory, prefix=''):
     return writers
 #------------------------------------------------
 def getList():
-    for X in ['A']:
+    for X in ['A', 'B']:
         print(u'抓取U计划'+X+'...')
         pageIndex = 1
         while(True):
@@ -65,6 +65,7 @@ def getList():
                 elif stateCode == '2': state = u'预定满额'
                 elif stateCode == '7': state = u'开放期'
                 elif stateCode == '0': state = u'等待预定'
+                elif stateCode == '5': state = u'计划满额'
                     
                 buffer = [currentDate, currentClock, item['name'], item['id'], item['amount'], item['subPointCount'], item['expectedYearRate'], item['earnInterest'], state]
                 writers[0].writerow(buffer)

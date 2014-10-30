@@ -745,6 +745,7 @@ def analyzeUPData(webcontent, planId, writers):
     if(statusCode == 'INCOME'): status = '收益中'
     elif(statusCode == 'RESERVE'): status = '预定满额'
     elif(statusCode == 'OPEN'): status = '开放期'
+    elif(statusCode == 'PLAN'): status = '计划满额'
     
     planTab = soup.find('div', {'id':'plan-tab-content'})
     list_tr = planTab.find('tbody').find_all('tr')
@@ -784,9 +785,9 @@ def analyzeUPData(webcontent, planId, writers):
     
     
     #分析预定记录
-    analyzeReserve(planId, writers[2])
+    analyzeReserve(planId, planName, writers[2])
     #分析加入记录
-    joinLenderCount = analyzeUPLender(planId, writers[3])
+    joinLenderCount = analyzeUPLender(planId, planName, writers[3])
     
     #分析理财计划表现
     performance = analyzePlan(planId)
@@ -798,18 +799,19 @@ def analyzeUPData(webcontent, planId, writers):
 #end def analyzeUPData()
 #--------------------------------------------------------
 #预定记录
-def analyzeReserve(planId, writer):
-    content_reserve = readFromUlr(urlFPReservePrefix+str(planId))
+def analyzeReserve(planId, planName, writer):
+    content_reserve = readFromUrl(urlFPReservePrefix+str(planId))
+    #print content_reserve
     reserveInfo = json.loads(content_reserve)
-    list_reserve = reserveInfo['data']['rsvlist']
+    list_reserve = reserveInfo['data']['rsvList']
     for item in list_reserve:
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
         aDate = m.group(1)
         aClock = m.group(2)
-        buffer_reserve = [planId]
+        buffer_reserve = [planName, planId]
         tradeMethod = ''
-        if(item['tradeMethod'] == 'MOBILE'): tradeMethod = '手机预定'
-        elif(item[ucodeId] not None): tradeMethod = 'U-code预定'
+        if(item['tradeMethod'] == 'MOBILE'): tradeMethod = u'手机预定'
+        elif(item['ucodeId'] is not None): tradeMethod = u'U-code预定'
         
         buffer_reserve.extend([item['nickName'], item['userId'], item['planAmount'], aDate, aClock, tradeMethod, item['reserveType']])
         writer.writerow(buffer_reserve)
@@ -817,7 +819,7 @@ def analyzeReserve(planId, writer):
 #end def analyzeReserve
 #--------------------------------------------------------
 #加入记录, 返回总人数
-def analyzeUPLender(planId, writer):
+def analyzeUPLender(planId, planName, writer):
     #print('  Get Lender Info...')
     tryCount = 0;
     while(tryCount < 5):
@@ -838,7 +840,7 @@ def analyzeUPLender(planId, writer):
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
         aDate = m.group(1)
         aClock = m.group(2)
-        buffer_lender = [planId]
+        buffer_lender = [planName, planId]
         buffer_lender.extend([item['nickName'], item['userId'], item['amount'], aDate, aClock])
         writer.writerow(buffer_lender)
     return len(list_lenders)
