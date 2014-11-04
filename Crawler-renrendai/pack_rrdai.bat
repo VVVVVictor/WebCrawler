@@ -1,1 +1,1 @@
-cxfreeze --include-modules=bs4 --target-dir=..\build\rrdai Crawler_renrendai.py & cxfreeze --include-modules=bs4 --target-dir=..\build\rrdai FPCrawler_renrendai.py & cxfreeze --include-modules=bs4 --target-dir=..\build\rrdai OrderCrawler_renrendai.py
+cxfreeze --include-modules=bs4 --target-dir=..\build\rrdai Crawler_renrendai.py & cxfreeze --include-modules=bs4 --target-dir=..\build\rrdai UPCrawler_renrendai.py & cxfreeze --include-modules=bs4 --target-dir=..\build\rrdai OrderCrawler_renrendai.py

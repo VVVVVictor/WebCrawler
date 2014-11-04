@@ -183,7 +183,7 @@ if __name__=='__main__':
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
     print '*******************************'
-    print '* Renrendai Loan Spider v1015 *'
+    print '* Renrendai Loan Spider v1104 *'
     print '*******************************'
     config = getConfig()
     filedirectory = config[0]

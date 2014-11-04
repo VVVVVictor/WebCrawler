@@ -726,6 +726,8 @@ def analyzeUPData(webcontent, planId, writers):
     
     list_basic1 = planInfo.find('div').find_all('dl', class_='fn-left')
     planAmount = list_basic1[0].em.get_text() #计划金额
+    if planAmount:
+        planAmount = filter(str.isdigit, planAmount.encode('utf-8')) #只保留数字
     expectedRate = list_basic1[1].em.get_text().strip() #预期年化收益
     #lockPeriod = list_basic1[2].em.get_text() #锁定期限
     
@@ -738,7 +740,7 @@ def analyzeUPData(webcontent, planId, writers):
     #addLimit = list_span2[3].em.get_text() #加入上限
     
     statusTag = soup.find('div', class_='stamp').em
-    statusCode = ''
+    statusCode = '等待预定'
     if statusTag:
         statusCode = statusTag['class'][0]
     status = statusCode
@@ -752,6 +754,7 @@ def analyzeUPData(webcontent, planId, writers):
     planName = list_tr[0].td.get_text() #名称
     planProducts = list_tr[2].td.get_text() #投标范围
     lockPeriod = list_tr[4].td.get_text() #锁定期
+    lockPeriod = filter(str.isdigit, lockPeriod.encode('utf-8'))
     quitDate = list_tr[5].td.get_text() #退出日期
     joinCondition = list_tr[6].td.get_text() #加入条件
     joinLimit = list_tr[7].td.get_text() #加入上限
@@ -759,7 +762,43 @@ def analyzeUPData(webcontent, planId, writers):
     reserveStart = list_tr[9].td.get_text() #预定开始时间
     payDeadline = list_tr[10].td.get_text() #支付截止时间
     joinStart = list_tr[11].td.get_text() #开放加入时间
+    list_Cost = list_tr[14].find_all('dd')
+    joinCost = list_Cost[0].font.get_text() #加入费用
+    serviceCost = '0.00%' #管理/服务费用
+    if list_Cost[1].font:
+        serviceCost = list_Cost[1].font.get_text()
+    quitCost = list_Cost[2].font.get_text() #退出费用
+    earlyquitCost = '0' #提前退出费用
+    if len(list_Cost) > 3:
+        earlyquitCost = list_Cost[3].font.get_text() 
     
+    planDetails = soup.find('div', {'id':'plan-details'})
+    planStep2 = planDetails.find('div', class_='step-two')
+    list_p2 = planStep2.find_all('p')
+    reserveStart = list_p2[0].get_text()
+    #print reserveStart
+    if reserveStart:
+        reserveStart = re.match(u'预定开始(.*)', reserveStart).group(1)
+    reserveStop = list_p2[1].get_text()
+    if reserveStop:
+        reserveStop = re.match(u'预定结束(.*)', reserveStop).group(1)
+    payDeadline = list_p2[2].get_text()
+    if payDeadline:
+        payDeadline = re.match(u'支付截止(.*)', payDeadline).group(1)
+        
+    planStep3 = planDetails.find('div', class_='step-three')
+    joinStart = planStep3.find('p').get_text()
+    if joinStart:
+        joinStart = re.match(u'开放加入(.*)', joinStart).group(1)
+    planStep4 = planDetails.find('div', class_='step-four')
+    lockStart = planStep4.find('p').get_text()
+    if lockStart:
+        lockStart = re.match(u'进入锁定期(.*)', lockStart).group(1)
+    quitDate = planStep4.find('p').find_next_sibling('p').get_text()
+    if quitDate:
+        quitDate = re.match(u'(到期退出|锁定结束)(.*)', quitDate).group(2)
+        quitDateFormat = time.strptime(quitDate,u'%Y年%m月%d日')
+        quitDate = time.strftime('%Y-%m-%d', quitDateFormat)
     '''
     list_basicInfo = tag_basic.ul.find_all('li', class_='fn-clear')
     
@@ -779,20 +818,20 @@ def analyzeUPData(webcontent, planId, writers):
     leftAmount = soup.find('em', {'id':'max-amount-1'})['data-amount']
     joinAmountLimit = soup.find('em', {'id':'max-amount-2'})['data-amount']
     '''
-    buffer_UP = [currentDate, currentClock, planId, planName, planAmount, expectedRate, planProducts, guaranteeMode, status, lockPeriod, quitDate, joinCondition, joinLimit, earnest, reserveStart, payDeadline, joinStart]
+    buffer_UP = [currentDate, currentClock, planName, planId, planAmount, expectedRate, planProducts, guaranteeMode, status, lockPeriod, joinCondition, joinLimit, reserveStart, reserveStop, payDeadline, joinStart, lockStart, quitDate, joinCost, serviceCost, quitCost, earlyquitCost]
     #print buffer_FP
     
     
     
     #分析预定记录
-    analyzeReserve(planId, planName, writers[2])
+    reserveInfo = analyzeReserve(planId, planName, writers[2])
     #分析加入记录
-    joinLenderCount = analyzeUPLender(planId, planName, writers[3])
-    
+    joinInfo = analyzeUPLender(planId, planName, writers[3])
     #分析理财计划表现
-    performance = analyzePlan(planId)
+    performance = analyzePlan(planId, planName)
     
-    buffer_UP.append(joinLenderCount)
+    buffer_UP.extend(reserveInfo)
+    buffer_UP.extend(joinInfo)
     buffer_UP.extend(performance)
     writers[1].writerow(buffer_UP)
     return True
@@ -804,21 +843,24 @@ def analyzeReserve(planId, planName, writer):
     #print content_reserve
     reserveInfo = json.loads(content_reserve)
     list_reserve = reserveInfo['data']['rsvList']
+    reserveNotpayAmount = 0
     for item in list_reserve:
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
         aDate = m.group(1)
         aClock = m.group(2)
         buffer_reserve = [planName, planId]
-        tradeMethod = ''
+        tradeMethod = '无'
         if(item['tradeMethod'] == 'MOBILE'): tradeMethod = u'手机预定'
         elif(item['ucodeId'] is not None): tradeMethod = u'U-code预定'
         
+        if(item['reserveType'] == '未支付'):
+            reserveNotpayAmount += item['planAmount'] #计算未支付总额
         buffer_reserve.extend([item['nickName'], item['userId'], item['planAmount'], aDate, aClock, tradeMethod, item['reserveType']])
         writer.writerow(buffer_reserve)
-    return True
+    return [len(list_reserve), reserveNotpayAmount]
 #end def analyzeReserve
 #--------------------------------------------------------
-#加入记录, 返回总人数
+#加入记录, 返回总人数和总金额
 def analyzeUPLender(planId, planName, writer):
     #print('  Get Lender Info...')
     tryCount = 0;
@@ -836,18 +878,19 @@ def analyzeUPLender(planId, planName, writer):
     
     list_lenders = lenderInfo['data']['jsonList']
     #print len(list_lenders)
+    reserveHadpayAmount = 0 #加入金额
     for item in list_lenders:
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
         aDate = m.group(1)
         aClock = m.group(2)
         buffer_lender = [planName, planId]
+        reserveHadpayAmount += item['amount']
         buffer_lender.extend([item['nickName'], item['userId'], item['amount'], aDate, aClock])
         writer.writerow(buffer_lender)
-    return len(list_lenders)
+    return [len(list_lenders), reserveHadpayAmount]
 #end def analyzeUPLender()
 #----------------------------------------------------
-#
-def analyzePlan(planId):
+def analyzePlan(planId, planName):
     #print('  Get Performace...')
     tryCount = 0;
     while(tryCount < 5):
@@ -863,8 +906,12 @@ def analyzePlan(planId):
     planInfo = json.loads(content_plan)
     item = planInfo['data']['financePlanVos'][0]
     #print item
+    #currentDate = getTime('%Y-%m-%d')
+    #currentClock = getTime('%H:%M:%S')
     buffer_performance = []
-    buffer_performance.extend([item['bidCount'], item['averageBidInterest'], item['amount'], item['fundsUseRate'], item['earnInterest'], item['borrowCount']])
+    #reserveDateFormat = time.strptime(item['reserveDate'],u'%Y年%m月%d日')
+    #reserveDate = time.strftime('%Y-%m-%d', reserveDateFormat)
+    buffer_performance.extend([item['useTime'], item['bidCount'], item['earnInterest'], item['borrowCount']])
     #writer.writerow(buffer_performance)
     return buffer_performance
 #end def analyzePlan()
