@@ -78,7 +78,7 @@ class DataFetcher(threading.Thread):
                 if(lostPageCount > LOST_PAGE_LIMIT):
                     exitFlag = True
                     print('You have got the latest page!')
-            time.sleep(2)
+            time.sleep(randint(1, 7))
         #end while
 #end class DataFetcher
 #------------------------------------------------
@@ -183,7 +183,7 @@ if __name__=='__main__':
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
     print '*******************************'
-    print '* Renrendai Loan Spider v1104 *'
+    print '* Renrendai Loan Spider v1105 *'
     print '*******************************'
     config = getConfig()
     filedirectory = config[0]
@@ -230,3 +230,5 @@ if __name__=='__main__':
         endTime = time.clock()
         print('[Total order number]:'+str(pageNo-startID))
         print(u'[Total execute time]:'+str(endTime-startTime)+'s')
+        os.system('pause')
+#end main

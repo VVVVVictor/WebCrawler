@@ -82,7 +82,7 @@ class DataFetcher(threading.Thread):
             else:
                 lostPageCount += 1
                 print('   [ERROR] Loan '+str(curOrder)+' is LOST!')
-            time.sleep(2)
+            time.sleep(randint(1, 7))
         #end while
 #end class DataFetcher
 #----------------------------------------
@@ -139,7 +139,7 @@ if __name__=='__main__':
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
     print '*****************************************************'
-    print '* Renrendai Loan Spider for Individual Orders v1020 *'
+    print '* Renrendai Loan Spider for Individual Orders v1105 *'
     print '*****************************************************'
     config = getConfig()
     filedirectory = config[0]
@@ -181,3 +181,5 @@ if __name__=='__main__':
         endTime = time.clock()
         print('[Valid order number]:'+str(orderLen-lostPageCount))
         print(u'[Total execute time]:'+str(endTime-startTime)+'s')
+        os.system('pause')
+#end main
