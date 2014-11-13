@@ -595,7 +595,7 @@ def analyzeRepayData(loanId, writer, attrs):
             actualRepayTime = ''
         buffer_repayDetail = []
         buffer_repayDetail.extend(attrs)
-        buffer_repayDetail.extend([loanId, repayTime, item['repayType'], item['unRepaidAmount'], item['unRepaidFee'], actualRepayTime])
+        buffer_repayDetail.extend([loanId, repayTime, item['repayType'], item['unRepaidAmount'], item['repaidFee'], actualRepayTime])
         writer.writerow(buffer_repayDetail)
     
 #end def analyzeRepayData

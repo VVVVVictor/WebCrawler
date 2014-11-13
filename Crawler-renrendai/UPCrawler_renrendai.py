@@ -75,6 +75,8 @@ def getList():
             
             if(totalPage > pageIndex): pageIndex += 1
             else: break;
+            
+            time.sleep(randint(3, 7))
 #end def getList()
 #------------------------------------------------
 def getData(begin_phase, end_phase, filedirectory):
@@ -165,7 +167,7 @@ if __name__ == '__main__':
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
     print '***************************************'
-    print '*Renrendai U Finance Plan Spider v1105*'
+    print '*Renrendai U Finance Plan Spider v1113*'
     print '***************************************'
 
     filedirectory = getConfig()[0]
