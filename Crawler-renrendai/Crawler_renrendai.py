@@ -54,8 +54,8 @@ class DataFetcher(threading.Thread):
             curPage = pageNo
             pageNo += 1
             pageLock.release()
-            print('Thread '+str(self.tId)+': downloading Loan: '+str(pageNo)+'...')
-            req = urllib2.Request(urlLoan+str(pageNo), headers = getRandomHeaders())
+            print('Thread '+str(self.tId)+': downloading Loan: '+str(curPage)+'...')
+            req = urllib2.Request(urlLoan+str(curPage), headers = getRandomHeaders())
             try:
                 response = urllib2.urlopen(req)
                 m = response.read()
@@ -183,7 +183,7 @@ if __name__=='__main__':
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
     print '*******************************'
-    print '* Renrendai Loan Spider v1113 *'
+    print '* Renrendai Loan Spider v1114 *'
     print '*******************************'
     config = getConfig()
     filedirectory = config[0]

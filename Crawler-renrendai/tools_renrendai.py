@@ -434,11 +434,15 @@ def analyzeData(webcontent, writers):
     list_renzheng = ['credit', 'identificationScanning', 'work', 'incomeDuty', 'house', 'car', 'marriage', 'graduation', 'fieldAudit', 'mobileReceipt', 'kaixin', 'residence', 'video']
     #"creditInfo":{"creditInfoId":490655,"user":495364,"identificationScanning":"VALID","mobile":"INVALID","graduation":"INVALID","credit":"OVERDUE","residence":"INVALID","marriage":"INVALID","child":"INVALID","album":"INVALID","work":"OVERDUE","renren":"INVALID","kaixin":"INVALID","house":"INVALID","car":"INVALID","identification":"VALID","detailInformation":"INVALID","borrowStudy":"VALID","mobileReceipt":"INVALID","incomeDuty":"OVERDUE","other":"INVALID","account":"INVALID","titles":"INVALID","fieldAudit":"INVALID","mobileAuth":"INVALID","video":"INVALID","version":1}
     creditInfo = scriptData['data']['creditInfo']
-    list_creditInfo = {'credit':'0', 'identificationScanning':'0', 'work':'0', 'incomeDuty':'0', 'house':'0', 'car':'0', 'marriage':'0', 'graduation':'0', 'fieldAudit':'0', 'mobileReceipt':'0', 'kaixin':'0', 'residence':'0', 'video':'0'}
+    list_creditInfo = {'credit':'', 'identificationScanning':'', 'work':'', 'incomeDuty':'', 'house':'', 'car':'', 'marriage':'', 'graduation':'', 'fieldAudit':'', 'mobileReceipt':'', 'kaixin':'', 'residence':'', 'video':''}
     #kaixin为微博，技术职称认证不详暂为fieldAudit
     for item in creditInfo.keys():
-        if(creditInfo[item] == 'VALID'):
+        if(creditInfo[item] == 'INVALID'):
+            list_creditInfo[item] = ''
+        elif(creditInfo[item] == 'VALID'):
             list_creditInfo[item] = '1'
+        else:
+            list_creditInfo[item] = '0' #其他情况说明没通过，如pending或failed，250009
     ###审核通过时间###
     #"creditPassedTime":{"creditPassedTimeId":77028,"user":77078,"credit":"Dec 26, 2011 12:58:55 PM","work":"Dec 19, 2011 2:47:29 PM","incomeDuty":"Dec 22, 2011 1:34:36 PM","identificationScanning":"Dec 17, 2011 1:43:35 PM","marriage":"Dec 19, 2011 9:55:20 AM"}
     creditPassedTime = scriptData['data']['creditPassedTime']
