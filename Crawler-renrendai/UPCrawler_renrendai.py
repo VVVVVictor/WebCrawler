@@ -23,7 +23,7 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 jsonheaders={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36', 'Host':'www.renrendai.com', 'X-Requested-With':'XMLHttpRequest'}
 
 sheetName = [u'outline', u'plan', u'plan_preorder', u'plan_order']
-titles = ([u'抓取日期', u'抓取时间', u'计划名称', u'计划id', u'计划金额（元）', u'加入人次', u'预期年化收益', u'累计收益（元）', u'状态'], [u'抓取日期', u'抓取时间', u'计划名称',u'计划ID', u'计划金额', u'预期收益（%/年）', u'投标范围', u'保障方式', u'计划状态', u'锁定期限（月）', u'加入条件（元）', u'加入上限（元）', u'预定开始时间', u'预定结束时间', u'支付截止时间', u'开放加入时间', u'进入锁定时间', u'退出时间', u'加入费率', u'管理费率', u'退出费率', u'提前退出费率', u'预定人次', u'未支付金额', u'加入总人次', u'加入总金额', u'满额用时', u'自动投标次数', u'为用户赚取', u'帮助借款者人数'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人id', u'加入金额', u'预定日期', u'预定时间', u'来源', u'状态'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人ID', u'加入金额', u'加入日期', u'加入时间'], [u'抓取日期', u'抓取时间', u'计划名称', u'计划id', u'发布时间', u'计划金额', u'自动投标次数', u'帮助借款用户', u'为用户赚取', u'加入人数', u'满额用时'])
+titles = ([u'抓取日期', u'抓取时间', u'计划名称', u'计划id', u'计划金额（元）', u'加入人次', u'预期年化收益', u'累计收益（元）', u'状态'], [u'抓取日期', u'抓取时间', u'计划名称',u'计划ID', u'计划金额', u'预期收益（%/年）', u'投标范围', u'保障方式', u'计划状态', u'锁定期限（月）', u'加入条件（元）', u'加入上限（元）', u'预定开始时间', u'预定结束时间', u'支付截止时间', u'开放加入时间', u'进入锁定时间', u'退出时间', u'加入费率', u'管理费率', u'退出费率', u'提前退出费率', u'预定人次', u'未支付金额', u'加入总人次', u'加入总金额', u'满额用时', u'自动投标次数', u'为用户赚取', u'平均利率',u'帮助借款者人数'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人id', u'加入金额', u'预定日期', u'预定时间', u'来源', u'状态'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人ID', u'加入金额', u'加入日期', u'加入时间'], [u'抓取日期', u'抓取时间', u'计划名称', u'计划id', u'发布时间', u'计划金额', u'自动投标次数', u'帮助借款用户', u'为用户赚取', u'加入人数', u'满额用时'])
 
 #----------------------------------------------
 def createWriters(filedirectory, prefix=''):
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
     print '***************************************'
-    print '*Renrendai U Finance Plan Spider v1113*'
+    print '*Renrendai U Finance Plan Spider v1117*'
     print '***************************************'
 
     filedirectory = getConfig()[0]

@@ -915,7 +915,7 @@ def analyzePlan(planId, planName):
     buffer_performance = []
     #reserveDateFormat = time.strptime(item['reserveDate'],u'%Y年%m月%d日')
     #reserveDate = time.strftime('%Y-%m-%d', reserveDateFormat)
-    buffer_performance.extend([item['useTime'], item['bidCount'], item['earnInterest'], item['borrowCount']])
+    buffer_performance.extend([item['useTime'], item['bidCount'], item['earnInterest'], item['averageBidInterest'], item['borrowCount']])
     #writer.writerow(buffer_performance)
     return buffer_performance
 #end def analyzePlan()
