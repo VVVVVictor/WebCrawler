@@ -9,9 +9,18 @@ import csv
 from bs4 import BeautifulSoup
 import socket, ssl
 from random import randint
+import ConfigParser
 
-configfileName = 'config'
+#config
+configfileName = 'config.ini'
 filedirectory = u'D:/datas/pythondatas/renrendai/'
+username = u'15120000823'
+password = u'wmf123456'
+threadnumber = '2'
+proxy_enable = 0
+proxy_host = ''
+proxy_port = ''
+
 
 #For login
 urlLogin = u'https://www.renrendai.com/j_spring_security_check'
@@ -28,8 +37,7 @@ urlCollectionPrefix = 'http://www.renrendai.com/lend/dunDetail.action?loanId='
 urlFPLenderPrefix = 'http://www.renrendai.com/financeplan/getFinancePlanLenders.action?financePlanStr='
 urlFPPerformancePrefix = 'http://www.renrendai.com/financeplan/listPlan!planResults.action?financePlanId='
 urlFPReservePrefix = 'http://www.renrendai.com/financeplan/getFinancePlanLenders!reserveRecord.action?financePlanStr='
-username = u'15120000823'
-password = u'wmf123456'
+
 
 ipAddress = ['191.124.5.2', '178.98.24.45, 231.67.9.28']
 host = 'www.renrendai.com'
@@ -42,8 +50,35 @@ proxyList = []
 
 TRY_LOGIN_TIMES = 5 
 #--------------------------------------------------
+def getConfig(configPath = None):
+    global username, password, proxy_enable, proxy_host, proxy_port
+    if(configPath == None):
+        configPath = configfileName
+    cf = ConfigParser.ConfigParser()
+    cf.read(configPath)
+    
+    filedirectory = cf.get('base', 'filedirectory')+'/'
+    username = cf.get('base', 'username')
+    password = cf.get('base', 'password')
+    threadnumber = cf.get('base', 'threadnumber')
+    
+    proxy_enable = cf.get('proxy', 'enable')
+    proxy_host = cf.get('proxy', 'host')
+    proxy_port = cf.get('proxy', 'port')
+    
+    print('[CONFIG]')
+    print('filedirectory = '+filedirectory)
+    print('username = '+username)
+    print('password = '+password)
+    print('threadnumber = '+str(threadnumber)+'\n')
+    #print(proxy_host)
+    #print(proxy_port)
+    
+    return [filedirectory, threadnumber]
+#end def getConfig
+#--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
-def getConfig():
+def old_getConfig():
     global username, password
     filedirectory = ""
     threadnumber = 1
@@ -104,9 +139,9 @@ def getProxyList(proxy = None):
 def login():
     print('Logging...')
     cj = cookielib.CookieJar()
-    getProxyList()
-    print("Current proxy: "+proxyList[0])
-    proxy_handler = urllib2.ProxyHandler({"http": proxyList[0]})
+    #getProxyList()
+    print("Current proxy: "+str(proxy_host)+':'+str(proxy_port))
+    proxy_handler = urllib2.ProxyHandler({"http": str(proxy_host)+':'+str(proxy_port)})
     #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
     urllib2.install_opener(opener)
