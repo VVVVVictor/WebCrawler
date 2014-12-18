@@ -139,11 +139,16 @@ def getProxyList(proxy = None):
 def login():
     print('Logging...')
     cj = cookielib.CookieJar()
-    #getProxyList()
-    print("Current proxy: "+str(proxy_host)+':'+str(proxy_port))
-    proxy_handler = urllib2.ProxyHandler({"http": str(proxy_host)+':'+str(proxy_port)})
-    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+    if(proxy_enable == '0'):
+        print("No proxy.")
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    else:
+        #getProxyList()
+        print("Current proxy: "+str(proxy_host)+':'+str(proxy_port))
+        proxy_handler = urllib2.ProxyHandler({"http": str(proxy_host)+':'+str(proxy_port)})
+        #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+    #end ifelse
     urllib2.install_opener(opener)
 
     data = {'j_username':username, 'j_password':password, 'rememberme':'on', 'targetUrl':'http://www.renrendai.com', 'returnUrl':''}
@@ -152,6 +157,7 @@ def login():
         try:
             req = urllib2.Request(urlLogin, postdata, getRandomHeaders())
             result = urllib2.urlopen(req)
+            #print("return url:"+result.geturl())
             '''
             if urlIndex != result.geturl(): #通过返回url判断是否登录成功
                 print result.geturl()
@@ -410,6 +416,7 @@ def analyzeData(webcontent, writers):
     if tag_fullTime:
         fullTime = tag_fullTime['data-time']
     buffer1.extend([guaranteeType, prepaymentRate, repayType, repayEachMonth, finishedRatio, fullTime])
+    #print buffer1
     
     ###用户个人信息###
     tag_userinfo = soup.find('div', class_='ui-tab-content-basic')
