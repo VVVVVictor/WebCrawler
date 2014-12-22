@@ -357,7 +357,8 @@ def analyzeData(webcontent, writers):
     
     openTimeStr = loanData['openTime'] #开放时间
     openTimeFormat = time.strptime(openTimeStr,'%b %d, %Y %I:%M:%S %p')
-    openTime = time.strftime('%Y-%m-%d', openTimeFormat)
+    openTime = time.strftime('%Y-%m-%d', openTimeFormat) #开放日期
+    openTimeClock = time.strftime('%I:%M:%S', openTimeFormat)#开放时刻
     
     status = ''
     if statusType == 'IN_PROGRESS':
@@ -374,7 +375,7 @@ def analyzeData(webcontent, writers):
         status = '已还清'
     else:
         status = statusType
-    buffer1 = [currentDate, currentClock, loanId, loanType, guarantor, title, amount, interest, months, openTime, status]
+    buffer1 = [currentDate, currentClock, loanId, loanType, guarantor, title, amount, interest, months, openTime, openTimeClock, status]
     #print(buffer1)
 
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
