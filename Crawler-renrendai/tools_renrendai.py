@@ -217,6 +217,7 @@ def readFromUrl(url, formdata = None, headers = None):
                 #response.close()
                 if(m == None):
                     continue
+                #TODO:need to close response?
                 return m
             else:
                 print('response is None')
@@ -358,7 +359,10 @@ def analyzeData(webcontent, writers):
     openTimeStr = loanData['openTime'] #开放时间
     openTimeFormat = time.strptime(openTimeStr,'%b %d, %Y %I:%M:%S %p')
     openTime = time.strftime('%Y-%m-%d', openTimeFormat) #开放日期
-    openTimeClock = time.strftime('%I:%M:%S', openTimeFormat)#开放时刻
+    openTimeClock = time.strftime('%H:%M:%S', openTimeFormat)#开放时刻
+    
+    beginBidTimeStr = loanData['beginBidTime'] #开始投标时间
+    beginBidTimeFormat = time.strptime(beginBidTimeStr, '%b %d, %Y %I:%M:%S %p')
     
     status = ''
     if statusType == 'IN_PROGRESS':
