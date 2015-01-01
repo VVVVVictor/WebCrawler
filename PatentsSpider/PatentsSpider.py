@@ -27,18 +27,20 @@ class DataFetcher(threading.Thread):
         self.tId = tId
         self.writer = writer
     def run(self):
-        global pageNo, exitFlag
+        global kwNo, exitFlag
         while not exitFlag:
-            pageLock.acquire()
-            #print('pageNo = ' + str(pageNo))
-            #print('pageMax = ' + str(pageMax))
-            if(pageNo > pageMax):
+            kwLock.acquire()
+            if(kwNo >= kwMax):
                 #print('if')
                 exitFlag = True
                 break
-            curPage = pageNo
-            pageNo += 1
-            pageLock.release()
+            curKeyword = keywordList[kwNo]
+            kwNo += 1
+            kwLock.release()
+            
+            print "Thread "+str(self.tId)+" get keyword:"+curKeyword
+            getDataByKw(curKeyword, writer)
+            '''
             print('Thread '+str(self.tId)+': download page '+str(curPage)+'...')
             data = {'city':'', 'startdate':startDate, 'enddate':endDate, 'page':curPage}
             postData = urllib.urlencode(data)
@@ -59,57 +61,64 @@ class DataFetcher(threading.Thread):
             
             if not analyzeWeb(m, self.writer):
                 exitFlag = True
+            '''
 #end class DataFetcher
-            
 #--------------------------------------------------
-def analyzeWeb(webcontent, writer):
+def getDataByKw(keyword, writer):
+    classList = ['fmgb', 'fmsq', 'xxsq', 'wgsq']
+    for selected in classList:
+        print "["+selected+"]"
+        pageNow = 1
+        while True:
+            newkw = keyword.decode('gbk').encode('utf-8') #important
+            data = {'showType':'1', 'strWord':'申请（专利权）人=\'%'+newkw+'%\'', 'numSortMethod':'4', 'strLicenseCode':'', 'selected':selected, 'numFMGB':'0', 'numFMSQ':'0', 'numSYXX':'0', 'numWGSQ':'0', 'pageSize':'10', 'pageNow':str(pageNow)}
+            #print data
+            postData = urllib.urlencode(data)
+            req = urllib2.Request(requestUrl, postData, getRandomHeaders())
+            try:
+                response = urllib2.urlopen(req)
+                m = response.read()
+                #print "read m finish"
+                #print m
+            except:
+                print "getData error"
+                break
+            else:
+                if analyzeWeb(m, writer, [newkw, selected]):
+                    print '    page: '+str(pageNow)
+                    pageNow += 1
+                    #break
+                else:
+                    break
+        #end while
+    #end for
+#end def getDataByKw()
+#--------------------------------------------------
+def analyzeWeb(webcontent, writer, pre):
     soup = BeautifulSoup(webcontent)
     boxList = soup.find_all('div', class_='cp_box')
+    if(len(boxList) == 0): return False
     for box in boxList:
         buffer = []
+        buffer.extend(pre)
         title = box.h1.get_text().strip()
         liList = box.ul.find_all('li')
         publishId = re.match(u'(申请公布号|授权公告号)：(\w+)', liList[0].get_text()).group(2)
         publishDate = re.match(u'(申请公布日|授权公告日)：(\S+)', liList[1].get_text()).group(2)
         appId = re.match(u'(申请号)：(\d+)', liList[2].get_text()).group(2)
         appDate = re.match(u'(申请日)：(\S+)', liList[3].get_text().strip()).group(2)
-        applicant = re.match(u'(申请人)：(\S+)', liList[4].get_text()).group(2)
-        inventor = re.match(u'(发明人)：(.+)', liList[5].get_text()).group(2)
+        applicant = re.match(u'(申请人|专利权人)：(\S+)', liList[4].get_text()).group(2)
+        inventor = re.match(u'(发明人|设计人)：(.+)', liList[5].get_text()).group(2)
         address = re.match(u'(地址)：(\S+)', liList[7].get_text()).group(2)
         classCode = re.match(u'(分类号)：(\S+)全部', removeSpace(liList[8].get_text())).group(2)
-        #print cleanString(box.find('div', class_='cp_jsh').get_text().strip())
-        abstract = re.match(u'摘要：\s*(\S+)全部', removeSpace(box.find('div', class_='cp_jsh').get_text().strip())).group(1)
+        #print removeSpace(box.find('div', class_='cp_jsh').get_text().strip())
+        abstract = removeSpace(box.find('div', class_='cp_jsh').get_text().strip())
+        #abstract = re.match(u'(摘要|简要说明)：\s*(\S+)', removeSpace(box.find('div', class_='cp_jsh').get_text().strip())).group(2)
         buffer.extend([title, publishId, publishDate, appId, appDate, applicant, inventor, address, classCode, abstract])
         writer.writerow(buffer)
     #end for
-    '''
-    table = soup.find('table', {'id':'report1'})
-    list_tr = table.find_all('tr')
-    itemCount = 0
-    for item in list_tr:
-        itemCount += 1
-        if(itemCount < 3):continue;
-        if(itemCount > 32): break;
-        if(item['height'] != '30'): break;
-        buffer = []
-        list_td = item.find_all('td')
-        for td in list_td:
-            buffer.append(td.get_text())
-        writer.writerow(buffer)
-    '''
     return True
 #end def analyzeWeb
-#-------------------------------------------------
-def getPageMax(startDate, endDate):
-    global pageMax
-    data = {'city':'', 'startdate':startDate, 'enddate':endDate, 'page':'1'}
-    postData = urllib.urlencode(data)
-    req = urllib2.Request(airUrlpre, postData, getRandomHeaders())
-    m = urllib2.urlopen(req).read()
-    pageMaxStr = BeautifulSoup(m).find('a', text=re.compile(u'末页'))['href']
-    pageMax = int(re.search('\d+', pageMaxStr).group())
-    print('\nTotal Page Number:'+str(pageMax))
-#edn def getPageMax
 #--------------------------------------------------
 #查看文件夹是否存在：若不存在，则创建
 def createFolder(filedirectory):
@@ -141,22 +150,23 @@ def createWriter(filedirectory, prefix=''):
 def getRandomHeaders():
     ipNumber = len(ipAddress)
     agentNumber = len(userAgent)
-    headers = {'User-Agent': userAgent[randint(0, agentNumber-1)], 'Host': host, 'X-Forwarded-For': ipAddress[randint(0, ipNumber-1)]}
+    headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'Cache-Control':'no-cache', 'Content-Type':'application/x-www-form-urlencoded', 'User-Agent': userAgent[randint(0, agentNumber-1)], 'Host': host, 'X-Forwarded-For': ipAddress[randint(0, ipNumber-1)], 'Pragma':'no-cache'}
     return headers
 #--------------------------------------------------
-def readKeywordsFile(filename):
-    global keywordList
+def readKeywordFile(filename):
+    keywordList = []
     lineCount = 0
     try:
         configfile = open(filename, 'r')
         for line in configfile:
-            keywordList.append(line)
+            keywordList.append(line.strip())
             lineCount += 1
         configfile.close()
     except:
         print('open keywords file ERROR!')
     
     print('Keywords number:'+str(lineCount))
+    return keywordList
 #end def readKeywordsFile
 #--------------------------------------------------
 def removeSpace(str):
@@ -166,7 +176,7 @@ def removeSpace(str):
     return str.strip()
 #--------------------------------------------------
 def test(keyword):
-    data = {'showType':'1', 'strWord':'申请（专利权）人=\'%'+keyword+'%\'', 'seleted':'fmgb', 'numFMGB':'0', 'numFMSQ':'0', 'numSYXX':'0', 'numWGSQ':'0', 'pageSize':'3', 'pageNow':'1'}
+    data = {'showType':'1', 'strWord':'申请（专利权）人=\'%'+keyword+'%\'', 'selected':'wgsq', 'numFMGB':'0', 'numFMSQ':'0', 'numSYXX':'0', 'numWGSQ':'0', 'pageSize':'10', 'pageNow':'10'}
     postData = urllib.urlencode(data)
     req = urllib2.Request(requestUrl, postData, getRandomHeaders())
     try:
@@ -179,16 +189,17 @@ def test(keyword):
 #global variable
 startDate = ''
 endDate = ''
-threadCount = 2
-pageNo = 1 #当前的页码
-pageMax = 100000 #最大页数
+threadCount = 1
+kwNo = 0 #当前的关键词
+kwMax = 100000 #keyword的个数
 exitFlag = False
-keywordsFilename = 'keywords.txt'
+keywordFilename = 'keywords.txt'
 keywordList = []
+resultDirectory = 'datas/'
 #main
 if __name__ == '__main__':
     reload(sys)
-    sys.setdefaultencoding('utf-8') #系统输出编码置为utf8，解决输出时的乱码问题
+    sys.setdefaultencoding('utf8') #系统输出编码置为utf8，解决输出时的乱码问题
     
     print '*******************************************'
     print '*          Patents Spider  v0101          *'
@@ -196,14 +207,28 @@ if __name__ == '__main__':
     print '*  Results will be in "datas/" folder.    *'
     print '*******************************************'
     
-    readKeywordsFile(keywordsFilename)
-    filedirectory = 'datas/'
-    createFolder(filedirectory)
-    writer = createWriter(filedirectory)
-    
+    keywordList = readKeywordFile(keywordFilename)
+    kwMax = len(keywordList)
+    createFolder(resultDirectory)
+    writer = createWriter(resultDirectory)
+    '''
     m = test('特锐德')
-    #print m
+    print m
     analyzeWeb(m, writer)
+    '''
+    kwLock = threading.Lock()
+    threads = []
+    for i in xrange(threadCount):
+        thread = DataFetcher(i+1, writer)
+        threads.append(thread)
+    for t in threads: t.start()
+        
+    while(kwNo < kwMax): pass
+    exitFlag = True
+    
+    for t in threads: t.join()
+    
+    
     
     '''
     #getProxyList()
