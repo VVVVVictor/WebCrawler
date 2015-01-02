@@ -18,8 +18,11 @@ headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (
 #全局变量
 gWriter = ''
 
-title = [u'关键词', u'类型', u'名称', u'申请公布号', u'申请公布日', u'申请号', u'申请日', u'申请人', u'发明人', u'地址', u'分类号', u'摘要']
+title = [u'关键词', u'类型', u'名称', u'申请公布号/授权公告号', u'申请公布日/授权公告日', u'申请号', u'申请日', u'申请人/专利权人', u'发明人/设计人', u'地址', u'分类号', u'专利代理机构', u'代理人', u'优先权', u'PCT进入国家阶段日', u'PCT申请数据', u'PCT公布数据', u'对比文件', u'摘要/简要说明']
 
+#-------------------------------------------------
+class MyException(Exception):
+    pass
 #-------------------------------------------------
 class DataFetcher(threading.Thread):
     def __init__(self, tId, writer):
@@ -40,34 +43,12 @@ class DataFetcher(threading.Thread):
             
             print "Thread "+str(self.tId)+" get keyword:"+curKeyword
             getDataByKw(curKeyword, writer)
-            '''
-            print('Thread '+str(self.tId)+': download page '+str(curPage)+'...')
-            data = {'city':'', 'startdate':startDate, 'enddate':endDate, 'page':curPage}
-            postData = urllib.urlencode(data)
-            req = urllib2.Request(airUrlpre, postData, getRandomHeaders())
-            try:
-                response = urllib2.urlopen(req)
-                m = response.read()
-                #print(m)
-            except (urllib2.URLError) as e:
-                if hasattr(e, 'code'):
-                    print(str(e.code)+': '+str(e.reason))
-                else:
-                    print(e.reason)
-                continue
-            except socket.error as e:
-                print('ERROR] Socket error: '+str(e.errno))
-                continue
-            
-            if not analyzeWeb(m, self.writer):
-                exitFlag = True
-            '''
 #end class DataFetcher
 #--------------------------------------------------
 def getDataByKw(keyword, writer):
-    classList = ['fmgb', 'fmsq', 'xxsq', 'wgsq']
-    for selected in classList:
-        print "["+selected+"]"
+    classList = {'fmsq':u'发明授权', 'fmgb':u'发明公布', 'xxsq':u'实用新型', 'wgsq':u'外观设计'}
+    for selected in classList.keys():
+        print "["+classList[selected]+"]"
         pageNow = 1
         while True:
             newkw = keyword.decode('gbk').encode('utf-8') #important
@@ -76,20 +57,21 @@ def getDataByKw(keyword, writer):
             postData = urllib.urlencode(data)
             req = urllib2.Request(requestUrl, postData, getRandomHeaders())
             try:
-                response = urllib2.urlopen(req)
+                response = urllib2.urlopen(req, timeout = 10)
                 m = response.read()
                 #print "read m finish"
                 #print m
-            except:
-                print "getData error"
-                break
+            except socket.timeout, e:
+                print("    Urlopen timeout. Reconnect...")
+                continue
             else:
-                if analyzeWeb(m, writer, [newkw, selected]):
+                if analyzeWeb(m, writer, [newkw, classList[selected]]):
                     print '    page: '+str(pageNow)
                     pageNow += 1
                     #break
                 else:
                     break
+            
         #end while
     #end for
 #end def getDataByKw()
@@ -101,20 +83,87 @@ def analyzeWeb(webcontent, writer, pre):
     for box in boxList:
         buffer = []
         buffer.extend(pre)
-        title = box.h1.get_text().strip()
+        #print removeSpace(box.h1.get_text().strip())
+        title = re.match(u'\[(发明公布|发明授权|实用新型|外观设计)\]\s*(\S+)', removeSpace(box.h1.get_text().strip())).group(2)
         liList = box.ul.find_all('li')
-        publishId = re.match(u'(申请公布号|授权公告号)：(\w+)', liList[0].get_text()).group(2)
-        publishDate = re.match(u'(申请公布日|授权公告日)：(\S+)', liList[1].get_text()).group(2)
-        appId = re.match(u'(申请号)：(\d+)', liList[2].get_text()).group(2)
-        appDate = re.match(u'(申请日)：(\S+)', liList[3].get_text().strip()).group(2)
-        applicant = re.match(u'(申请人|专利权人)：(\S+)', liList[4].get_text()).group(2)
-        inventor = re.match(u'(发明人|设计人)：(.+)', liList[5].get_text()).group(2)
-        address = re.match(u'(地址)：(\S+)', liList[7].get_text()).group(2)
-        classCode = re.match(u'(分类号)：(\S+)全部', removeSpace(liList[8].get_text())).group(2)
-        #print removeSpace(box.find('div', class_='cp_jsh').get_text().strip())
-        abstract = removeSpace(box.find('div', class_='cp_jsh').get_text().strip())
-        #abstract = re.match(u'(摘要|简要说明)：\s*(\S+)', removeSpace(box.find('div', class_='cp_jsh').get_text().strip())).group(2)
-        buffer.extend([title, publishId, publishDate, appId, appDate, applicant, inventor, address, classCode, abstract])
+        
+        publishId = publishDate = appId = appDate = applicant = inventor = address = ''
+        boxUl = box.ul
+        publishIdLi = boxUl.find('li', text=re.compile(u'(申请公布号|授权公告号)：'))
+        if publishIdLi:
+            publishId = re.match(u'(申请公布号|授权公告号)：(\w+)', publishIdLi.get_text()).group(2)
+        publishDateLi = boxUl.find('li', text=re.compile(u'(申请公布日|授权公告日)：'))
+        if publishDateLi:
+            publishDate = re.match(u'(申请公布日|授权公告日)：(\S+)', publishDateLi.get_text().strip()).group(2)
+        #publishDate = re.match(u'(申请公布日|授权公告日)：(\S+)', liList[1].get_text()).group(2)
+        appIdLi = boxUl.find('li', text=re.compile(u'(申请号)：'))
+        if appIdLi:
+            appId = re.match(u'(申请号)：(\w+)', appIdLi.get_text()).group(2)
+        appDateLi = boxUl.find('li', text=re.compile(u'(申请日)：'))
+        if appDateLi:
+            appDate = re.match(u'(申请日)：(\S+)', appDateLi.get_text().strip()).group(2)
+        applicantLi = boxUl.find('li', text=re.compile(u'(申请人|专利权人)：'))
+        if applicantLi:
+            applicant = re.match(u'(申请人|专利权人)：(.+)', removeSpace(applicantLi.get_text())).group(2)
+        inventorLi = boxUl.find('li', text=re.compile(u'(发明人|设计人)：'))
+        if inventorLi:
+            inventor = re.match(u'(发明人|设计人)：(.+)', removeSpace(inventorLi.get_text())).group(2)
+        addressLi = boxUl.find('li', text=re.compile(u'(地址)：'))
+        #print addressLi
+        if addressLi:
+            address = re.match(u'(地址)：(\S+)', addressLi.get_text()).group(2)
+        
+        #classLi = boxUl.find('li', text=re.compile(u'(分类号)：(.*)')) #可能是因为格式嵌套
+        classLi = addressLi.find_next_sibling('li')
+        print classLi.text
+        #classLi = boxUl.find('li', text=re.compile(u'(分类号)：(.*)'))
+        [quanbu.extract() for quanbu in classLi('a')]
+        collapsDiv = classLi.find('div', {'style':'display:none;'})
+        agency = agent = priority = pctDate = pctApp = pctPublish = compareFile = '' #专利代理机构，代理人，优先权，PCT进入国家阶段日，PCT申请数据，PCT公布数据，对比文件
+        classCodeHalf = '' #分类号后半部分
+        if collapsDiv:
+            #collapsLiList = collapsDiv.find_all('li')
+            agencyLi = collapsDiv.find('li', text=re.compile(u'专利代理机构：'))
+            if agencyLi: 
+                agency = re.match(u'专利代理机构：(.+)', agencyLi.get_text()).group(1)
+                agencyLi.extract()
+            agentLi = collapsDiv.find('li', text=re.compile(u'代理人：'))
+            if agentLi:
+                agent = re.match(u'代理人：(.+)', agentLi.get_text()).group(1)
+                agentLi.extract()
+            priorityLi = collapsDiv.find('li', text=re.compile(u'优先权：'))
+            if priorityLi:
+                priority = re.match(u'(本国)?优先权：(.+)', priorityLi.get_text()).group(2)
+                priorityLi.extract()
+            pctDateLi = collapsDiv.find('li', text=re.compile(u'PCT进入国家阶段日：'))
+            if pctDateLi:
+                pctDate = re.match(u'PCT进入国家阶段日：(.+)', pctDateLi.get_text()).group(1)
+                pctDateLi.extract()
+            pctAppLi = collapsDiv.find('li', text=re.compile(u'PCT申请数据：'))
+            if pctAppLi:
+                pctApp = re.match(u'PCT申请数据：(.+)', pctAppLi.get_text()).group(1)
+                pctAppLi.extract()
+            pctPublishLi = collapsDiv.find('li', text=re.compile(u'PCT公布数据：'))
+            if pctPublishLi:
+                pctPublish = re.match(u'PCT公布数据：(.+)', pctPublishLi.get_text()).group(1)
+                pctPublishLi.extract()
+            compareFileLi = collapsDiv.find('li', text=re.compile(u'对比文件：'))
+            if compareFileLi:
+                compareFile = re.match(u'对比文件：(.+)', compareFileLi.get_text()).group(1)
+                compareFileLi.extract()
+            classCodeHalf = removeSpace(collapsDiv.get_text().strip())
+            collapsDiv.extract()
+        
+        classCode = re.match(u'(分类号)：(.+)', removeSpace(classLi.get_text())).group(2)
+        classCode += classCodeHalf
+        #if len(classCode)>2 and classCode[len(classCode)-2:len(classCode)] == u'全部':
+        #    classCode = classCode[0:len(classCode)-2]
+        abstractTag = box.find('div', class_='cp_jsh')
+        [quanbu.extract() for quanbu in abstractTag('a')]
+        abstract = re.match(u'(摘要|简要说明)：\s*(\S*)', removeSpace(box.find('div', class_='cp_jsh').get_text().strip())).group(2)
+        #if len(abstract)>2 and abstract[len(abstract)-2:len(abstract)] == u'全部':
+        #    abstract = abstract[0:len(abstract)-2]
+        buffer.extend([title, publishId, publishDate, appId, appDate, applicant, inventor, address, classCode, agency, agent, priority, pctDate, pctApp, pctPublish, compareFile, abstract])
         writer.writerow(buffer)
     #end for
     return True
@@ -170,21 +219,25 @@ def readKeywordFile(filename):
 #end def readKeywordsFile
 #--------------------------------------------------
 def removeSpace(str):
+    str = str.decode('utf-8', 'ignore').encode('utf-8')
+    str = str.replace(' ', '') #normal space
     str = str.replace('\r\n', '')
     str = str.replace('\n', '')
-    str = str.replace('\u00A0', '')
+    str = str.replace(u'\xa0', '') #remove &nbsp;
+    str = str.replace(u'\u2002', '') #remove &ensp;
+    #print "removeSpace:"+str
     return str.strip()
 #--------------------------------------------------
-def test(keyword):
-    data = {'showType':'1', 'strWord':'申请（专利权）人=\'%'+keyword+'%\'', 'selected':'wgsq', 'numFMGB':'0', 'numFMSQ':'0', 'numSYXX':'0', 'numWGSQ':'0', 'pageSize':'10', 'pageNow':'10'}
-    postData = urllib.urlencode(data)
-    req = urllib2.Request(requestUrl, postData, getRandomHeaders())
-    try:
-        response = urllib2.urlopen(req)
-        m = response.read()
-        return m
-    except:
-        print "test error"
+def test():
+    html_doc = """
+    <html><head><title>The Dormouse's story</title></head>
+    <body>
+    <p class="title">something<b>The Dormouses story</b>other</p>
+    """
+    soup = BeautifulSoup(html_doc)
+    print soup.p.text
+    pLi = soup.find('p', text = re.compile('something'), recursive=False)
+    print pLi
 #--------------------------------------------------
 #global variable
 startDate = ''
@@ -202,7 +255,7 @@ if __name__ == '__main__':
     sys.setdefaultencoding('utf8') #系统输出编码置为utf8，解决输出时的乱码问题
     
     print '*******************************************'
-    print '*          Patents Spider  v0101          *'
+    print '*          Patents Spider  v0102          *'
     print '*  Keywords need to be in "keywords.txt". *'
     print '*  Results will be in "datas/" folder.    *'
     print '*******************************************'
@@ -211,11 +264,13 @@ if __name__ == '__main__':
     kwMax = len(keywordList)
     createFolder(resultDirectory)
     writer = createWriter(resultDirectory)
+    #test()
     '''
     m = test('特锐德')
     print m
     analyzeWeb(m, writer)
     '''
+    
     kwLock = threading.Lock()
     threads = []
     for i in xrange(threadCount):
