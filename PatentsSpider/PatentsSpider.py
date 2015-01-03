@@ -270,6 +270,7 @@ if __name__ == '__main__':
     print '*  Results will be in "datas" folder.     *'
     print '*******************************************'
     
+    startTime = time.clock()
     keywordList = readKeywordFile(keywordFilename)
     kwMax = len(keywordList)
     createFolder(resultDirectory)
@@ -322,4 +323,7 @@ if __name__ == '__main__':
     for t in threads: t.join()
     '''
     print('Exit main thread.')
+    endTime = time.clock()
+    print(u'[Total execute time]:'+str(endTime-startTime)+'s')
+    os.system('pause')
 #end main
