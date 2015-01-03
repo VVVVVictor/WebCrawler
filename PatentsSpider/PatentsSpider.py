@@ -62,12 +62,19 @@ def getDataByKw(keyword, writer):
                 #print "read m finish"
                 #print m
             except socket.timeout, e:
-                print("    Urlopen timeout. Reconnect...")
+                print("    Socket timeout. Reconnect...")
+                continue
+            except urllib2.URLError, e:
+                print('    URLError timeout. Reconnect...')
+                continue
+            except httplib.BadStatusLine, e:
+                print('    BadStatusLine. Reconnect...')
                 continue
             else:
-                if analyzeWeb(m, writer, [newkw, classList[selected]]):
+                if analyzeWeb(m, writer, [newkw]):
                     print '    page: '+str(pageNow)
                     pageNow += 1
+                    time.sleep(2)
                     #break
                 else:
                     break
@@ -84,28 +91,31 @@ def analyzeWeb(webcontent, writer, pre):
         buffer = []
         buffer.extend(pre)
         #print removeSpace(box.h1.get_text().strip())
-        title = re.match(u'\[(发明公布|发明授权|实用新型|外观设计)\]\s*(\S+)', removeSpace(box.h1.get_text().strip())).group(2)
+        m_title = re.match(u'\[(发明公布|发明授权|实用新型|外观设计|发明审定)\]\s*(\S+)', removeSpace(box.h1.get_text().strip()))
+        title = m_title.group(2)
+        type = m_title.group(1)
         liList = box.ul.find_all('li')
         
         publishId = publishDate = appId = appDate = applicant = inventor = address = ''
         boxUl = box.ul
-        publishIdLi = boxUl.find('li', text=re.compile(u'(申请公布号|授权公告号)：'))
+        publishIdLi = boxUl.find('li', text=re.compile(u'(申请公布号|授权公告号|审定号)：'))
         if publishIdLi:
-            publishId = re.match(u'(申请公布号|授权公告号)：(\w+)', publishIdLi.get_text()).group(2)
-        publishDateLi = boxUl.find('li', text=re.compile(u'(申请公布日|授权公告日)：'))
+            publishId = re.match(u'(申请公布号|授权公告号|审定号)：(\w+)', publishIdLi.get_text()).group(2)
+        publishDateLi = boxUl.find('li', text=re.compile(u'(申请公布日|授权公告日|审定公告日)：'))
         if publishDateLi:
-            publishDate = re.match(u'(申请公布日|授权公告日)：(\S+)', publishDateLi.get_text().strip()).group(2)
-        #publishDate = re.match(u'(申请公布日|授权公告日)：(\S+)', liList[1].get_text()).group(2)
+            publishDate = re.match(u'(申请公布日|授权公告日|审定公告日)：(\S+)', publishDateLi.get_text().strip()).group(2)
         appIdLi = boxUl.find('li', text=re.compile(u'(申请号)：'))
         if appIdLi:
             appId = re.match(u'(申请号)：(\w+)', appIdLi.get_text()).group(2)
         appDateLi = boxUl.find('li', text=re.compile(u'(申请日)：'))
         if appDateLi:
             appDate = re.match(u'(申请日)：(\S+)', appDateLi.get_text().strip()).group(2)
-        applicantLi = boxUl.find('li', text=re.compile(u'(申请人|专利权人)：'))
+        #applicantLi = boxUl.find('li', text=re.compile(u'(申请人|专利权人)：'))
+        applicantLi = appDateLi.find_next_sibling('li', class_='wl228')
         if applicantLi:
             applicant = re.match(u'(申请人|专利权人)：(.+)', removeSpace(applicantLi.get_text())).group(2)
-        inventorLi = boxUl.find('li', text=re.compile(u'(发明人|设计人)：'))
+        #inventorLi = boxUl.find('li', text=re.compile(u'(发明人|设计人)：'))
+        inventorLi = applicantLi.find_next_sibling('li', class_='wl228')
         if inventorLi:
             inventor = re.match(u'(发明人|设计人)：(.+)', removeSpace(inventorLi.get_text())).group(2)
         addressLi = boxUl.find('li', text=re.compile(u'(地址)：'))
@@ -115,7 +125,7 @@ def analyzeWeb(webcontent, writer, pre):
         
         #classLi = boxUl.find('li', text=re.compile(u'(分类号)：(.*)')) #可能是因为格式嵌套
         classLi = addressLi.find_next_sibling('li')
-        print classLi.text
+        #print classLi.text
         #classLi = boxUl.find('li', text=re.compile(u'(分类号)：(.*)'))
         [quanbu.extract() for quanbu in classLi('a')]
         collapsDiv = classLi.find('div', {'style':'display:none;'})
@@ -163,7 +173,7 @@ def analyzeWeb(webcontent, writer, pre):
         abstract = re.match(u'(摘要|简要说明)：\s*(\S*)', removeSpace(box.find('div', class_='cp_jsh').get_text().strip())).group(2)
         #if len(abstract)>2 and abstract[len(abstract)-2:len(abstract)] == u'全部':
         #    abstract = abstract[0:len(abstract)-2]
-        buffer.extend([title, publishId, publishDate, appId, appDate, applicant, inventor, address, classCode, agency, agent, priority, pctDate, pctApp, pctPublish, compareFile, abstract])
+        buffer.extend([type, title, publishId, publishDate, appId, appDate, applicant, inventor, address, classCode, agency, agent, priority, pctDate, pctApp, pctPublish, compareFile, abstract])
         writer.writerow(buffer)
     #end for
     return True
@@ -255,9 +265,9 @@ if __name__ == '__main__':
     sys.setdefaultencoding('utf8') #系统输出编码置为utf8，解决输出时的乱码问题
     
     print '*******************************************'
-    print '*          Patents Spider  v0102          *'
+    print '*          Patents Spider  v0103          *'
     print '*  Keywords need to be in "keywords.txt". *'
-    print '*  Results will be in "datas/" folder.    *'
+    print '*  Results will be in "datas" folder.     *'
     print '*******************************************'
     
     keywordList = readKeywordFile(keywordFilename)
