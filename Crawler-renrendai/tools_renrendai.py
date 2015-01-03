@@ -198,6 +198,12 @@ def getTime(format = None):
         strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     return strtime
 #--------------------------------------------------
+def struct2Datetime(timeStruct, targetFormat):
+    return time.strftime(targetFormat, timeStruct)
+def str2Datetime(str, originFormat, targetFormat = '%Y/%m/%d %H:%M:%S'):
+    timeStruct = time.strptime(str,originFormat)
+    return struct2Datetime(timeStruct, targetFormat)
+#--------------------------------------------------
 def cleanString(str):
     str = str.replace('\r\n', ' ')
     str = str.replace('\n', ' ')
@@ -307,8 +313,9 @@ def analyzeData(webcontent, writers):
     if soup.find('img', {'src':'/exceptions/network-busy/img/500.png'}):
         return False #服务器发生错误
     
-    currentDate = getTime('%Y-%m-%d')
+    currentDate = getTime('%Y/%m/%d')
     currentClock = getTime('%H:%M:%S')
+    currentTime = getTime('%Y/%m/%d %H:%M:%S')
     
     ### 分析script ###
     jsonString = soup.find(id = 'credit-info-data').get_text()
@@ -340,6 +347,8 @@ def analyzeData(webcontent, writers):
         guarantor = '中安信业'
     elif tag_guarantor == 'from-website':
         guarantor = ''
+    elif tag_guarantor == 'debx-as':
+        guarantor = '安盛'
     else:
         guarantor = tag_guarantor
     title = loanData['title']
@@ -356,13 +365,30 @@ def analyzeData(webcontent, writers):
     description = loanData['description']
     jobType = loanData['jobType']
     
+    originTimeFormat = '%b %d, %Y %I:%M:%S %p' #script中原始的时间格式
+    openTime = beginBidTime = readyTime = passTime = startTime = closeTime = ''
     openTimeStr = loanData['openTime'] #开放时间
-    openTimeFormat = time.strptime(openTimeStr,'%b %d, %Y %I:%M:%S %p')
-    openTime = time.strftime('%Y-%m-%d', openTimeFormat) #开放日期
-    openTimeClock = time.strftime('%H:%M:%S', openTimeFormat)#开放时刻
+    #openTimeFormat = time.strptime(openTimeStr,'%b %d, %Y %I:%M:%S %p')
+    #openTime = time.strftime('%Y/%m/%d %H:%M:%S', openTimeFormat) #开放日期
+    #openTimeClock = time.strftime('%H:%M:%S', openTimeFormat)#开放时刻
+    openTime = str2Datetime(openTimeStr, originTimeFormat)
     
-    beginBidTimeStr = loanData['beginBidTime'] #开始投标时间
-    beginBidTimeFormat = time.strptime(beginBidTimeStr, '%b %d, %Y %I:%M:%S %p')
+    if 'beginBidTime' in loanData.keys():
+        beginBidTimeStr = loanData['beginBidTime'] #开始投标时间
+        beginBidTime = str2Datetime(beginBidTimeStr, originTimeFormat)
+        #beginBidTimeFormat = time.strptime(beginBidTimeStr, '%b %d, %Y %I:%M:%S %p')
+    if 'readyTime' in loanData.keys():
+        readyTimeStr = loanData['readyTime'] #满标时间
+        readyTime = str2Datetime(readyTimeStr, originTimeFormat)
+    if 'passTime' in loanData.keys():
+        passTimeStr = loanData['passTime'] #可能为资金转移时间
+        passTime = str2Datetime(passTimeStr, originTimeFormat)
+    if 'startTime' in loanData.keys():
+        startTimeStr = loanData['startTime'] #不知道是什么
+        startTime = str2Datetime(startTimeStr, originTimeFormat)
+    if 'closeTime' in loanData.keys():
+        closeTimeStr = loanData['closeTime'] #还清时间
+        closeTime = str2Datetime(closeTimeStr, originTimeFormat)
     
     status = ''
     if statusType == 'IN_PROGRESS':
@@ -379,7 +405,7 @@ def analyzeData(webcontent, writers):
         status = '已还清'
     else:
         status = statusType
-    buffer1 = [currentDate, currentClock, loanId, loanType, guarantor, title, amount, interest, months, openTime, openTimeClock, status]
+    buffer1 = [currentTime, loanId, loanType, guarantor, title, amount, interest, months, openTime, beginBidTime, readyTime, passTime, startTime, closeTime, status]
     #print(buffer1)
 
     #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
@@ -512,7 +538,7 @@ def analyzeData(webcontent, writers):
     
     writers[0].writerow(buffer1)
     
-    basicInfo = [currentDate, currentClock]
+    basicInfo = [currentTime]
     #投标记录-----------------------------------------
     analyzeLenderData(loanId, writers[1], basicInfo)
     
@@ -600,6 +626,7 @@ def analyzeLenderData(loanId, writer, attrs):
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['lendTime'])
         lendDate = m.group(1)
         lendClock = m.group(2)
+        lendTime = str2Datetime(item['lendTime'], '%Y-%m-%dT%H:%M:%S')
         lenderType = '无' #投标类型：理、自、U、无
         financePlanId = '' #理财计划期数或U计划类型
         if(item['lenderType'] == 'FINANCEPLAN_BID'):#FINANCEPLAN_BID or NORMAL_BID or AUTO_BID
@@ -616,7 +643,7 @@ def analyzeLenderData(loanId, writer, attrs):
             mobileTrade = '1'
         buffer_lenderRecords = []
         buffer_lenderRecords.extend(attrs)
-        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], mobileTrade, item['amount'], lendDate, lendClock, lenderType, financePlanId])
+        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], mobileTrade, item['amount'], lendTime, lenderType, financePlanId])
         #print buffer_lenderRecords
         writer.writerow(buffer_lenderRecords)
 #end def analyzeLenderData
@@ -734,9 +761,10 @@ def analyzeTransferData(loanId, writer, attrs):
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
         transferDate = m.group(1)
         transferClock = m.group(2)
+        transferTime = str2Datetime(item['createTime'], '%Y-%m-%dT%H:%M:%S')
         buffer_transferLog = []
         buffer_transferLog.extend(attrs)
-        buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'], item['fromUserId'], item['fromNickName'], item['fromFinancePlanId'], item['price'], item['share'], transferDate, transferClock])
+        buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'], item['fromUserId'], item['fromNickName'], item['fromFinancePlanId'], item['price'], item['share'], transferTime])
         writer.writerow(buffer_transferLog)
 #end def analyzeTransferData()
 #-------------------------------------------------------
@@ -746,6 +774,7 @@ def analyzeUserData(userId, writer, attrs):
     soup = BeautifulSoup(content_user)
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
+    currentTime = getTime('%Y-%m-%d %H:%M:%S')
     #个人信息
     nickName = soup.find('span', {'id':'nick-name'}).string
     tag_registerDate = soup.find('div', class_='avatar-info')
@@ -759,7 +788,7 @@ def analyzeUserData(userId, writer, attrs):
     ownFinancePlansCount = tag_ownFinancePlansCount.find('em').string
     
     
-    buffer_user = [currentDate, currentClock, userId, nickName, registerDate, ownBondsCount, ownFinancePlansCount]
+    buffer_user = [currentTime, userId, nickName, registerDate, ownBondsCount, ownFinancePlansCount]
     buffer_user.extend(attrs)
     writer.writerow(buffer_user)
 #end analyzeUserData()
@@ -770,6 +799,7 @@ def analyzeUPData(webcontent, planId, writers):
     soup = BeautifulSoup(webcontent)
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
+    currentTime = getTime('%Y-%m-%d %H:%M:%S')
     tag_basic = soup.find('div', {'id':'plan-basic-panel'})
     if tag_basic == None:
         return False
@@ -830,26 +860,39 @@ def analyzeUPData(webcontent, planId, writers):
     #print reserveStart
     if reserveStart:
         reserveStart = re.match(u'预定开始(.*)', reserveStart).group(1)
+        #print reserveStart+'adfadf'
+        reserveStart = str2Datetime(reserveStart, u'%m月%d日 %H:%M', '%m/%d %H:%M')
     reserveStop = list_p2[1].get_text()
     if reserveStop:
         reserveStop = re.match(u'预定结束(.*)', reserveStop).group(1)
+        if reserveStop:
+            reserveStop = str2Datetime(reserveStop, u'%m月%d日 %H:%M', '%m/%d %H:%M')
     payDeadline = list_p2[2].get_text()
     if payDeadline:
         payDeadline = re.match(u'支付截止(.*)', payDeadline).group(1)
-        
+        if payDeadline:
+            payDeadline = str2Datetime(payDeadline, u'%m月%d日 %H:%M', '%m/%d %H:%M')
     planStep3 = planDetails.find('div', class_='step-three')
     joinStart = planStep3.find('p').get_text()
     if joinStart:
         joinStart = re.match(u'开放加入(.*)', joinStart).group(1)
+        if joinStart:
+            joinStart = str2Datetime(joinStart, u'%m月%d日 %H:%M', '%m/%d %H:%M')
     planStep4 = planDetails.find('div', class_='step-four')
     lockStart = planStep4.find('p').get_text()
     if lockStart:
         lockStart = re.match(u'进入锁定期(.*)', lockStart).group(1)
+        if lockStart:
+            lockStart = str2Datetime(lockStart, u'%m月%d日 %H:%M', '%m/%d %H:%M')
     quitDate = planStep4.find('p').find_next_sibling('p').get_text()
     if quitDate:
         quitDate = re.match(u'(到期退出|锁定结束)(.*)', quitDate).group(2)
-        quitDateFormat = time.strptime(quitDate,u'%Y年%m月%d日')
-        quitDate = time.strftime('%Y-%m-%d', quitDateFormat)
+        #print 'quitDate:'+quitDate
+        try:
+            quitDateFormat = time.strptime(quitDate,u'%Y年%m月%d日')
+        except:#个别页面后面有个空格，如U计划79
+            quitDateFormat = time.strptime(quitDate,u'%Y年%m月%d日 ')
+        quitDate = time.strftime('%Y/%m/%d', quitDateFormat)
     '''
     list_basicInfo = tag_basic.ul.find_all('li', class_='fn-clear')
     
@@ -869,7 +912,7 @@ def analyzeUPData(webcontent, planId, writers):
     leftAmount = soup.find('em', {'id':'max-amount-1'})['data-amount']
     joinAmountLimit = soup.find('em', {'id':'max-amount-2'})['data-amount']
     '''
-    buffer_UP = [currentDate, currentClock, planName, planId, planAmount, expectedRate, planProducts, guaranteeMode, status, lockPeriod, joinCondition, joinLimit, reserveStart, reserveStop, payDeadline, joinStart, lockStart, quitDate, joinCost, serviceCost, quitCost, earlyquitCost]
+    buffer_UP = [currentTime, planName, planId, planAmount, expectedRate, planProducts, guaranteeMode, status, lockPeriod, joinCondition, joinLimit, reserveStart, reserveStop, payDeadline, joinStart, lockStart, quitDate, joinCost, serviceCost, quitCost, earlyquitCost]
     #print buffer_FP
     
     
@@ -899,6 +942,7 @@ def analyzeReserve(planId, planName, writer):
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
         aDate = m.group(1)
         aClock = m.group(2)
+        aTime = str2Datetime(item['createTime'], '%Y-%m-%dT%H:%M:%S')
         buffer_reserve = [planName, planId]
         tradeMethod = '无'
         if(item['tradeMethod'] == 'MOBILE'): tradeMethod = u'手机预定'
@@ -906,7 +950,7 @@ def analyzeReserve(planId, planName, writer):
         
         if(item['reserveType'] == '未支付'):
             reserveNotpayAmount += item['planAmount'] #计算未支付总额
-        buffer_reserve.extend([item['nickName'], item['userId'], item['planAmount'], aDate, aClock, tradeMethod, item['reserveType']])
+        buffer_reserve.extend([item['nickName'], item['userId'], item['planAmount'], aTime, tradeMethod, item['reserveType']])
         writer.writerow(buffer_reserve)
     return [len(list_reserve), reserveNotpayAmount]
 #end def analyzeReserve
@@ -934,9 +978,10 @@ def analyzeUPLender(planId, planName, writer):
         m = re.match('(\d+-\d+-\d+)T(\d+\:\d+\:\d+)', item['createTime'])
         aDate = m.group(1)
         aClock = m.group(2)
+        aTime = str2Datetime(item['createTime'], '%Y-%m-%dT%H:%M:%S')
         buffer_lender = [planName, planId]
         reserveHadpayAmount += item['amount']
-        buffer_lender.extend([item['nickName'], item['userId'], item['amount'], aDate, aClock])
+        buffer_lender.extend([item['nickName'], item['userId'], item['amount'], aTime])
         writer.writerow(buffer_lender)
     return [len(list_lenders), reserveHadpayAmount]
 #end def analyzeUPLender()
