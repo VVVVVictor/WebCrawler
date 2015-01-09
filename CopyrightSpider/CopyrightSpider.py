@@ -61,7 +61,10 @@ def getDataByKw(keyword, writer):
     pageNow = 1
     while True:
         #newkw = keyword.decode('gbk').encode('utf-8') #important
-        newkw = keyword
+        if PY3:
+            newkw = keyword.encode('gbk')
+        else:
+            newkw = keyword
         data = {'method': 'list', 'no': 'fck', 'sql_name': '', 'sql_regnum': '', 'sql_author': newkw,
                 'curPage': str(pageNow), 'count': '80', 'sortOrder': '', 'sortLabel': ''}
         postData = urllib.parse.urlencode(data)
@@ -87,7 +90,7 @@ def getDataByKw(keyword, writer):
             continue
         '''
         else:
-            if analyzeWeb(m, writer, [newkw]):
+            if analyzeWeb(m, writer, [keyword]):
                 print('    page: '+str(pageNow))
                 pageNow += 1
                 time.sleep(2)
