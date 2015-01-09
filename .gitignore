@@ -1,7 +1,9 @@
 *~
 *.pyc
-*/build/
+*/build/*
 *.bloom
 *.log
 */datas/
 *#
+*.idea
+
