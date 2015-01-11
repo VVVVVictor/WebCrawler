@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#python2.7
 
 import urllib, urllib2, cookielib, httplib, threading
 import sys, string, time, os, re

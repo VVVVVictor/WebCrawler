@@ -1,8 +1,5 @@
-CopyrightSpider v0109
+CopyrightSpider v0111
 
 使用说明：
 1. 要抓取的关键词放在keywords.txt中，每个关键词一行。结果会存储在datas文件夹中，以copyright_抓取时间.csv命名。
 2. 双击CopyrightSpider.exe运行抓取程序。
-
-另外：
-1. 部分分类号格式为“数字-数字”，在excel中会被识别为日期，实际存储是正确的。
