@@ -1,21 +1,21 @@
-#! /usr/bin/python2.7
+#! /usr/bin/python3.4
 # -*- coding: utf-8 -*-
 
 __author__ = "Wang Miaofei"
 
-import urllib, urllib2, cookielib
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.cookiejar
 import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket, ssl
 from random import randint
-import ConfigParser
+import configparser
 
 #config
 configfileName = 'config.ini'
-filedirectory = u'D:/datas/pythondatas/renrendai/'
-username = u'15120000823'
-password = u'wmf123456'
+filedirectory = 'D:/datas/pythondatas/renrendai/'
+username = '15120000823'
+password = 'wmf123456'
 threadnumber = '2'
 proxy_enable = 0
 proxy_host = ''
@@ -23,12 +23,12 @@ proxy_port = ''
 
 
 #For login
-urlLogin = u'https://www.renrendai.com/j_spring_security_check'
-urlIndex = u'http://www.renrendai.com/'
-urlLenderRecordsPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderRecords&loanId='
-urlRepayDetailPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=repayDetail&loanId='
-urlLenderInfoPrefix = u'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
-urlTransferLogPrefix = u'http://www.renrendai.com/transfer/transactionList.action?loanId='
+urlLogin = 'https://www.renrendai.com/j_spring_security_check'
+urlIndex = 'http://www.renrendai.com/'
+urlLenderRecordsPrefix = 'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderRecords&loanId='
+urlRepayDetailPrefix = 'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=repayDetail&loanId='
+urlLenderInfoPrefix = 'http://www.renrendai.com/lend/getborrowerandlenderinfo.action?id=lenderInfo&loanId='
+urlTransferLogPrefix = 'http://www.renrendai.com/transfer/transactionList.action?loanId='
 urlUserPrefix = 'https://www.renrendai.com/account/myInfo.action?userId='
 urlCommentPrefix = 'http://www.renrendai.com/lend/loanCommentList.action?loanId='
 urlCollectionPrefix = 'http://www.renrendai.com/lend/dunDetail.action?loanId='
@@ -54,7 +54,7 @@ def getConfig(configPath = None):
     global username, password, proxy_enable, proxy_host, proxy_port
     if(configPath == None):
         configPath = configfileName
-    cf = ConfigParser.ConfigParser()
+    cf = configparser.ConfigParser()
     cf.read(configPath)
     
     filedirectory = cf.get('base', 'filedirectory')+'/'
@@ -67,10 +67,10 @@ def getConfig(configPath = None):
     proxy_port = cf.get('proxy', 'port')
     
     print('[CONFIG]')
-    print('filedirectory = '+filedirectory)
-    print('username = '+username)
-    print('password = '+password)
-    print('threadnumber = '+str(threadnumber)+'\n')
+    print(('filedirectory = '+filedirectory))
+    print(('username = '+username))
+    print(('password = '+password))
+    print(('threadnumber = '+str(threadnumber)+'\n'))
     #print(proxy_host)
     #print(proxy_port)
     
@@ -85,18 +85,18 @@ def old_getConfig():
     try:
         configfile = open(os.getcwd()+'/'+configfileName, 'r')
         #line = configfile.readline()
-        pattern = re.compile(u'\s*(\w+)\s*=\s*(\S+)\s*')
+        pattern = re.compile('\s*(\w+)\s*=\s*(\S+)\s*')
         for line in configfile:
             #print line
             m = pattern.match(line)
             if m:
-                if m.group(1) == u'filedirectory':
+                if m.group(1) == 'filedirectory':
                     filedirectory =  m.group(2)+'/'
-                elif m.group(1) == u'username':
+                elif m.group(1) == 'username':
                     username = m.group(2)
-                elif m.group(1) == u'password':
+                elif m.group(1) == 'password':
                     password = m.group(2)
-                elif m.group(1) == u'threadnumber':
+                elif m.group(1) == 'threadnumber':
                     threadnumber = m.group(2)
                 #print filedirectory
         configfile.close()
@@ -112,9 +112,9 @@ def old_getConfig():
     createFolder(filedirectory)
     
     print('[CONFIG]')
-    print('filedirectory = '+filedirectory)
-    print('username = '+username)
-    print('password = '+password+'\n')
+    print(('filedirectory = '+filedirectory))
+    print(('username = '+username))
+    print(('password = '+password+'\n'))
     #print('threadnumber = '+str(threadnumber))
     
     return [filedirectory, threadnumber]
@@ -138,26 +138,31 @@ def getProxyList(proxy = None):
 #登录函数
 def login():
     print('Logging...')
-    cj = cookielib.CookieJar()
+    cj = http.cookiejar.CookieJar()
     if(proxy_enable == '0'):
         print("No proxy.")
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
     else:
         #getProxyList()
-        print("Current proxy: "+str(proxy_host)+':'+str(proxy_port))
-        proxy_handler = urllib2.ProxyHandler({"http": str(proxy_host)+':'+str(proxy_port)})
+        print(("Current proxy: "+str(proxy_host)+':'+str(proxy_port)))
+        proxy_handler = urllib.request.ProxyHandler({"http": str(proxy_host)+':'+str(proxy_port)})
         #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), proxy_handler)
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj), proxy_handler)
     #end ifelse
-    urllib2.install_opener(opener)
+    urllib.request.install_opener(opener)
 
-    data = {'j_username':username, 'j_password':password, 'rememberme':'on', 'targetUrl':'http://www.renrendai.com', 'returnUrl':''}
-    postdata = urllib.urlencode(data)
+    data = {'j_username':username, 'j_password':password, 'rememberme':'on', 'targetUrl':'http://www.renrendai.com', 'returnUrl':'', "Content-Type":" application/x-www-form-urlencoded;charset=utf-8"}
+    postdata = urllib.parse.urlencode(data)
+    #print("data:"+str(data))
+    #print("postdata:"+str(postdata))
     for i in range(TRY_LOGIN_TIMES):
         try:
-            req = urllib2.Request(urlLogin, postdata, getRandomHeaders())
-            result = urllib2.urlopen(req)
-            #print("return url:"+result.geturl())
+            req = urllib.request.Request(urlLogin, data=postdata.encode('utf8'), headers=headers)
+            #req = urllib.request.Request(urlLogin, data=postdata)
+            response = urllib.request.urlopen(req, timeout=30)
+            m = response.read()
+            #print(m)
+            #print("return url:"+response.geturl())
             '''
             if urlIndex != result.geturl(): #通过返回url判断是否登录成功
                 print result.geturl()
@@ -165,11 +170,22 @@ def login():
                 return False
             '''
             #print result.read()
-            result.close()
+            response.close()
             print('LOGIN SUCCESS')
             return True
+        except socket.timeout as e:
+            print("Socket timeout. Reconnect...")
+            continue
+        except urllib.error.HTTPError as e:
+            print("HTTP error code "+e.code)
+        except urllib.error.URLError as e:
+            print('URLError timeout. Reconnect...'+e.reason)
+            continue
+        except http.client.HTTPException as e:
+            print("http exception.")
         except:
-            print(u'[FAIL]Login failed. Please try again!')
+            import traceback
+            print('[FAIL]Login failed. Please try again!'+traceback.format_exc())
     #end for
     return True
 #end def login()
@@ -224,23 +240,23 @@ def readFromUrl(url, formdata = None, headers = None):
                 if(m == None):
                     continue
                 #TODO:need to close response?
-                return m
+                return str(m.decode('utf8'))
             else:
                 print('response is None')
                 return None
-        except ssl.SSLError, e:
+        except ssl.SSLError as e:
             print('[ERROR]ssl error in readFromUrl()!')
             if hasattr(e, 'code'):
-                print e.code
-            print e.errno
+                print(e.code)
+            print(e.errno)
             login()
             continue
-        except Exception, e:
+        except Exception as e:
             print('i do not know what is wrong. When readFromUrl()!')
-            print("url = "+url)
-            print(e.errno)
+            print(("url = "+url))
+            print((e.errno))
             if hasattr(e, 'code'):
-                print "Error Msg: "+e.code
+                print("Error Msg: "+e.code)
             login()
             continue
         
@@ -250,7 +266,7 @@ def readFromUrl(url, formdata = None, headers = None):
 def responseFromUrl(url, formdata = None, headers = None):
     response = None
     if formdata != None:
-        formdata = urllib.urlencode(formdata)
+        formdata = urllib.parse.urlencode(formdata)
     if headers == None:
         headers = getRandomHeaders()
     loopCount = 0
@@ -259,13 +275,13 @@ def responseFromUrl(url, formdata = None, headers = None):
         loopCount += 1
         if loopCount > 5:
             print('Failed when trying responseFromUrl().')
-            print('URL = '+url)
+            print(('URL = '+url))
             break
         try:
-            req = urllib2.Request(url, formdata, headers)
+            req = urllib.request.Request(url, formdata, headers)
             #proxyNo = randint(0, proxyNumber-1)
             #req.set_proxy(proxyList[proxyNo], 'http')
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             curUrl = response.geturl()
             if(url != curUrl):
                 #log.write('original url: '+url+'\n')
@@ -276,23 +292,23 @@ def responseFromUrl(url, formdata = None, headers = None):
                     login()
                     continue
             break
-        except (urllib2.URLError) as e:
+        except (urllib.error.URLError) as e:
             if hasattr(e, 'code'):
-                print('ERROR:'+str(e.code)+' '+str(e.reason))
+                print(('ERROR:'+str(e.code)+' '+str(e.reason)))
                 if(e.code == 404):
-                    print('url = '+url)
+                    print(('url = '+url))
                     return None
             else:
-                print(str(e.reason))
-            print('url = '+url)
-        except httplib.IncompleteRead, e:
-            print('[ERROR]IncompleteRead! '+url)
+                print((str(e.reason)))
+            print(('url = '+url))
+        except http.client.IncompleteRead as e:
+            print(('[ERROR]IncompleteRead! '+url))
             continue
-        except ssl.SSLError, e:
+        except ssl.SSLError as e:
             print('[ERROR]ssl error!')
             continue
         except:
-            print('some error: '+url)
+            print(('some error: '+url))
             login()
             continue
             
@@ -373,20 +389,20 @@ def analyzeData(webcontent, writers):
     #openTimeClock = time.strftime('%H:%M:%S', openTimeFormat)#开放时刻
     openTime = str2Datetime(openTimeStr, originTimeFormat)
     
-    if 'beginBidTime' in loanData.keys():
+    if 'beginBidTime' in list(loanData.keys()):
         beginBidTimeStr = loanData['beginBidTime'] #开始投标时间
         beginBidTime = str2Datetime(beginBidTimeStr, originTimeFormat)
         #beginBidTimeFormat = time.strptime(beginBidTimeStr, '%b %d, %Y %I:%M:%S %p')
-    if 'readyTime' in loanData.keys():
+    if 'readyTime' in list(loanData.keys()):
         readyTimeStr = loanData['readyTime'] #满标时间
         readyTime = str2Datetime(readyTimeStr, originTimeFormat)
-    if 'passTime' in loanData.keys():
+    if 'passTime' in list(loanData.keys()):
         passTimeStr = loanData['passTime'] #可能为资金转移时间
         passTime = str2Datetime(passTimeStr, originTimeFormat)
-    if 'startTime' in loanData.keys():
+    if 'startTime' in list(loanData.keys()):
         startTimeStr = loanData['startTime'] #不知道是什么
         startTime = str2Datetime(startTimeStr, originTimeFormat)
-    if 'closeTime' in loanData.keys():
+    if 'closeTime' in list(loanData.keys()):
         closeTimeStr = loanData['closeTime'] #还清时间
         closeTime = str2Datetime(closeTimeStr, originTimeFormat)
     
@@ -414,29 +430,29 @@ def analyzeData(webcontent, writers):
     guaranteeType = repayTyep = ''
     prepaymentRate = repayEachMonth = '0'
     #保障方式
-    tag_guaranteeType = soup.find('span', text = u'保障方式')
+    tag_guaranteeType = soup.find('span', text = '保障方式')
     if tag_guaranteeType:
         guaranteeType = tag_guaranteeType.find_next_sibling('span').contents[0]
         #print guaranteeType
     #还款方式
-    tag_repayType = soup.find('span', text=u'还款方式')
+    tag_repayType = soup.find('span', text='还款方式')
     if tag_repayType:
         repayType = tag_repayType.find_next_sibling('span').contents[0]
         #print repayType
     #提前还款费率
-    tag_prepaymentRate = soup.find('span', text=u'提前还款费率')
+    tag_prepaymentRate = soup.find('span', text='提前还款费率')
     if tag_prepaymentRate:
         prepaymentRate = tag_prepaymentRate.find_next_sibling('span').find('em').string
         #print prepaymentRate
     #月还本息    
-    tag_repayEachMonth = soup.find('span', text=u'月还本息（元）')
+    tag_repayEachMonth = soup.find('span', text='月还本息（元）')
     if tag_repayEachMonth:
         repayEachMonth = tag_repayEachMonth.find_next_sibling('span').find('em').string
         repayEachMonth = repayEachMonth.replace(',', '')
         #print repayEachMonth
     #待还本息
     amountToRepay = 0
-    tag_amountToRepay = soup.find('em', text=re.compile(u'待还本息\w*'))
+    tag_amountToRepay = soup.find('em', text=re.compile('待还本息\w*'))
     if tag_amountToRepay:
         amountToRepay = tag_amountToRepay.find_next_sibling('span').string.replace(',', '')
         amountToRepay = re.search(r'\d+', amountToRepay).group()
@@ -471,7 +487,7 @@ def analyzeData(webcontent, writers):
     school = list_userinfo[9].find(id='university')['title']
     city = list_userinfo[10].find(class_='tab-list-value').string
     #print(city.find(u'请选择'))
-    if city.find(u'请选择')>=0 or city.find('--')>=0: 
+    if city.find('请选择')>=0 or city.find('--')>=0: 
         city = ''
     tag_car = list_userinfo[11].find(class_='icon-check-checked')
     if tag_car:
@@ -509,7 +525,7 @@ def analyzeData(webcontent, writers):
     creditInfo = scriptData['data']['creditInfo']
     list_creditInfo = {'credit':'', 'identificationScanning':'', 'work':'', 'incomeDuty':'', 'house':'', 'car':'', 'marriage':'', 'graduation':'', 'fieldAudit':'', 'mobileReceipt':'', 'kaixin':'', 'residence':'', 'video':''}
     #kaixin为微博，技术职称认证不详暂为fieldAudit
-    for item in creditInfo.keys():
+    for item in list(creditInfo.keys()):
         if(creditInfo[item] == 'INVALID'):
             list_creditInfo[item] = ''
         elif(creditInfo[item] == 'VALID'):
@@ -521,7 +537,7 @@ def analyzeData(webcontent, writers):
     creditPassedTime = scriptData['data']['creditPassedTime']
     #信用报告，工作认证，收入认证，身份认证，婚姻认证
     list_passedTime = {'credit':'', 'identificationScanning':'', 'work':'', 'incomeDuty':'', 'house':'', 'car':'', 'marriage':'', 'graduation':'', 'fieldAudit':'', 'mobileReceipt':'', 'kaixin':'', 'residence':'', 'video':''}
-    for item in creditPassedTime.keys():
+    for item in list(creditPassedTime.keys()):
         try:
             passedTime = time.strptime(creditPassedTime[item],'%b %d, %Y %I:%M:%S %p')
             list_passedTime[item] = time.strftime('%Y-%m-%d', passedTime)
@@ -614,7 +630,7 @@ def analyzeLenderData(loanId, writer, attrs):
         if(lenderRecordsString != "null"):break
     #end while
     if(lenderRecordsString == "null"):
-        print(str(loanId)+" lenderRecord Error!")
+        print((str(loanId)+" lenderRecord Error!"))
         return
     #lenderRecordsString = readFromUrl(urlLenderRecordsPrefix+str(loanId))
     lenderRecords = json.loads(lenderRecordsString)
@@ -657,7 +673,7 @@ def analyzeRepayData(loanId, writer, attrs):
         if(repayDetailString != "null"):break
     #end while
     if(repayDetailString == "null"):
-        print(str(loanId)+" repayDetail Error!")
+        print((str(loanId)+" repayDetail Error!"))
         return
     repayDetail = json.loads(repayDetailString)
     #print str(loanId)+" repayDetail:"
@@ -687,7 +703,7 @@ def analyzeCollectionData(loanId, writer, attrs):
         if(collectionString != "null"):break
     #end while
     if(collectionString== "null"):
-        print(str(loanId)+" collectionString Error!")
+        print((str(loanId)+" collectionString Error!"))
         return
     #collectionString = readFromUrl(urlCollectionPrefix+str(loanId));
     collectionInfo = json.loads(collectionString)
@@ -714,7 +730,7 @@ def analyzeLenderInfoData(loanId, writer, attrs):
         if(lenderInfoString != "null"):break
     #end while
     if(lenderInfoString == "null"):
-        print(str(loanId)+" lenderInfo Error!")
+        print((str(loanId)+" lenderInfo Error!"))
         return
     #lenderInfoString = readFromUrl(urlLenderInfoPrefix+str(loanId))
     #log.write('[lender Info String] '+str(loanId)+'\n'+lenderInfoString+'\n\n')
@@ -748,7 +764,7 @@ def analyzeTransferData(loanId, writer, attrs):
         if(transferLogString != "null"):break
     #end while
     if(transferLogString == "null"):
-        print(str(loanId)+" transferLog Error!")
+        print((str(loanId)+" transferLog Error!"))
         return
         
     #transferLogString = readFromUrl(urlTransferLogPrefix+str(loanId))
@@ -795,7 +811,7 @@ def analyzeUserData(userId, writer, attrs):
 
 #------------------------------------------------------
 def analyzeUPData(webcontent, planId, writers):
-    print('planID='+str(planId))
+    print(('planID='+str(planId)))
     soup = BeautifulSoup(webcontent)
     currentDate = getTime('%Y-%m-%d')
     currentClock = getTime('%H:%M:%S')
@@ -808,7 +824,7 @@ def analyzeUPData(webcontent, planId, writers):
     list_basic1 = planInfo.find('div').find_all('dl', class_='fn-left')
     planAmount = list_basic1[0].em.get_text() #计划金额
     if planAmount:
-        planAmount = filter(str.isdigit, planAmount.encode('utf-8')) #只保留数字
+        planAmount = list(filter(str.isdigit, planAmount.encode('utf-8'))) #只保留数字
     expectedRate = list_basic1[1].em.get_text().strip() #预期年化收益
     #lockPeriod = list_basic1[2].em.get_text() #锁定期限
     
@@ -835,7 +851,7 @@ def analyzeUPData(webcontent, planId, writers):
     planName = list_tr[0].td.get_text() #名称
     planProducts = list_tr[2].td.get_text() #投标范围
     lockPeriod = list_tr[4].td.get_text() #锁定期
-    lockPeriod = filter(str.isdigit, lockPeriod.encode('utf-8'))
+    lockPeriod = list(filter(str.isdigit, lockPeriod.encode('utf-8')))
     quitDate = list_tr[5].td.get_text() #退出日期
     joinCondition = list_tr[6].td.get_text() #加入条件
     joinLimit = list_tr[7].td.get_text() #加入上限
@@ -859,39 +875,39 @@ def analyzeUPData(webcontent, planId, writers):
     reserveStart = list_p2[0].get_text()
     #print reserveStart
     if reserveStart:
-        reserveStart = re.match(u'预定开始(.*)', reserveStart).group(1)
+        reserveStart = re.match('预定开始(.*)', reserveStart).group(1)
         #print reserveStart+'adfadf'
-        reserveStart = str2Datetime(reserveStart, u'%m月%d日 %H:%M', '%m/%d %H:%M')
+        reserveStart = str2Datetime(reserveStart, '%m月%d日 %H:%M', '%m/%d %H:%M')
     reserveStop = list_p2[1].get_text()
     if reserveStop:
-        reserveStop = re.match(u'预定结束(.*)', reserveStop).group(1)
+        reserveStop = re.match('预定结束(.*)', reserveStop).group(1)
         if reserveStop:
-            reserveStop = str2Datetime(reserveStop, u'%m月%d日 %H:%M', '%m/%d %H:%M')
+            reserveStop = str2Datetime(reserveStop, '%m月%d日 %H:%M', '%m/%d %H:%M')
     payDeadline = list_p2[2].get_text()
     if payDeadline:
-        payDeadline = re.match(u'支付截止(.*)', payDeadline).group(1)
+        payDeadline = re.match('支付截止(.*)', payDeadline).group(1)
         if payDeadline:
-            payDeadline = str2Datetime(payDeadline, u'%m月%d日 %H:%M', '%m/%d %H:%M')
+            payDeadline = str2Datetime(payDeadline, '%m月%d日 %H:%M', '%m/%d %H:%M')
     planStep3 = planDetails.find('div', class_='step-three')
     joinStart = planStep3.find('p').get_text()
     if joinStart:
-        joinStart = re.match(u'开放加入(.*)', joinStart).group(1)
+        joinStart = re.match('开放加入(.*)', joinStart).group(1)
         if joinStart:
-            joinStart = str2Datetime(joinStart, u'%m月%d日 %H:%M', '%m/%d %H:%M')
+            joinStart = str2Datetime(joinStart, '%m月%d日 %H:%M', '%m/%d %H:%M')
     planStep4 = planDetails.find('div', class_='step-four')
     lockStart = planStep4.find('p').get_text()
     if lockStart:
-        lockStart = re.match(u'进入锁定期(.*)', lockStart).group(1)
+        lockStart = re.match('进入锁定期(.*)', lockStart).group(1)
         if lockStart:
-            lockStart = str2Datetime(lockStart, u'%m月%d日 %H:%M', '%m/%d %H:%M')
+            lockStart = str2Datetime(lockStart, '%m月%d日 %H:%M', '%m/%d %H:%M')
     quitDate = planStep4.find('p').find_next_sibling('p').get_text()
     if quitDate:
-        quitDate = re.match(u'(到期退出|锁定结束)(.*)', quitDate).group(2)
+        quitDate = re.match('(到期退出|锁定结束)(.*)', quitDate).group(2)
         #print 'quitDate:'+quitDate
         try:
-            quitDateFormat = time.strptime(quitDate,u'%Y年%m月%d日')
+            quitDateFormat = time.strptime(quitDate,'%Y年%m月%d日')
         except:#个别页面后面有个空格，如U计划79
-            quitDateFormat = time.strptime(quitDate,u'%Y年%m月%d日 ')
+            quitDateFormat = time.strptime(quitDate,'%Y年%m月%d日 ')
         quitDate = time.strftime('%Y/%m/%d', quitDateFormat)
     '''
     list_basicInfo = tag_basic.ul.find_all('li', class_='fn-clear')
@@ -945,8 +961,8 @@ def analyzeReserve(planId, planName, writer):
         aTime = str2Datetime(item['createTime'], '%Y-%m-%dT%H:%M:%S')
         buffer_reserve = [planName, planId]
         tradeMethod = '无'
-        if(item['tradeMethod'] == 'MOBILE'): tradeMethod = u'手机预定'
-        elif(item['ucodeId'] is not None): tradeMethod = u'U-code预定'
+        if(item['tradeMethod'] == 'MOBILE'): tradeMethod = '手机预定'
+        elif(item['ucodeId'] is not None): tradeMethod = 'U-code预定'
         
         if(item['reserveType'] == '未支付'):
             reserveNotpayAmount += item['planAmount'] #计算未支付总额
@@ -965,7 +981,7 @@ def analyzeUPLender(planId, planName, writer):
         if(content_lender != "null"):break
     #end while
     if(content_lender == "null"):
-        print(str(loanId)+" content_lender Error!")
+        print((str(planId)+" content_lender Error!"))
         return
         
     #content_lender = readFromUrl(urlFPLenderPrefix+str(planId))
@@ -995,7 +1011,7 @@ def analyzePlan(planId, planName):
         if(content_plan != "null"):break
     #end while
     if(content_plan == "null"):
-        print(str(loanId)+" content_plan Error!")
+        print((str(planId)+" content_plan Error!"))
         return
         
     #content_plan = readFromUrl(urlFPPerformancePrefix+str(planId))

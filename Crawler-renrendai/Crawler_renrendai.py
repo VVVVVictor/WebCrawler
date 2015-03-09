@@ -3,23 +3,24 @@
 
 __author__ = "Wang Miaofei"
 
-import urllib, urllib2, cookielib, httplib, threading
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.cookiejar, http.client, threading
 import sys, string, time, os, re, argparse
 import csv
 from bs4 import BeautifulSoup
 import socket
 from tools_renrendai import *
+import importlib
 
 #constant
 LOST_PAGE_LIMIT = int(20)
 
 #for crawl
-urlLoan = u'http://www.renrendai.com/lend/detailPage.action?loanId='
+urlLoan = 'http://www.renrendai.com/lend/detailPage.action?loanId='
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
-sheetName = [u'1标的详情', u'2投标记录', u'3还款表现', u'4债权信息', u'5转让记录', u'6发标人信息', u'7留言板', u'8催收跟进']
-titles = ([u'抓取时间', u'序号', u'类型', u'认证或担保机构', u'标题', u'总额（元）', u'利率(%)', u'还款期限（月）', u'开放时间(openTime)', u'开始投标时间(beginBidTime)', u'满标时间(readyTime)', u'passTime', u'startTime', u'还款结束时间(closeTime)', u'状态', u'保障方式', u'提前还款率(%)', u'还款方式', u'月还本息', u'投标进度(%)', u'满标用时', u'用户ID', u'用户名', u'性别', u'年龄', u'学历', u'学校', u'婚姻', u'公司行业', u'公司规模', u'岗位职责', u'工作城市', u'工作时间', u'收入范围', u'房产', u'房贷', u'车产', u'车贷', u'工作类型', u'信用等级', u'申请借款（笔）', u'成功还款（笔）', u'还清笔数（笔）', u'信用额度', u'借款总额', u'待还本息（元）', u'逾期金额（元）', u'逾期次数（次）', u'严重逾期', u'信用报告', u'信用报告通过日期', u'身份认证', u'身份认证通过日期', u'工作认证', u'工作认证通过日期', u'收入认证', u'收入认证通过日期', u'房产认证', u'房产认证通过日期', u'购车认证', u'购车认证通过日期', u'结婚认证', u'结婚认证通过日期', u'学历认证', u'学历认证通过日期', u'技术职称认证', u'技术职称认证通过日期', u'手机认证', u'手机认证通过日期', u'微博认证', u'微博认证通过日期', u'居住地证明', u'居住地证明通过日期', u'视频认证', u'视频认证通过日期', u'借款描述'], [u'抓取时间',u'序号', u'投标人ID', u'投标人昵称', u'是否手机投标', u'投标金额', u'投标时间', u'投标方式',u'理财期数'], [u'抓取时间', u'序号', u'合约还款日期', u'状态', u'应还本息', u'应付罚息', u'实际还款日期'], [u'抓取时间', u'序号', u'债权人ID', u'债权人昵称', u'待收本金（元）', u'持有份数（份）', u'投标方式', u'理财期数'], [u'抓取时间', u'序号', u'债权买入者昵称', u'债权买入者ID', u'债权卖出者昵称', u'债权卖出者ID', u'理财计划期数', u'交易金额', u'交易份数', u'交易时间'], [u'抓取时间', u'发标人ID', u'发标人昵称', u'注册时间', u'持有债权数量（笔）', u'持有理财计划数量（笔）', u'发布借款数量', u'成功借款数量（笔）', u'未还清借款数量', u'逾期次数', u'逾期金额', u'严重逾期笔数'], [u'抓取时间', u'序号', u'留言者ID', u'留言者昵称', u'留言日期', u'留言时间', u'留言内容'], [u'抓取时间', u'序号', u'催收时间', u'联系人', u'描述'])
+sheetName = ['1标的详情', '2投标记录', '3还款表现', '4债权信息', '5转让记录', '6发标人信息', '7留言板', '8催收跟进']
+titles = (['抓取时间', '序号', '类型', '认证或担保机构', '标题', '总额（元）', '利率(%)', '还款期限（月）', '开放时间(openTime)', '开始投标时间(beginBidTime)', '满标时间(readyTime)', 'passTime', 'startTime', '还款结束时间(closeTime)', '状态', '保障方式', '提前还款率(%)', '还款方式', '月还本息', '投标进度(%)', '满标用时', '用户ID', '用户名', '性别', '年龄', '学历', '学校', '婚姻', '公司行业', '公司规模', '岗位职责', '工作城市', '工作时间', '收入范围', '房产', '房贷', '车产', '车贷', '工作类型', '信用等级', '申请借款（笔）', '成功还款（笔）', '还清笔数（笔）', '信用额度', '借款总额', '待还本息（元）', '逾期金额（元）', '逾期次数（次）', '严重逾期', '信用报告', '信用报告通过日期', '身份认证', '身份认证通过日期', '工作认证', '工作认证通过日期', '收入认证', '收入认证通过日期', '房产认证', '房产认证通过日期', '购车认证', '购车认证通过日期', '结婚认证', '结婚认证通过日期', '学历认证', '学历认证通过日期', '技术职称认证', '技术职称认证通过日期', '手机认证', '手机认证通过日期', '微博认证', '微博认证通过日期', '居住地证明', '居住地证明通过日期', '视频认证', '视频认证通过日期', '借款描述'], ['抓取时间','序号', '投标人ID', '投标人昵称', '是否手机投标', '投标金额', '投标时间', '投标方式','理财期数'], ['抓取时间', '序号', '合约还款日期', '状态', '应还本息', '应付罚息', '实际还款日期'], ['抓取时间', '序号', '债权人ID', '债权人昵称', '待收本金（元）', '持有份数（份）', '投标方式', '理财期数'], ['抓取时间', '序号', '债权买入者昵称', '债权买入者ID', '债权卖出者昵称', '债权卖出者ID', '理财计划期数', '交易金额', '交易份数', '交易时间'], ['抓取时间', '发标人ID', '发标人昵称', '注册时间', '持有债权数量（笔）', '持有理财计划数量（笔）', '发布借款数量', '成功借款数量（笔）', '未还清借款数量', '逾期次数', '逾期金额', '严重逾期笔数'], ['抓取时间', '序号', '留言者ID', '留言者昵称', '留言日期', '留言时间', '留言内容'], ['抓取时间', '序号', '催收时间', '联系人', '描述'])
 
 #----------------------------------------------
 def createWriters(filedirectory, prefix=''):
@@ -30,8 +31,11 @@ def createWriters(filedirectory, prefix=''):
         flag_newfile = True
         if os.path.isfile(name_sheet):
             flag_newfile = False
-        file_sheet = open(name_sheet, 'wb')
-        file_sheet.write('\xEF\xBB\xBF')
+        if PY3:
+            file_sheet = open(name_sheet, 'w', newline='')
+        else:
+            file_sheet = open(name_sheet, 'wb')
+            file_sheet.write('\xEF\xBB\xBF')
 
         writer = csv.writer(file_sheet)
         writers.append(writer)
@@ -54,26 +58,26 @@ class DataFetcher(threading.Thread):
             curPage = pageNo
             pageNo += 1
             pageLock.release()
-            print('Thread '+str(self.tId)+': downloading Loan: '+str(curPage)+'...')
-            req = urllib2.Request(urlLoan+str(curPage), headers = getRandomHeaders())
+            print(('Thread '+str(self.tId)+': downloading Loan: '+str(curPage)+'...'))
+            req = urllib.request.Request(urlLoan+str(curPage), headers = getRandomHeaders())
             try:
-                response = urllib2.urlopen(req)
+                response = urllib.request.urlopen(req)
                 m = response.read()
                 #response.close()
-            except (urllib2.URLError) as e:
+            except (urllib.error.URLError) as e:
                 if hasattr(e, 'code'):
-                    print(str(e.code)+': '+str(e.reason))
+                    print((str(e.code)+': '+str(e.reason)))
                 else:
-                    print(e.reason)
+                    print((e.reason))
                 continue
             except socket.error as e:
-                print('ERROR] Socket error: '+str(e.errno))
+                print(('ERROR] Socket error: '+str(e.errno)))
                 continue
             #end try&except
             if analyzeData(m, writers):
                 lostPageCount = 0
             else:
-                print('Loan '+str(curPage)+' is LOST!')
+                print(('Loan '+str(curPage)+' is LOST!'))
                 lostPageCount += 1
                 if(lostPageCount > LOST_PAGE_LIMIT):
                     exitFlag = True
@@ -90,10 +94,10 @@ def getData(begin_page, end_page, filedirectory):
     writers = createWriters(filedirectory, 'rrdai_'+str(begin_page)+'-'+str(end_page))
 
     for i in range(begin_page, end_page+1):
-        print('Downloading Loan ID:'+str(i)+'...')
-        req = urllib2.Request(urlLoan+str(i), headers = getRandomHeaders())
+        print(('Downloading Loan ID:'+str(i)+'...'))
+        req = urllib.request.Request(urlLoan+str(i), headers = getRandomHeaders())
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             m = response.read()
             #print(m)
             lastpage = i
@@ -102,15 +106,15 @@ def getData(begin_page, end_page, filedirectory):
                 print('webcontent too short!')
                 login()
                 continue
-        except (urllib2.URLError) as e:
+        except (urllib.error.URLError) as e:
             if hasattr(e, 'code'):
-                print(str(e.code)+': '+str(e.reason))
+                print((str(e.code)+': '+str(e.reason)))
             else:
-                print(e.reason)
+                print((e.reason))
             i = lastpage
             continue
         except socket.error as e:
-            print('ERROR] Socket error: '+str(e.errno))
+            print(('ERROR] Socket error: '+str(e.errno)))
             i = lastpage 
             continue
         #end try&except
@@ -126,7 +130,7 @@ def getData(begin_page, end_page, filedirectory):
     #end for
     
     endtime = time.clock()
-    print(u'[execute time]:'+str(endtime-starttime)+'s')
+    print(('[execute time]:'+str(endtime-starttime)+'s'))
     return
 #end def getData()
         
@@ -135,7 +139,7 @@ def getInput():
     global startID, endID
     while True:
         try:
-            raw_startID = raw_input('Input start order ID:')
+            raw_startID = input('Input start order ID:')
             startID = int(raw_startID)
             if startID < 1:
                 print('Start ID illegal! Please input again!')
@@ -149,7 +153,7 @@ def getInput():
             continue
     while True:
         try:
-            raw_endID = raw_input('Input end order ID:')
+            raw_endID = input('Input end order ID:')
             endID = int(raw_endID)
             if endID < 1:
                 print('End ID illegal! Please input again!')
@@ -170,21 +174,26 @@ threadCount = 1 #并发线程数
 exitFlag = False
 lostPageCount = 0
 sleepTime = 2
+PY3 = True
 #----------------------------
 #main
 if __name__=='__main__':
-    reload(sys)
-    sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
+    if sys.version > '3':
+        PY3 = True
+    else:
+        PY3 = False
+    importlib.reload(sys)
+    #sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
     #reset timeout
     timeout = 100
     socket.setdefaulttimeout(timeout)
 
-    httplib.HTTPConnection._http_vsn = 10
-    httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+    http.client.HTTPConnection._http_vsn = 10
+    http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
-    print '*******************************'
-    print '* Renrendai Loan Spider v1231 *'
-    print '*******************************'
+    print('*******************************')
+    print('* Renrendai Loan Spider v1231 *')
+    print('*******************************')
     config = getConfig()
     filedirectory = config[0]
     threadnumber = config[1]
@@ -203,10 +212,10 @@ if __name__=='__main__':
     threadCount = int(args.threadCount)
 
     if login():
-        print '------------INPUT INFORMATION---------------------'
-        print '- StartID = '+str(startID)
-        print '- EndID   = '+str(endID)
-        print '------------INPUT INFORMATION---------------------'
+        print('------------INPUT INFORMATION---------------------')
+        print('- StartID = '+str(startID))
+        print('- EndID   = '+str(endID))
+        print('------------INPUT INFORMATION---------------------')
         
         startTime = time.clock()
         pageNo = startID
@@ -214,7 +223,7 @@ if __name__=='__main__':
         #getData(startID, endID, filedirectory)
         threads = []
         writers = createWriters(filedirectory, str(startID)+'-'+str(endID))
-        for i in xrange(threadCount):
+        for i in range(threadCount):
             thread = DataFetcher(i+1, writers)
             threads.append(thread)
         for t in threads:
@@ -226,9 +235,9 @@ if __name__=='__main__':
         
         for t in threads:
             t.join()
-        print 'Exiting Main Thread'
+        print('Exiting Main Thread')
         endTime = time.clock()
-        print('[Total order number]:'+str(pageNo-startID))
-        print(u'[Total execute time]:'+str(endTime-startTime)+'s')
+        print(('[Total order number]:'+str(pageNo-startID)))
+        print(('[Total execute time]:'+str(endTime-startTime)+'s'))
         os.system('pause')
 #end main

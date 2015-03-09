@@ -3,27 +3,28 @@
 
 __author__ = "Wang Miaofei"
 
-import urllib, urllib2, cookielib, httplib
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.cookiejar, http.client
 import sys, string, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket
 from tools_renrendai import *
+import imp
 
 #constant
 LOST_PAGE_LIMIT = int(20)
 
 #for crawl
-urlLoan = u'http://www.renrendai.com/lend/detailPage.action?loanId='
-urlUList_json = u'https://www.renrendai.com/financeplan/listPlan!listPlanJson.action?category='
-urlUP = u'http://www.renrendai.com/financeplan/listPlan!detailPlan.action?financePlanId='
+urlLoan = 'http://www.renrendai.com/lend/detailPage.action?loanId='
+urlUList_json = 'https://www.renrendai.com/financeplan/listPlan!listPlanJson.action?category='
+urlUP = 'http://www.renrendai.com/financeplan/listPlan!detailPlan.action?financePlanId='
 fpFolder = 'FinancePlan/'
 #filedirectory = u'D:\datas\pythondatas\renrendai\\'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36', 'Host':'www.renrendai.com'}
 jsonheaders={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36', 'Host':'www.renrendai.com', 'X-Requested-With':'XMLHttpRequest'}
 
-sheetName = [u'outline', u'plan', u'plan_preorder', u'plan_order']
-titles = ([u'抓取时间', u'计划名称', u'计划id', u'计划金额（元）', u'加入人次', u'预期年化收益', u'累计收益（元）', u'状态'], [u'抓取时间', u'计划名称',u'计划ID', u'计划金额', u'预期收益（%/年）', u'投标范围', u'保障方式', u'计划状态', u'锁定期限（月）', u'加入条件（元）', u'加入上限（元）', u'预定开始时间', u'预定结束时间', u'支付截止时间', u'开放加入时间', u'进入锁定时间', u'退出时间', u'加入费率', u'管理费率', u'退出费率', u'提前退出费率', u'预定人次', u'未支付金额', u'加入总人次', u'加入总金额', u'满额用时', u'自动投标次数', u'为用户赚取', u'平均利率',u'帮助借款者人数'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人id', u'加入金额', u'预定时间', u'来源', u'状态'], [u'计划名称', u'计划id', u'理财人昵称', u'理财人ID', u'加入金额', u'加入时间'], [u'抓取时间', u'计划名称', u'计划id', u'发布时间', u'计划金额', u'自动投标次数', u'帮助借款用户', u'为用户赚取', u'加入人数', u'满额用时'])
+sheetName = ['outline', 'plan', 'plan_preorder', 'plan_order']
+titles = (['抓取时间', '计划名称', '计划id', '计划金额（元）', '加入人次', '预期年化收益', '累计收益（元）', '状态'], ['抓取时间', '计划名称','计划ID', '计划金额', '预期收益（%/年）', '投标范围', '保障方式', '计划状态', '锁定期限（月）', '加入条件（元）', '加入上限（元）', '预定开始时间', '预定结束时间', '支付截止时间', '开放加入时间', '进入锁定时间', '退出时间', '加入费率', '管理费率', '退出费率', '提前退出费率', '预定人次', '未支付金额', '加入总人次', '加入总金额', '满额用时', '自动投标次数', '为用户赚取', '平均利率','帮助借款者人数'], ['计划名称', '计划id', '理财人昵称', '理财人id', '加入金额', '预定时间', '来源', '状态'], ['计划名称', '计划id', '理财人昵称', '理财人ID', '加入金额', '加入时间'], ['抓取时间', '计划名称', '计划id', '发布时间', '计划金额', '自动投标次数', '帮助借款用户', '为用户赚取', '加入人数', '满额用时'])
 
 #----------------------------------------------
 def createWriters(filedirectory, prefix=''):
@@ -46,7 +47,7 @@ def createWriters(filedirectory, prefix=''):
 #------------------------------------------------
 def getList():
     for X in ['A', 'B', 'C']:
-        print(u'抓取U计划'+X+'...')
+        print(('抓取U计划'+X+'...'))
         pageIndex = 1
         while(True):
             m = readFromUrl(urlUList_json+X+'&pageIndex='+str(pageIndex), headers = jsonheaders)
@@ -62,12 +63,12 @@ def getList():
                 currentTime = getTime('%Y/%m/%d %H:%M:%S')
                 stateCode = item['status']
                 state = stateCode
-                if stateCode == '6': state = u'收益中'
-                elif stateCode == '2': state = u'预定满额'
-                elif stateCode == '7': state = u'开放期'
-                elif stateCode == '0': state = u'等待预定'
-                elif stateCode == '5': state = u'计划满额'
-                elif stateCode == '8': state = u'收益中' #奇怪的问题，U计划id 76
+                if stateCode == '6': state = '收益中'
+                elif stateCode == '2': state = '预定满额'
+                elif stateCode == '7': state = '开放期'
+                elif stateCode == '0': state = '等待预定'
+                elif stateCode == '5': state = '计划满额'
+                elif stateCode == '8': state = '收益中' #奇怪的问题，U计划id 76
                     
                 buffer = [currentTime, item['name'], item['id'], item['amount'], item['subPointCount'], item['expectedYearRate'], item['earnInterest'], state]
                 writers[0].writerow(buffer)
@@ -89,23 +90,23 @@ def getData(begin_phase, end_phase, filedirectory):
     writers = createWriters(filedirectory+fpFolder, 'FP_'+str(begin_phase)+'-'+str(end_phase))
 
     for i in range(begin_phase, end_phase+1):
-        print('Getting No.'+str(i)+' Financial Plan...')
-        req = urllib2.Request(urlFP+str(i), headers = getRandomHeaders())
+        print(('Getting No.'+str(i)+' Financial Plan...'))
+        req = urllib.request.Request(urlFP+str(i), headers = getRandomHeaders())
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             m = response.read()
             #print(m)
             #lastpage = i
             #response.close()
-        except (urllib2.URLError) as e:
+        except (urllib.error.URLError) as e:
             if hasattr(e, 'code'):
-                print(str(e.code)+': '+str(e.reason))
+                print((str(e.code)+': '+str(e.reason)))
             else:
-                print(e.reason)
+                print((e.reason))
             #i = lastpage
             continue
         except socket.error as e:
-            print('ERROR] Socket error: '+str(e.errno))
+            print(('ERROR] Socket error: '+str(e.errno)))
             #i = lastpage 
             continue
         #end try&except
@@ -113,12 +114,12 @@ def getData(begin_phase, end_phase, filedirectory):
         if analyzeFPData(m, i, writers):
             lostPageCount = 0
         else:
-            print('[ERROR] Financial plan No.'+str(i)+' has not established!')
+            print(('[ERROR] Financial plan No.'+str(i)+' has not established!'))
             break
     #end for
     
     endtime = time.clock()
-    print(u'[execute time]:'+str(endtime-starttime)+'s')
+    print(('[execute time]:'+str(endtime-starttime)+'s'))
     return
 #end def getData()
         
@@ -127,7 +128,7 @@ def getInput():
     global startID, endID
     while True:
         try:
-            raw_startID = raw_input('Input start Financial Plan ID:')
+            raw_startID = input('Input start Financial Plan ID:')
             startID = int(raw_startID)
             if startID < 1:
                 print('Start ID illegal! Please input again!')
@@ -141,7 +142,7 @@ def getInput():
             continue
     while True:
         try:
-            raw_endID = raw_input('Input last  Financial Plan ID:')
+            raw_endID = input('Input last  Financial Plan ID:')
             endID = int(raw_endID)
             if endID < 1:
                 print('Last ID illegal! Please input again!')
@@ -161,16 +162,16 @@ writers = []
 #----------------------------
 #main
 if __name__ == '__main__':
-    reload(sys)
+    imp.reload(sys)
     sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
     timeout = 100
     socket.setdefaulttimeout(timeout)
-    httplib.HTTPConnection._http_vsn = 10
-    httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+    http.client.HTTPConnection._http_vsn = 10
+    http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
-    print '***************************************'
-    print '*Renrendai U Finance Plan Spider v1117*'
-    print '***************************************'
+    print('***************************************')
+    print('*Renrendai U Finance Plan Spider v1117*')
+    print('***************************************')
 
     filedirectory = getConfig()[0]
     if login():

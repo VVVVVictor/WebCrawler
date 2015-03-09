@@ -3,26 +3,27 @@
 
 __author__ = "Wang Miaofei"
 
-import urllib, urllib2, cookielib, httplib, threading
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.cookiejar, http.client, threading
 import sys, string, time, os, re, argparse
 import csv
 from bs4 import BeautifulSoup
 import socket
 from tools_renrendai import *
+import imp
 
 #constant
 LOST_PAGE_LIMIT = int(30)
 
 #for crawl
-urlUser = u'https://www.renrendai.com/account/myInfo.action?userId='
+urlUser = 'https://www.renrendai.com/account/myInfo.action?userId='
 urlLoanList = 'https://www.renrendai.com/account/myInfo!userDetailLoanList.action?userId='
-urlFP = u'http://www.renrendai.com/financeplan/listPlan!detailPlan.action?financePlanId='
+urlFP = 'http://www.renrendai.com/financeplan/listPlan!detailPlan.action?financePlanId='
 userFolder = 'Users/'
 
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36', 'Host':'www.renrendai.com'}
 
-sheetName = [u'用户信息', u'借款列表']
-titles = ([u'抓取日期', u'抓取时间', u'用户ID', u'用户昵称', u'注册时间', u'信用等级', u'信用分数', u'持有债权数量', u'持有理财计划数量', u'发布借款数量', u'成功借款数量', u'未还清借款数量', u'逾期次数', u'逾期金额', u'严重逾期笔数'],[u'抓取日期', u'抓取时间', u'用户ID', u'用户昵称', u'借款标题', u'借款ID', u'年利率（%）', u'金额（元）', u'期限（月）', u'是否有逾期记录', u'借款日期', u'借款开始时刻', u'状态'])
+sheetName = ['用户信息', '借款列表']
+titles = (['抓取日期', '抓取时间', '用户ID', '用户昵称', '注册时间', '信用等级', '信用分数', '持有债权数量', '持有理财计划数量', '发布借款数量', '成功借款数量', '未还清借款数量', '逾期次数', '逾期金额', '严重逾期笔数'],['抓取日期', '抓取时间', '用户ID', '用户昵称', '借款标题', '借款ID', '年利率（%）', '金额（元）', '期限（月）', '是否有逾期记录', '借款日期', '借款开始时刻', '状态'])
 
 #----------------------------------------------
 def createWriters(filedirectory, prefix=''):
@@ -58,28 +59,28 @@ class DataFetcher(threading.Thread):
                 exitFlag = True
                 break
             curPage = curID
-            print('Thread '+str(self.tId)+': downloading User: '+str(curID)+'...')
-            req = urllib2.Request(urlUser+str(curID), headers = getRandomHeaders())
+            print(('Thread '+str(self.tId)+': downloading User: '+str(curID)+'...'))
+            req = urllib.request.Request(urlUser+str(curID), headers = getRandomHeaders())
             pageLock.release()
             try:
-                response = urllib2.urlopen(req)
+                response = urllib.request.urlopen(req)
                 m = response.read()
                 #print m
                 #response.close()
-            except (urllib2.URLError) as e:
+            except (urllib.error.URLError) as e:
                 if hasattr(e, 'code'):
-                    print(str(e.code)+': '+str(e.reason))
+                    print((str(e.code)+': '+str(e.reason)))
                 else:
-                    print(e.reason)
+                    print((e.reason))
                 continue
             except socket.error as e:
-                print('ERROR] Socket error: '+str(e.errno))
+                print(('ERROR] Socket error: '+str(e.errno)))
                 continue
             #end try&except
             if getUserData(m, curPage, writers):
                 lostPageCount = 0
             else:
-                print('User '+str(curPage)+' is LOST!')
+                print(('User '+str(curPage)+' is LOST!'))
                 lostPageCount += 1
                 if(lostPageCount > LOST_PAGE_LIMIT):
                     exitFlag = True
@@ -127,7 +128,7 @@ def getUserData(webcontent, userID, writers):
     overDueCount = tag_overDueCount.find('em').get_text()
     bb.append(overDueCount)
     tag_last = tag_overDueCount
-    for i in xrange(5):
+    for i in range(5):
         tag_next = tag_last.find_next('dd')
         bb.append(tag_next.find('em').get_text())
     buffer_user.extend([bb[1],bb[0], bb[3], bb[2], bb[5], bb[4]])
@@ -137,7 +138,7 @@ def getUserData(webcontent, userID, writers):
     
     ###借款列表
     pageIndex = 1
-    for pageIndex in xrange(1, int(bb[3])/20+2):
+    for pageIndex in range(1, int(bb[3])/20+2):
         tryCount = 0;
         while(tryCount < 5):
             tryCount += 1
@@ -145,7 +146,7 @@ def getUserData(webcontent, userID, writers):
             if(loanListString != "null"):break
         #end while
         if(loanListString == "null"):
-            print(str(userID)+" User detail loan list Error!")
+            print((str(userID)+" User detail loan list Error!"))
             return
         loanListRecords = json.loads(loanListString)
         list_userLoan = loanListRecords['data']['loanList']
@@ -197,23 +198,23 @@ def getData(begin_phase, end_phase, filedirectory):
     writers = createWriters(filedirectory+fpFolder, 'FP_'+str(begin_phase)+'-'+str(end_phase))
 
     for i in range(begin_phase, end_phase+1):
-        print('Getting No.'+str(i)+' Financial Plan...')
-        req = urllib2.Request(urlFP+str(i), headers = getRandomHeaders())
+        print(('Getting No.'+str(i)+' Financial Plan...'))
+        req = urllib.request.Request(urlFP+str(i), headers = getRandomHeaders())
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             m = response.read()
             #print(m)
             #lastpage = i
             #response.close()
-        except (urllib2.URLError) as e:
+        except (urllib.error.URLError) as e:
             if hasattr(e, 'code'):
-                print(str(e.code)+': '+str(e.reason))
+                print((str(e.code)+': '+str(e.reason)))
             else:
-                print(e.reason)
+                print((e.reason))
             #i = lastpage
             continue
         except socket.error as e:
-            print('ERROR] Socket error: '+str(e.errno))
+            print(('ERROR] Socket error: '+str(e.errno)))
             #i = lastpage 
             continue
         #end try&except
@@ -221,12 +222,12 @@ def getData(begin_phase, end_phase, filedirectory):
         if analyzeFPData(m, i, writers):
             lostPageCount = 0
         else:
-            print('[ERROR] Financial plan No.'+str(i)+' has not established!')
+            print(('[ERROR] Financial plan No.'+str(i)+' has not established!'))
             break
     #end for
     
     endtime = time.clock()
-    print(u'[execute time]:'+str(endtime-starttime)+'s')
+    print(('[execute time]:'+str(endtime-starttime)+'s'))
     return
 #end def getData()
         
@@ -235,7 +236,7 @@ def getInput():
     global startID, endID
     while True:
         try:
-            raw_startID = raw_input('Input start User ID:')
+            raw_startID = input('Input start User ID:')
             startID = int(raw_startID)
             if startID < 1:
                 print('Start ID illegal! Please input again!')
@@ -249,7 +250,7 @@ def getInput():
             continue
     while True:
         try:
-            raw_endID = raw_input('Input last User ID:')
+            raw_endID = input('Input last User ID:')
             endID = int(raw_endID)
             if endID < 1:
                 print('Last ID illegal! Please input again!')
@@ -272,20 +273,20 @@ lostPageCount = 0
 #----------------------------
 #main
 if __name__=='__main__':
-    reload(sys)
+    imp.reload(sys)
     sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
 
     #reset timeout
     timeout = 100
     socket.setdefaulttimeout(timeout)
 
-    httplib.HTTPConnection._http_vsn = 10
-    httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+    http.client.HTTPConnection._http_vsn = 10
+    http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
 
-    print '***************************************'
-    print '* Renrendai User Spider v0903 *'
-    print '***************************************'
+    print('***************************************')
+    print('* Renrendai User Spider v0903 *')
+    print('***************************************')
     
     config = getConfig()
     filedirectory = config[0]
@@ -305,10 +306,10 @@ if __name__=='__main__':
     threadCount = int(args.threadCount)
     
     if login():
-        print '------------INPUT INFORMATION---------------------'
-        print '- StartID = '+str(startID)
-        print '- EndID   = '+str(endID)
-        print '------------INPUT INFORMATION---------------------'
+        print('------------INPUT INFORMATION---------------------')
+        print('- StartID = '+str(startID))
+        print('- EndID   = '+str(endID))
+        print('------------INPUT INFORMATION---------------------')
         
         startTime = time.clock()
         curID = startID-1
@@ -316,7 +317,7 @@ if __name__=='__main__':
         threads = []
         writers = createWriters(filedirectory+userFolder, 'user_'+str(startID)+'-'+str(endID))
         
-        for i in xrange(threadCount):
+        for i in range(threadCount):
             thread = DataFetcher(i+1, writers)
             threads.append(thread)
         for t in threads:
@@ -330,6 +331,6 @@ if __name__=='__main__':
             t.join()
         print("Exiting Main Thread")
         endTime = time.clock()
-        print('[Total user number]:'+str(curID-startID))
-        print('[Total execute time]:'+str(endTime-startTime)+'s')
+        print(('[Total user number]:'+str(curID-startID)))
+        print(('[Total execute time]:'+str(endTime-startTime)+'s'))
         #getData(startID, endID, filedirectory)
