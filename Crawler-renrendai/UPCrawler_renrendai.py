@@ -9,7 +9,7 @@ import csv
 from bs4 import BeautifulSoup
 import socket
 from tools_renrendai import *
-import imp
+import importlib
 
 #constant
 LOST_PAGE_LIMIT = int(20)
@@ -23,7 +23,7 @@ fpFolder = 'FinancePlan/'
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36', 'Host':'www.renrendai.com'}
 jsonheaders={'Accept':'application/json, text/javascript, */*; q=0.01', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36', 'Host':'www.renrendai.com', 'X-Requested-With':'XMLHttpRequest'}
 
-sheetName = ['outline', 'plan', 'plan_preorder', 'plan_order']
+sheetName = ['1outline', '2plan', '3plan_preorder', '4plan_order']
 titles = (['抓取时间', '计划名称', '计划id', '计划金额（元）', '加入人次', '预期年化收益', '累计收益（元）', '状态'], ['抓取时间', '计划名称','计划ID', '计划金额', '预期收益（%/年）', '投标范围', '保障方式', '计划状态', '锁定期限（月）', '加入条件（元）', '加入上限（元）', '预定开始时间', '预定结束时间', '支付截止时间', '开放加入时间', '进入锁定时间', '退出时间', '加入费率', '管理费率', '退出费率', '提前退出费率', '预定人次', '未支付金额', '加入总人次', '加入总金额', '满额用时', '自动投标次数', '为用户赚取', '平均利率','帮助借款者人数'], ['计划名称', '计划id', '理财人昵称', '理财人id', '加入金额', '预定时间', '来源', '状态'], ['计划名称', '计划id', '理财人昵称', '理财人ID', '加入金额', '加入时间'], ['抓取时间', '计划名称', '计划id', '发布时间', '计划金额', '自动投标次数', '帮助借款用户', '为用户赚取', '加入人数', '满额用时'])
 
 #----------------------------------------------
@@ -32,12 +32,15 @@ def createWriters(filedirectory, prefix=''):
     writers = [] #csv writer list
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     for i in range(1, len(sheetName)+1):
-        name_sheet = filedirectory+prefix+'_'+sheetName[i-1]+'_'+strtime+'.csv'
+        name_sheet = filedirectory+'rrdai_'+sheetName[i-1]+'_'+prefix+'_'+strtime+'.csv'
         flag_newfile = True
         if os.path.isfile(name_sheet):
             flag_newfile = False
-        file_sheet = open(name_sheet, 'wb')
-        file_sheet.write('\xEF\xBB\xBF')
+        if PY3:
+            file_sheet = open(name_sheet, 'w', newline='')
+        else:
+            file_sheet = open(name_sheet, 'wb')
+            file_sheet.write('\xEF\xBB\xBF')
 
         writer = csv.writer(file_sheet)
         writers.append(writer)
@@ -91,7 +94,7 @@ def getData(begin_phase, end_phase, filedirectory):
 
     for i in range(begin_phase, end_phase+1):
         print(('Getting No.'+str(i)+' Financial Plan...'))
-        req = urllib.request.Request(urlFP+str(i), headers = getRandomHeaders())
+        req = urllib.request.Request(urlUP+str(i), headers = getRandomHeaders())
         try:
             response = urllib.request.urlopen(req)
             m = response.read()
@@ -111,7 +114,7 @@ def getData(begin_phase, end_phase, filedirectory):
             continue
         #end try&except
         
-        if analyzeFPData(m, i, writers):
+        if analyzeUPData(m, i, writers):
             lostPageCount = 0
         else:
             print(('[ERROR] Financial plan No.'+str(i)+' has not established!'))
@@ -159,15 +162,20 @@ def getInput():
 startID = 1
 endID = 1000
 writers = []
+PY3 = True
 #----------------------------
 #main
 if __name__ == '__main__':
-    imp.reload(sys)
-    sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
+    if sys.version > '3':
+        PY3 = True
+    else:
+        PY3 = False
+    importlib.reload(sys)
+    #sys.setdefaultencoding('utf-8') #系统输出编码置为utf8
     timeout = 100
     socket.setdefaulttimeout(timeout)
-    http.client.HTTPConnection._http_vsn = 10
-    http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+    #http.client.HTTPConnection._http_vsn = 10
+    #http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
     print('***************************************')
     print('*Renrendai U Finance Plan Spider v1117*')
@@ -177,13 +185,8 @@ if __name__ == '__main__':
     if login():
         writers = createWriters(filedirectory, 'U')
         getList()
-        #getInput()
-        '''
-        print '------------INPUT INFORMATION---------------------'
-        print '- StartID = '+str(startID)
-        print '- EndID   = '+str(endID)
-        print '------------INPUT INFORMATION---------------------'
-        '''
+
+        #for w in writers: w.close()
         #getData(startID, endID, filedirectory)
     os.system('pause')
 #end main

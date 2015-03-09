@@ -240,7 +240,7 @@ def readFromUrl(url, formdata = None, headers = None):
                 if(m == None):
                     continue
                 #TODO:need to close response?
-                return str(m.decode('utf8'))
+                return m.decode('utf8')
             else:
                 print('response is None')
                 return None
@@ -824,14 +824,15 @@ def analyzeUPData(webcontent, planId, writers):
     list_basic1 = planInfo.find('div').find_all('dl', class_='fn-left')
     planAmount = list_basic1[0].em.get_text() #计划金额
     if planAmount:
-        planAmount = list(filter(str.isdigit, planAmount.encode('utf-8'))) #只保留数字
+        planAmount = ''.join(filter(str.isdigit, str(planAmount.encode('utf-8')))) #只保留数字
     expectedRate = list_basic1[1].em.get_text().strip() #预期年化收益
     #lockPeriod = list_basic1[2].em.get_text() #锁定期限
     
     list_basic2 = planInfo.ul.find_all('li', class_='fn-clear')
     list_span1 = list_basic2[0].find_all('span')
     #planProducts = list_span1[1]['data-products'] #投标范围
-    guaranteeMode = list_span1[3].get_text() #保障方式
+    guaranteeMode = list_span1[3].get_text().replace(u"\uf046", "") #保障方式，后面有一个\uf046无法转为GBK
+    #print(guaranteeMode.replace(u"\uf046", ""))
     #list_span2 = list_basic2[1].find_all('span')
     #lockDate = list_span2[1].get_text() #退出日期/锁定日期
     #addLimit = list_span2[3].em.get_text() #加入上限
@@ -851,7 +852,7 @@ def analyzeUPData(webcontent, planId, writers):
     planName = list_tr[0].td.get_text() #名称
     planProducts = list_tr[2].td.get_text() #投标范围
     lockPeriod = list_tr[4].td.get_text() #锁定期
-    lockPeriod = list(filter(str.isdigit, lockPeriod.encode('utf-8')))
+    lockPeriod = ''.join(filter(str.isdigit, str(lockPeriod.encode('utf-8'))))
     quitDate = list_tr[5].td.get_text() #退出日期
     joinCondition = list_tr[6].td.get_text() #加入条件
     joinLimit = list_tr[7].td.get_text() #加入上限
@@ -928,7 +929,7 @@ def analyzeUPData(webcontent, planId, writers):
     leftAmount = soup.find('em', {'id':'max-amount-1'})['data-amount']
     joinAmountLimit = soup.find('em', {'id':'max-amount-2'})['data-amount']
     '''
-    buffer_UP = [currentTime, planName, planId, planAmount, expectedRate, planProducts, guaranteeMode, status, lockPeriod, joinCondition, joinLimit, reserveStart, reserveStop, payDeadline, joinStart, lockStart, quitDate, joinCost, serviceCost, quitCost, earlyquitCost]
+    buffer_UP = [currentTime, planName, planId, str(planAmount), expectedRate, planProducts, guaranteeMode, status, str(lockPeriod), joinCondition, joinLimit, reserveStart, reserveStop, payDeadline, joinStart, lockStart, quitDate, joinCost, serviceCost, quitCost, earlyquitCost]
     #print buffer_FP
     
     
@@ -943,6 +944,7 @@ def analyzeUPData(webcontent, planId, writers):
     buffer_UP.extend(reserveInfo)
     buffer_UP.extend(joinInfo)
     buffer_UP.extend(performance)
+    #print(buffer_UP)
     writers[1].writerow(buffer_UP)
     return True
 #end def analyzeUPData()
@@ -966,7 +968,8 @@ def analyzeReserve(planId, planName, writer):
         
         if(item['reserveType'] == '未支付'):
             reserveNotpayAmount += item['planAmount'] #计算未支付总额
-        buffer_reserve.extend([item['nickName'], item['userId'], item['planAmount'], aTime, tradeMethod, item['reserveType']])
+        buffer_reserve.extend([item['nickName'].encode('gbk', 'ignore').decode('gbk'), item['userId'], item['planAmount'], aTime, tradeMethod, item['reserveType']])
+        if(planId == 142): print(buffer_reserve)
         writer.writerow(buffer_reserve)
     return [len(list_reserve), reserveNotpayAmount]
 #end def analyzeReserve
@@ -997,7 +1000,7 @@ def analyzeUPLender(planId, planName, writer):
         aTime = str2Datetime(item['createTime'], '%Y-%m-%dT%H:%M:%S')
         buffer_lender = [planName, planId]
         reserveHadpayAmount += item['amount']
-        buffer_lender.extend([item['nickName'], item['userId'], item['amount'], aTime])
+        buffer_lender.extend([item['nickName'].encode('gbk', 'ignore').decode('gbk'), item['userId'], item['amount'], aTime])
         writer.writerow(buffer_lender)
     return [len(list_lenders), reserveHadpayAmount]
 #end def analyzeUPLender()
