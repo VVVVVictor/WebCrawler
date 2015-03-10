@@ -178,7 +178,7 @@ if __name__ == '__main__':
     #http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
     print('***************************************')
-    print('*Renrendai U Finance Plan Spider v1117*')
+    print('*Renrendai U Finance Plan Spider v0307*')
     print('***************************************')
 
     filedirectory = getConfig()[0]

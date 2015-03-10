@@ -41,6 +41,7 @@ def createWriters(filedirectory, prefix=''):
         writers.append(writer)
         if flag_newfile:
             writer.writerow(titles[i-1])
+
     return writers
 #------------------------------------------------
 class DataFetcher(threading.Thread):
@@ -78,6 +79,7 @@ class DataFetcher(threading.Thread):
                 lostPageCount = 0
             else:
                 print(('Loan '+str(curPage)+' is LOST!'))
+                lostOrderFile.write(curPage+'\n')
                 lostPageCount += 1
                 if(lostPageCount > LOST_PAGE_LIMIT):
                     exitFlag = True
@@ -216,7 +218,10 @@ if __name__=='__main__':
         print('- StartID = '+str(startID))
         print('- EndID   = '+str(endID))
         print('------------INPUT INFORMATION---------------------')
-        
+
+        strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+        lostOrderFile = open(filedirectory+'/'+'LostOrder_'+strtime+'.txt', 'w') #记录被跳过的loanid
+
         startTime = time.clock()
         pageNo = startID
         pageLock = threading.Lock()
@@ -232,7 +237,8 @@ if __name__=='__main__':
         while(pageNo <= endID):
             pass
         exitFlag = True
-        
+
+        lostOrderFile.close()
         for t in threads:
             t.join()
         print('Exiting Main Thread')

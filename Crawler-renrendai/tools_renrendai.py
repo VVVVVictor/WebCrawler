@@ -254,7 +254,8 @@ def readFromUrl(url, formdata = None, headers = None):
         except Exception as e:
             print('i do not know what is wrong. When readFromUrl()!')
             print(("url = "+url))
-            print((e.errno))
+            import traceback
+            print(traceback.format_exc())
             if hasattr(e, 'code'):
                 print("Error Msg: "+e.code)
             login()
@@ -292,6 +293,9 @@ def responseFromUrl(url, formdata = None, headers = None):
                     login()
                     continue
             break
+        except urllib.error.HTTPError as e:
+            print("HTTP error code "+str(e.code))
+            continue
         except (urllib.error.URLError) as e:
             if hasattr(e, 'code'):
                 print(('ERROR:'+str(e.code)+' '+str(e.reason)))
@@ -301,6 +305,9 @@ def responseFromUrl(url, formdata = None, headers = None):
             else:
                 print((str(e.reason)))
             print(('url = '+url))
+        except http.client.HTTPException as e:
+            print("http exception.")
+            continue
         except http.client.IncompleteRead as e:
             print(('[ERROR]IncompleteRead! '+url))
             continue
@@ -424,7 +431,7 @@ def analyzeData(webcontent, writers):
     buffer1 = [currentTime, loanId, loanType, guarantor, title, amount, interest, months, openTime, beginBidTime, readyTime, passTime, startTime, closeTime, status]
     #print(buffer1)
 
-    #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题 TODO
+    #soup = soup.find('body') #只从body中提取数据，出现了莫名截断的问题
     #print soup
     
     guaranteeType = repayTyep = ''
@@ -969,7 +976,7 @@ def analyzeReserve(planId, planName, writer):
         if(item['reserveType'] == '未支付'):
             reserveNotpayAmount += item['planAmount'] #计算未支付总额
         buffer_reserve.extend([item['nickName'].encode('gbk', 'ignore').decode('gbk'), item['userId'], item['planAmount'], aTime, tradeMethod, item['reserveType']])
-        if(planId == 142): print(buffer_reserve)
+        #if(planId == 142): print(buffer_reserve)
         writer.writerow(buffer_reserve)
     return [len(list_reserve), reserveNotpayAmount]
 #end def analyzeReserve
