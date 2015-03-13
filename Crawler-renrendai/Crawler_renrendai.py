@@ -220,9 +220,9 @@ if __name__=='__main__':
     http.client.HTTPConnection._http_vsn = 10
     http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
-    print('*******************************')
-    print('* Renrendai Loan Spider v1231 *')
-    print('*******************************')
+    print('***********************************')
+    print('* Renrendai Loan Spider v20150313 *')
+    print('***********************************')
     config = getConfig()
     filedirectory = config[0]
     threadnumber = config[1]

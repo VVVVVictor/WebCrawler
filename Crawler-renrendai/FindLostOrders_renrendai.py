@@ -29,9 +29,9 @@ def findLostOrder(path, writer):
 #---------------------------------------------
 
 if __name__ == '__main__':
-    print('******************************************************')
-    print('*Renrendai Tools for Finding lost orders in csv v0307*')
-    print('******************************************************'+'\n')
+    print('**********************************************************')
+    print('*Renrendai Tools for Finding lost orders in csv v20150313*')
+    print('**********************************************************'+'\n')
     raw_input = input('Input the name of folder:')
     strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
     writer = open(os.getcwd()+"/"+'LostOrder_'+raw_input+'_'+strtime+'.txt', 'w')
