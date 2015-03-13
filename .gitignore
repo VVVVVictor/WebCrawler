@@ -4,6 +4,7 @@ build/
 *.bloom
 *.log
 */datas/
+*/test/
 *#
 *.idea
 

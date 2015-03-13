@@ -9,7 +9,7 @@ import csv
 from bs4 import BeautifulSoup
 import socket
 from tools_renrendai import *
-import importlib
+import importlib, traceback
 
 #constant
 LOST_PAGE_LIMIT = int(20)
@@ -33,11 +33,12 @@ def createWriters(filedirectory, prefix=''):
             flag_newfile = False
         if PY3:
             file_sheet = open(name_sheet, 'w', newline='')
+            #file_sheet = open(name_sheet, 'wb')
         else:
             file_sheet = open(name_sheet, 'wb')
             file_sheet.write('\xEF\xBB\xBF')
 
-        writer = csv.writer(file_sheet)
+        writer = csv.writer(file_sheet, dialect='excel')
         writers.append(writer)
         if flag_newfile:
             writer.writerow(titles[i-1])
@@ -57,8 +58,8 @@ class DataFetcher(threading.Thread):
                 exitFlag = True
                 break
             curPage = pageNo
-            pageNo += 1
-            pageLock.release()
+            #pageNo += 1
+            #pageLock.release()
             print(('Thread '+str(self.tId)+': downloading Loan: '+str(curPage)+'...'))
             req = urllib.request.Request(urlLoan+str(curPage), headers = getRandomHeaders())
             try:
@@ -67,23 +68,49 @@ class DataFetcher(threading.Thread):
                 #response.close()
             except (urllib.error.URLError) as e:
                 if hasattr(e, 'code'):
-                    print((str(e.code)+': '+str(e.reason)))
+                    print('DataFetcher: URLError: '+(str(e.code)+': '+str(e.reason)))
                 else:
-                    print((e.reason))
+                    print('DataFetcher: URLError: '+(e.reason))
+                pageLock.release()
                 continue
             except socket.error as e:
-                print(('ERROR] Socket error: '+str(e.errno)))
+                print(('DataFetcher: Socket error: '+str(e.errno)))
+                pageLock.release()
                 continue
+
+            pageNo += 1
+            pageLock.release() #放在这里，这样如果try部分出错，pageNo不会增加
             #end try&except
+            try:
+                flag = analyzeData(m, writers)
+                if flag:
+                    lostPageCount = 0
+                else:
+                    print(('Loan '+str(curPage)+' is LOST!'))
+                    lostOrderFile.write(str(curPage)+'\n')
+                    lostPageCount += 1
+                    if(lostPageCount > LOST_PAGE_LIMIT):
+                        exitFlag = True
+                        print('You have got the latest page!')
+            except Exception as e:
+                #print(e.with_traceback())
+                print("catch exception!")
+                print(traceback.format_exc())
+                print(('Loan '+str(curPage)+' is LOST!'))
+                #print(m.decode('utf8', 'ignore'))
+                lostOrderFile.write(str(curPage)+'\n')
+
+            '''
             if analyzeData(m, writers):
                 lostPageCount = 0
             else:
                 print(('Loan '+str(curPage)+' is LOST!'))
-                lostOrderFile.write(curPage+'\n')
+                lostOrderFile.write(str(curPage)+'\n')
                 lostPageCount += 1
                 if(lostPageCount > LOST_PAGE_LIMIT):
                     exitFlag = True
                     print('You have got the latest page!')
+            '''
             time.sleep(randint(3, 7))
         #end while
 #end class DataFetcher
@@ -227,20 +254,44 @@ if __name__=='__main__':
         pageLock = threading.Lock()
         #getData(startID, endID, filedirectory)
         threads = []
-        writers = createWriters(filedirectory, str(startID)+'-'+str(endID))
-        for i in range(threadCount):
-            thread = DataFetcher(i+1, writers)
-            threads.append(thread)
-        for t in threads:
-            t.start()
-            
-        while(pageNo <= endID):
-            pass
-        exitFlag = True
+        #writers = createWriters(filedirectory, str(startID)+'-'+str(endID))
 
-        lostOrderFile.close()
-        for t in threads:
-            t.join()
+        prefix = str(startID)+'-'+str(endID)
+        writers = [] #csv writer list
+        strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+        filenames = []
+        for i in range(1, len(titles)+1):
+            name_sheet = filedirectory+'rrdai_'+sheetName[i-1]+'_'+prefix+'_'+strtime+'.csv'
+            filenames.append(name_sheet)
+
+        #with multi_file_manager(filenames, 'a+', newline='') as files:
+        with openFiles(filenames, 'a', newline='') as files:
+            i = 0
+            for f in files:
+                writer = csv.writer(f, dialect='excel')
+                writers.append(writer)
+                writer.writerow(titles[i])
+                i += 1
+            for i in range(threadCount):
+                thread = DataFetcher(i+1, writers)
+                threads.append(thread)
+            try:
+                for t in threads:
+                    t.start()
+            
+                while(pageNo <= endID or exitFlag == True):
+                    pass
+                exitFlag = True
+            except KeyboardInterrupt:
+                print("Keyboard Interrupt! Program stop!")
+                exitFlag = True
+                #f.flush()
+                #f.close()
+            else:
+                for t in threads:
+                    t.join()
+
+            lostOrderFile.close()
         print('Exiting Main Thread')
         endTime = time.clock()
         print(('[Total order number]:'+str(pageNo-startID)))

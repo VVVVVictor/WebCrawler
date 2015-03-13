@@ -4,12 +4,13 @@
 __author__ = "Wang Miaofei"
 
 import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.cookiejar
-import sys, string, time, os, re, json
+import sys, string, traceback, time, os, re, json
 import csv
 from bs4 import BeautifulSoup
 import socket, ssl
 from random import randint
 import configparser
+from contextlib import contextmanager
 
 #config
 configfileName = 'config.ini'
@@ -76,6 +77,36 @@ def getConfig(configPath = None):
     
     return [filedirectory, threadnumber]
 #end def getConfig
+
+#--------------------------------------------------
+@contextmanager
+def multi_file_manager(files, mode='w+', newline=''):
+    files = [open(file, mode, newline=newline) for file in files]
+    yield files
+    for file in files:
+        file.flush()
+        file.close()
+#--------------------------------------------------
+class openFiles():
+    def __init__(self, files, mode='w+', newline=''):
+        if(isinstance(files, str)):
+            files = [files]
+
+        #assert(len(files) == len(modes) and len(files) == len(newlines))
+        self.files = files
+        self.mode = mode
+        self.newline = newline
+
+    def __enter__(self):
+        self.fhs = []
+        for f in self.files:
+            self.fhs.append(open(f, mode=self.mode, newline=self.newline))
+        return self.fhs
+
+    def __exit__(self, type, value, traceback):
+        for f in self.fhs:
+            f.close()
+
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def old_getConfig():
@@ -251,13 +282,18 @@ def readFromUrl(url, formdata = None, headers = None):
             print(e.errno)
             login()
             continue
+        except ConnectionResetError as e:
+            print('ConnectionResetError when read:'+url)
+            time.sleep(5)
+            login()
+            continue
         except Exception as e:
             print('i do not know what is wrong. When readFromUrl()!')
             print(("url = "+url))
-            import traceback
             print(traceback.format_exc())
             if hasattr(e, 'code'):
                 print("Error Msg: "+e.code)
+            time.sleep(3)
             login()
             continue
         
@@ -329,6 +365,7 @@ def responseFromUrl(url, formdata = None, headers = None):
     return response
 #--------------------------------------------------
 def analyzeData(webcontent, writers):
+    #print("content length:"+str(len(webcontent)))
     soup = BeautifulSoup(webcontent)
     
     if soup.find('img', {'src':'/exceptions/network-busy/img/404.png'}):
@@ -342,13 +379,28 @@ def analyzeData(webcontent, writers):
     
     ### 分析script ###
     jsonString = soup.find(id = 'credit-info-data').get_text()
+    '''
+    try:
+        jsonString = soup.find(id = 'credit-info-data').get_text()
+    except AttributeError as e:
+        print("Attribute error.")
+        print(webcontent)
+        return False
+    '''
     if jsonString == None:
         print('Cannot get json')
         return True
     #jsonString = jsonString.replace('"[', '[').replace(']"', ']') #多余引号导致分析错误
     #print jsonString
     scriptData = json.loads(jsonString)
-    
+    '''
+    try:
+        scriptData = json.loads(jsonString)
+    except ValueError as e:
+        print("ValueError")
+        print(webcontent)
+        return False
+    '''
     ###本次借款基本信息###
     loanData = scriptData['data']['loan']
     loanId = loanData['loanId']
@@ -507,7 +559,7 @@ def analyzeData(webcontent, writers):
     if workTime=='--': workTime = ''
     carLoan = list_userinfo[14].find(class_='icon-check-checked').next_sibling
     
-    userinfo = [userId, username, sex, age, education, school, marriage, company, companyScale, position, city, workTime, incomeRange, house, houseLoan, car, carLoan, jobType]
+    userinfo = [userId, username.encode('gbk', 'ignore').decode('gbk'), sex, age, education, school, marriage, company, companyScale, position, city, workTime, incomeRange, house, houseLoan, car, carLoan, jobType]
     buffer1.extend(userinfo)
     
     ###信用档案###
@@ -604,7 +656,7 @@ def analyzeData(webcontent, writers):
                 commentDate = time.strftime('%Y-%m-%d', commentFullTime)
                 commentClock = time.strftime('%H:%M:%S', commentFullTime)
             comment = [currentDate, currentClock]
-            comment.extend([item['toLoanId'], item['byUserId'], item['displayName'], commentDate,commentClock, item['content']])
+            comment.extend([item['toLoanId'], item['byUserId'], item['displayName'].encode('gbk', 'ignore').decode('gbk'), commentDate,commentClock, item['content']])
             if 'repliedComments' in item:
                 if item['repliedComments'] != None:
                     reply = item['repliedComments'][0]
@@ -618,7 +670,7 @@ def analyzeData(webcontent, writers):
                         replyClock = time.strftime('%H:%M:%S', replyFullTime)
                     replyUserId = reply['byUserId']
                     replyContent = reply['content']
-                    comment.extend([reply['byUserId'], reply['displayName'], replyDate, replyClock, reply['content']])
+                    comment.extend([reply['byUserId'], reply['displayName'].encode('gbk', 'ignore').decode('gbk'), replyDate, replyClock, reply['content']])
             
             writers[6].writerow(comment)
         if(len(list_comments) < 10):
@@ -666,7 +718,7 @@ def analyzeLenderData(loanId, writer, attrs):
             mobileTrade = '1'
         buffer_lenderRecords = []
         buffer_lenderRecords.extend(attrs)
-        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'], mobileTrade, item['amount'], lendTime, lenderType, financePlanId])
+        buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'].encode('gbk', 'ignore').decode('gbk'), mobileTrade, item['amount'], lendTime, lenderType, financePlanId])
         #print buffer_lenderRecords
         writer.writerow(buffer_lenderRecords)
 #end def analyzeLenderData
@@ -756,7 +808,7 @@ def analyzeLenderInfoData(loanId, writer, attrs):
                 
         buffer_lenderInfo = []
         buffer_lenderInfo.extend(attrs)
-        buffer_lenderInfo.extend([loanId, item['userId'], item['nickName'], item['leftAmount'], item['share'], lenderType, financePlanId])
+        buffer_lenderInfo.extend([loanId, item['userId'], item['nickName'].encode('gbk', 'ignore').decode('gbk'), item['leftAmount'], item['share'], lenderType, financePlanId])
         writer.writerow(buffer_lenderInfo)
 #end def analyzeLenderInfoData()
 
@@ -787,7 +839,7 @@ def analyzeTransferData(loanId, writer, attrs):
         transferTime = str2Datetime(item['createTime'], '%Y-%m-%dT%H:%M:%S')
         buffer_transferLog = []
         buffer_transferLog.extend(attrs)
-        buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'], item['fromUserId'], item['fromNickName'], item['fromFinancePlanId'], item['price'], item['share'], transferTime])
+        buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'].encode('gbk', 'ignore').decode('gbk'), item['fromUserId'], item['fromNickName'].encode('gbk', 'ignore').decode('gbk'), item['fromFinancePlanId'], item['price'], item['share'], transferTime])
         writer.writerow(buffer_transferLog)
 #end def analyzeTransferData()
 #-------------------------------------------------------
