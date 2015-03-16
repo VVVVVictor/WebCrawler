@@ -107,6 +107,16 @@ class openFiles():
         for f in self.fhs:
             f.close()
 
+#------------------------------------------------
+'''
+class writer:
+    def writerow(self, row):
+        for item in row:
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+        #row = [s.encode('gbk', 'ignore').decode('gbk') for s in row]
+        self.writer.writerow(row)
+'''
 #--------------------------------------------------
 #读取配置文件，返回目标文件夹地址
 def old_getConfig():
@@ -611,6 +621,10 @@ def analyzeData(webcontent, writers):
     buffer1.extend(data_renzheng)
     buffer1.append(description)
     
+    for index, item in enumerate(buffer1):
+        if(isinstance(item, str)):
+            item = item.encode('gbk', 'ignore').decode('gbk')
+            buffer1[index] = item
     writers[0].writerow(buffer1)
     
     basicInfo = [currentTime]
@@ -671,7 +685,11 @@ def analyzeData(webcontent, writers):
                     replyUserId = reply['byUserId']
                     replyContent = reply['content']
                     comment.extend([reply['byUserId'], reply['displayName'].encode('gbk', 'ignore').decode('gbk'), replyDate, replyClock, reply['content']])
-            
+                    
+            for index, item in enumerate(comment):
+                if(isinstance(item, str)):
+                    item = item.encode('gbk', 'ignore').decode('gbk')
+                    comment[index] = item
             writers[6].writerow(comment)
         if(len(list_comments) < 10):
             break
@@ -720,6 +738,10 @@ def analyzeLenderData(loanId, writer, attrs):
         buffer_lenderRecords.extend(attrs)
         buffer_lenderRecords.extend([item['loanId'], item['userId'], item['userNickName'].encode('gbk', 'ignore').decode('gbk'), mobileTrade, item['amount'], lendTime, lenderType, financePlanId])
         #print buffer_lenderRecords
+        for index, item in enumerate(buffer_lenderRecords):
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+                buffer_lenderRecords[index] = item
         writer.writerow(buffer_lenderRecords)
 #end def analyzeLenderData
 #-------------------------------------------------
@@ -749,6 +771,11 @@ def analyzeRepayData(loanId, writer, attrs):
         buffer_repayDetail = []
         buffer_repayDetail.extend(attrs)
         buffer_repayDetail.extend([loanId, repayTime, item['repayType'], item['unRepaidAmount'], item['repaidFee'], actualRepayTime])
+        
+        for index, item in enumerate(buffer_repayDetail):
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+                buffer_repayDetail[index] = item
         writer.writerow(buffer_repayDetail)
     
 #end def analyzeRepayData
@@ -776,6 +803,11 @@ def analyzeCollectionData(loanId, writer, attrs):
         buffer_collection = []
         buffer_collection.extend(attrs)
         buffer_collection.extend([loanId, time, item['contact'], item['description']])
+        
+        for index, item in enumerate(buffer_collection):
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+                buffer_collection[index] = item
         writer.writerow(buffer_collection)
 #end def analyzeCollectionData()
 #---------------------------------------------------
@@ -809,6 +841,11 @@ def analyzeLenderInfoData(loanId, writer, attrs):
         buffer_lenderInfo = []
         buffer_lenderInfo.extend(attrs)
         buffer_lenderInfo.extend([loanId, item['userId'], item['nickName'].encode('gbk', 'ignore').decode('gbk'), item['leftAmount'], item['share'], lenderType, financePlanId])
+        
+        for index, item in enumerate(buffer_lenderInfo):
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+                buffer_lenderInfo[index] = item
         writer.writerow(buffer_lenderInfo)
 #end def analyzeLenderInfoData()
 
@@ -840,6 +877,11 @@ def analyzeTransferData(loanId, writer, attrs):
         buffer_transferLog = []
         buffer_transferLog.extend(attrs)
         buffer_transferLog.extend([loanId, item['toUserId'], item['toNickName'].encode('gbk', 'ignore').decode('gbk'), item['fromUserId'], item['fromNickName'].encode('gbk', 'ignore').decode('gbk'), item['fromFinancePlanId'], item['price'], item['share'], transferTime])
+        
+        for index, item in enumerate(buffer_transferLog):
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+                buffer_transferLog[index] = item
         writer.writerow(buffer_transferLog)
 #end def analyzeTransferData()
 #-------------------------------------------------------
@@ -865,6 +907,11 @@ def analyzeUserData(userId, writer, attrs):
     
     buffer_user = [currentTime, userId, nickName, registerDate, ownBondsCount, ownFinancePlansCount]
     buffer_user.extend(attrs)
+    
+    for index, item in enumerate(buffer_user):
+        if(isinstance(item, str)):
+            item = item.encode('gbk', 'ignore').decode('gbk')
+            buffer_user[index] = item
     writer.writerow(buffer_user)
 #end analyzeUserData()
 
@@ -1004,6 +1051,11 @@ def analyzeUPData(webcontent, planId, writers):
     buffer_UP.extend(joinInfo)
     buffer_UP.extend(performance)
     #print(buffer_UP)
+    
+    for index, item in enumerate(buffer_UP):
+        if(isinstance(item, str)):
+            item = item.encode('gbk', 'ignore').decode('gbk')
+            buffer_UP[index] = item
     writers[1].writerow(buffer_UP)
     return True
 #end def analyzeUPData()
@@ -1029,6 +1081,11 @@ def analyzeReserve(planId, planName, writer):
             reserveNotpayAmount += item['planAmount'] #计算未支付总额
         buffer_reserve.extend([item['nickName'].encode('gbk', 'ignore').decode('gbk'), item['userId'], item['planAmount'], aTime, tradeMethod, item['reserveType']])
         #if(planId == 142): print(buffer_reserve)
+        
+        for index, item in enumerate(buffer_reserve):
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+                buffer_reserve[index] = item
         writer.writerow(buffer_reserve)
     return [len(list_reserve), reserveNotpayAmount]
 #end def analyzeReserve
@@ -1060,6 +1117,11 @@ def analyzeUPLender(planId, planName, writer):
         buffer_lender = [planName, planId]
         reserveHadpayAmount += item['amount']
         buffer_lender.extend([item['nickName'].encode('gbk', 'ignore').decode('gbk'), item['userId'], item['amount'], aTime])
+        
+        for index, item in enumerate(buffer_lender):
+            if(isinstance(item, str)):
+                item = item.encode('gbk', 'ignore').decode('gbk')
+                buffer_lender[index] = item
         writer.writerow(buffer_lender)
     return [len(list_lenders), reserveHadpayAmount]
 #end def analyzeUPLender()

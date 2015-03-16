@@ -187,6 +187,9 @@ def getInput():
             if endID < 1:
                 print('End ID illegal! Please input again!')
                 continue
+            if endID < startID:
+                print('END ID smaller than START! Please input again!')
+                continue
             break
         except:
             if(raw_endID == ''):
@@ -280,6 +283,8 @@ if __name__=='__main__':
                     t.start()
             
                 while(pageNo <= endID or exitFlag == True):
+                    for f in files:
+                        f.flush()
                     pass
                 exitFlag = True
             except KeyboardInterrupt:
