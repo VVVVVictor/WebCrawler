@@ -51,7 +51,7 @@ class DataFetcher(threading.Thread):
         self.tId = tId
         self.writers = writers
     def run(self):
-        global pageNo, lostPageCount, exitFlag
+        global pageNo, lostPageCount, exitFlag, exceptionPageCount
         while not exitFlag:
             pageLock.acquire()
             if(pageNo > endID):
@@ -83,6 +83,7 @@ class DataFetcher(threading.Thread):
             #end try&except
             try:
                 flag = analyzeData(m, writers)
+                exceptionPageCount = 0
                 if flag:
                     lostPageCount = 0
                 else:
@@ -92,13 +93,19 @@ class DataFetcher(threading.Thread):
                     if(lostPageCount > LOST_PAGE_LIMIT):
                         exitFlag = True
                         print('You have got the latest page!')
+
             except Exception as e:
                 #print(e.with_traceback())
                 print("catch exception!")
                 print(traceback.format_exc())
-                print(('Loan '+str(curPage)+' is LOST!'))
-                #print(m.decode('utf8', 'ignore'))
+                print(('Loan '+str(curPage)+' is LOST by exception!'))
+                exceptionPageCount += 1
                 lostOrderFile.write(str(curPage)+'\n')
+                if(exceptionPageCount > 10):
+                    print('\nLOTS OF PAGES EXCEPTION. WAIT FOR A MINUTE AND PROGRAM WILL CONTIUNUE...')
+                    time.sleep(60)
+                    login()
+                #print(m.decode('utf8', 'ignore'))
 
             '''
             if analyzeData(m, writers):
@@ -205,6 +212,7 @@ pageNo = 0
 threadCount = 1 #并发线程数
 exitFlag = False
 lostPageCount = 0
+exceptionPageCount = 0
 sleepTime = 2
 PY3 = True
 #----------------------------
