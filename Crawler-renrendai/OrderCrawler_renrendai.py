@@ -63,9 +63,9 @@ class DataFetcher(threading.Thread):
                 lostPageCount += 1
                 orderLock.release()
                 continue
-            orderNo += 1
             print(('Thread '+str(self.tId)+': downloading Loan: '+str(curOrder)))
-            orderLock.release()
+            #orderNo += 1
+            #orderLock.release()
             req = urllib.request.Request(urlLoan+str(curOrder), headers = getRandomHeaders())
             try:
                 response = urllib.request.urlopen(req)
@@ -73,19 +73,38 @@ class DataFetcher(threading.Thread):
                 #response.close()
             except (urllib.error.URLError) as e:
                 if hasattr(e, 'code'):
-                    print((str(e.code)+': '+str(e.reason)))
+                    print('   [ERROR] URL error in urlopen().'+(str(e.code)+': '+str(e.reason)))
                 else:
                     print((e.reason))
+                time.sleep(5)
                 continue
             except socket.error as e:
-                print(('   ERROR] Socket error: '+str(e.errno)))
+                print('   [ERROR] Socket error in urlopen().')
+                time.sleep(5)
                 continue
-            #end try&except
-            if analyzeData(m, writers):
+            except Exception as e:
+                print('   [ERROR] Some error in urlopen().')
+                print(traceback.format_exc())
+                time.sleep(5)
                 continue
             else:
-                lostPageCount += 1
-                print(('   [ERROR] Loan '+str(curOrder)+' is LOST!'))
+                orderNo += 1
+            finally:
+                orderLock.release()
+            #end try&except
+
+            try:
+                flag = analyzeData(m, writers)
+                if flag:
+                    lostPageCount = 0;
+                else:
+                    lostPageCount += 1
+                    print(('   [ERROR] Loan '+str(curOrder)+' is LOST!'))
+            except Exception as e:
+                print("   [ERROR] Some error in analyzeData()")
+                print(traceback.format_exc())
+                print(('Loan '+str(curOrder)+' is LOST!'))
+
             time.sleep(randint(1, 7))
         #end while
 #end class DataFetcher
@@ -144,7 +163,7 @@ if __name__=='__main__':
     #http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     
     print('*********************************************************')
-    print('* Renrendai Loan Spider for Individual Orders v20150307 *')
+    print('* Renrendai Loan Spider for Individual Orders v20150326 *')
     print('*********************************************************')
     config = getConfig()
     filedirectory = config[0]
@@ -169,19 +188,41 @@ if __name__=='__main__':
         startTime = time.clock()
         orderLock = threading.Lock()
         threads = []
-        writers = createWriters(filedirectory, 'order')
-        for i in range(threadCount):
-            thread = DataFetcher(i+1, writers)
-            threads.append(thread)
-        for t in threads:
-            t.start()
-            
-        while(orderNo <= orderLen):
-            pass
-        exitFlag = True
-        
-        for t in threads:
-            t.join()
+        #writers = createWriters(filedirectory, 'order')
+        writers = []
+        strtime = str(time.strftime('%Y%m%d%H%M', time.localtime(time.time())))
+        filenames = []
+        prefix = 'order'
+        for i in range(1, len(titles)+1):
+            name_sheet = filedirectory+'rrdai_'+sheetName[i-1]+'_'+prefix+'_'+strtime+'.csv'
+            filenames.append(name_sheet)
+
+        with openFiles(filenames, 'a', newline='') as files:
+            i = 0
+            for f in files:
+                writer = csv.writer(f, dialect='excel')
+                writers.append(writer)
+                writer.writerow(titles[i])
+                i += 1
+            for i in range(threadCount):
+                thread = DataFetcher(i+1, writers)
+                threads.append(thread)
+            try:
+                for t in threads:
+                    t.start()
+                while(orderNo <= orderLen):
+                    for f in files: f.flush()
+                    pass
+                exitFlag = True
+            except KeyboardInterrupt:
+                print("Keyboard Interrupt! Program stop!")
+                exitFlag = True
+            else:
+                for t in threads: t.join()
+
+            orderFile.close()
+
+
         print('Exiting Main Thread')
         endTime = time.clock()
         print(('[Valid order number]:'+str(orderLen-lostPageCount)))

@@ -294,7 +294,7 @@ def readFromUrl(url, formdata = None, headers = None):
             continue
         except ConnectionResetError as e:
             print('ConnectionResetError when read:'+url)
-            time.sleep(5)
+            time.sleep(10)
             login()
             continue
         except Exception as e:
